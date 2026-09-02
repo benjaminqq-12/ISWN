@@ -1,0 +1,33 @@
+{
+  "name": "backendproyecto2026s2",
+  "version": "1.0.0",
+  "description": "Backend de proyecto de Ingenieria de Software 2026-2",
+  "license": "ISC",
+  "author": "Grupo2",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "joi": "^18.2.7",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.3.0",
+    "node-cron": "^4.6.0",
+    "nodemon": "^3.1.14",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "pg": "^8.23.0",
+    "reflect-metadata": "^0.2.2",
+    "rutjs": "^0.1.1",
+    "typeorm": "^1.1.1",
+    "uuid": "^14.0.2"
+  }
+}

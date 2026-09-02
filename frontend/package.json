@@ -1,0 +1,12 @@
+{
+  "name": "frontendproyecto2026s2",
+  "version": "1.0.0",
+  "description": "Frontend de proyecto de Ingenieria de Software 2026-2",
+  "license": "ISC",
+  "author": "Grupo2",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
