@@ -18,7 +18,8 @@ const UsuarioSchema = new EntitySchema({
         email: {
             type: "varchar",
             length: 100,
-        }
+        },
+        
     }
 });
 
