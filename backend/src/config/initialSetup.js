@@ -13,12 +13,16 @@ export async function createUsuarios() {
 
     await userRepository.save([
         userRepository.create({ 
-            nombre: "Administrador", 
-            email: "admin@gmail.com" 
+            rutUsuario: "11111111-1",
+            usuarioNombre: "Administrador", 
+            usuarioEmail: "admin@gmail.com",
+            usuarioPassword: "adminPassword123"
         }),
         userRepository.create({ 
-            nombre: "Usuario1", 
-            email: "user@gmail.com" 
+            rutUsuario: "22222222-2",
+            usuarioNombre: "Usuario1", 
+            usuarioEmail: "user@gmail.com",
+            usuarioPassword: "userPassword123"
         }),
     ]);
     console.log("* => Usuarios iniciales creados exitosamente");
@@ -36,12 +40,29 @@ export async function createAnimales() {
 
     await animalRepository.save([
         animalRepository.create({ 
-            nombre: "Brandy", 
-            chip: true 
+            animalNombre: "Brandy", 
+            chip: true,
+            numeroChip: "982000000123456",
+            peso: 15.5,
+            especie: "Perro",
+            raza: "Mestizo",
+            animalEdad: "3 años",
+            estado: "En Refugio",
+            viaIngreso: "Rescate",
+            estadoGeneralIngreso: "Saludable",
+            fechaIngreso: "2024-01-15"
         }),
         animalRepository.create({ 
-            nombre: "Hachiko", 
-            chip: false 
+            animalNombre: "Hachiko", 
+            chip: false,
+            peso: 8.2,
+            especie: "Perro",
+            raza: "Akita",
+            animalEdad: "1 año",
+            estado: "En Refugio",
+            viaIngreso: "Abandono",
+            estadoGeneralIngreso: "Desnutrición leve",
+            fechaIngreso: "2024-02-10"
         }),
     ]);
     console.log("* => Animales iniciales creados exitosamente");
@@ -59,12 +80,18 @@ export async function createVoluntarios() {
 
     await voluntarioRepository.save([
         voluntarioRepository.create({ 
-            nombre: "Antonia Jerez", 
-            email: "AntoniaJJ@gmail.com" 
+            rutVoluntario: "33333333-3",
+            voluntarioNombre: "Antonia Jerez", 
+            voluntarioEmail: "AntoniaJJ@gmail.com",
+            voluntarioPassword: "password123",
+            rol: "Voluntario"
         }),
         voluntarioRepository.create({ 
-            nombre: "Alejandro Herrera", 
-            email: "Alejandro@gmail.com" 
+            rutVoluntario: "44444444-4",
+            voluntarioNombre: "Alejandro Herrera", 
+            voluntarioEmail: "Alejandro@gmail.com",
+            voluntarioPassword: "password123",
+            rol: "Voluntario"
         }),
     ]);
     console.log("* => Voluntarios iniciales creados exitosamente");

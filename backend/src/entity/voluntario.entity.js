@@ -10,6 +10,12 @@ const VoluntarioSchema = new EntitySchema({
             primary: true,
             generated: true,
         },
+        rutVoluntario: {
+            type: "varchar",
+            length: 12,
+            nullable: false,
+            unique: true,
+        },
         voluntarioNombre: {
             type: "varchar",
             length: 100,
@@ -17,7 +23,7 @@ const VoluntarioSchema = new EntitySchema({
         },
         voluntarioEmail: {
             type: "varchar",
-            length: 100,S
+            length: 100,
         },
         voluntarioPassword: {
             type: "varchar",

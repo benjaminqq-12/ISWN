@@ -14,10 +14,19 @@ const donacionSchema = new EntitySchema({
             type: "int",
             nullable: false,
         },
-        tipo:{
+        categoriaDonacion:{
             type: "varchar",
             length: 15,
             nullable: false,
+        },
+        apadrinado:{
+            type: "boolean",
+            nullable: false,
+            default: false,
+        },
+        detalleInsumo:{
+            type: "text",
+            nullable: true,
         },
         estado:{
             type: "varchar",
@@ -25,7 +34,8 @@ const donacionSchema = new EntitySchema({
             nullable: false,
         },
         fechaTransaccion:{
-            type: "date",
+            type: "timestamp",
+            createDate: true,
             nullable: false,
         },
     },

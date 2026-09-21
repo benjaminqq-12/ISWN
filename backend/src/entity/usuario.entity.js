@@ -10,6 +10,12 @@ const UsuarioSchema = new EntitySchema({
             primary: true,
             generated: true,
         },
+        rutUsuario: {
+            type: "varchar",
+            length: 12,
+            nullable: false,
+            unique: true,
+        },
         usuarioNombre: {
             type: "varchar",
             length: 100,

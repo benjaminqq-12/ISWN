@@ -18,6 +18,12 @@ const animalSchema = new EntitySchema({
         chip: {
             type: "boolean",
             nullable: false,
+            default: false,
+        },
+        numeroChip:{
+            type: "varchar",
+            length: 50,
+            nullable: true,
         },
         peso: {
             type: "float",
@@ -49,7 +55,7 @@ const animalSchema = new EntitySchema({
         },
         estadoGeneralIngreso:{
             type: "varchar",
-            length: 15,
+            length: 100,
             nullable: false,
         },
         fechaIngreso:{
