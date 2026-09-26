@@ -2,8 +2,8 @@
 import { EntitySchema } from "typeorm";
 
 const HistorialMascotaSchema = new EntitySchema({
-    name: "Usuario",
-    tableName: "usuarios",
+    name: "HistorialMascota",
+    tableName: "historialesMascota",
     columns: {
         historialMascota_id: {
             type: "int",
@@ -19,28 +19,31 @@ const HistorialMascotaSchema = new EntitySchema({
             type: "varchar",
             length: 100,
         },
-        historialMascota_fecha:{
+        historialMascota_fecha: {
             type: "date"
         }
     },
     relations: {
         historialAdopcion_mascota: {
-            type: "one-to-one",
-            target: "mascota",
-            joinColumn: { name: mascota_id },
-            nullable: true,
+            type: "many-to-one",
+            target: "Mascota",
+            joinColumn: { name: "mascota_id" },
+            nullable: false,
             onDelete: "CASCADE"
         },
         historialAdopcion_solicitudAdopcion: {
-            type: "one-to-many",
-            target: "solicitudAdopcion",
-            joinColumn: { name: solicitudAdopcion_id },
+            type: "many-to-one",
+            target: "SolicitudAdopcion",
+            joinColumn: { name: "solicitudAdopcion_id" },
+            nullable: true,
             onDelete: "CASCADE"
         },
         historialAdopcion_registradoPorUsuario: {
-            type: "one-to-many",
-            target: "usuario",
-            joinColumn: { name: usuarioId },
+            type: "many-to-one",
+            target: "Usuario",
+            joinColumn: { name: "usuarioId" },
+            nullable: true,
+            onDelete: "SET NULL"
         }
     }
 });
