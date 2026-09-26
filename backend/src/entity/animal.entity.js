@@ -1,11 +1,11 @@
 "use strict";
 import { EntitySchema } from "typeorm";
 
-const UsuarioSchema = new EntitySchema({
-    name: "Usuario",
-    tableName: "usuarios",
+const animalSchema = new EntitySchema({
+    name: "animal",
+    tableName: "animales",
     columns: {
-        usuarioId: {
+        animalId: {
             type: "int",
             primary: true,
             generated: true,
@@ -15,12 +15,12 @@ const UsuarioSchema = new EntitySchema({
             length: 100,
             nullable: false,
         },
-        email: {
-            type: "varchar",
-            length: 100,
+        chip: {
+            type: "boolean",
+            nullable: false,
         },
         
     }
 });
 
-export default UsuarioSchema;
+export default animalSchema;

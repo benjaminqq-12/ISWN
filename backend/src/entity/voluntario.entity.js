@@ -5,7 +5,7 @@ const VoluntarioSchema = new EntitySchema({
     name: "Voluntario",
     tableName: "voluntarios",
     columns: {
-        usuarioId: {
+        voluntarioId: {
             type: "int",
             primary: true,
             generated: true,
