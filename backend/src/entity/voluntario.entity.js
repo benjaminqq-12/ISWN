@@ -3,21 +3,36 @@ import { EntitySchema } from "typeorm";
 
 const VoluntarioSchema = new EntitySchema({
     name: "Voluntario",
-    tableName: "voluntarios",
+    tableName: "Voluntarios",
     columns: {
         voluntarioId: {
             type: "int",
             primary: true,
             generated: true,
         },
-        nombre: {
+        rutVoluntario: {
+            type: "varchar",
+            length: 12,
+            nullable: false,
+            unique: true,
+        },
+        voluntarioNombre: {
             type: "varchar",
             length: 100,
             nullable: false,
         },
-        email: {
+        voluntarioEmail: {
             type: "varchar",
             length: 100,
+        },
+        voluntarioPassword: {
+            type: "varchar",
+            nullable: false,
+        },
+        rol: {
+            type: "varchar",
+            length: 15,
+            nullable: false,
         }
     }
 });

@@ -66,7 +66,7 @@ async function startServer() {
     });
 
   } catch (error) {
-    console.error("Error crítico al iniciar la API:", error);
+    console.error("Error critico al iniciar la API:", error);
   }
 }
 

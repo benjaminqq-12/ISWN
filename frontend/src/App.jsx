@@ -7,7 +7,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<RootLayout />}>
-          {/* El index indica que Home se cargará por defecto al entrar a la raíz "/" */}
+          {/* El index indica que Home se cargara por defecto al entrar a la raiz "/" */}
           <Route index element={<Home />} />
         </Route>
       </Routes>
