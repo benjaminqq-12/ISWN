@@ -1,7 +1,7 @@
 "use strict";
-import { EntitySchema } from "typeorm";
+import { EntitySchema, JoinColumn } from "typeorm";
 
-const UsuarioSchema = new EntitySchema({
+const SolicitudAdopcionSchema = new EntitySchema({
     name: "Usuario",
     tableName: "usuarios",
     columns: {
@@ -15,24 +15,24 @@ const UsuarioSchema = new EntitySchema({
             length: 100,
             nullable: false,
         },
-        SolicitudAadopcion_fechaSolicitud: {
+        solicitudAadopcion_fechaSolicitud: {
             type: "date",
             nullable: false,
         },
-        SolicitudAdopcion_feunionInicial: {
+        solicitudAdopcion_feunionInicial: {
             type: "date",
             nullable: true,
         },
-        SolicitudAadopcion_visitaHogar: {
+        solicitudAadopcion_visitaHogar: {
             type: "date",
             nullable: true,
         },
-        SolicitudAdopcion_resultadoEntrevista: {
+        solicitudAdopcion_resultadoEntrevista: {
             type: "varchar",
             length: 512,
             nullable: true,
         },
-        SolicitudAdopcion_motivoCancelación: {
+        solicitudAdopcion_motivoCancelación: {
             type: "varchar",
             length: 512,
             nullable: true,
@@ -48,7 +48,28 @@ const UsuarioSchema = new EntitySchema({
             onUpdate: "CURRENT_TIMESTAMP",
             nullable: false,
         },
+    },
+    relations: {
+        solicitudAdopcion_mascotaAdoptada: {
+            type: "many-to-one",
+            target: "mascota",
+            joinColumn: { name: mascota_id },
+            nullable: true,
+            onDelete: "CASCADE"
+        },
+        solicitudAdopcion_usuarioAdoptante: {
+            type: "one-to-one",
+            target: "usuario",
+            joinColumn: { name: usuarioId },
+            onDelete: "CASCADE"
+        },
+        solicitudAdopcion_voluntarioResponsable: {
+            type: "one-to-one",
+            targer: "usuario",
+            joinColumn: { name: usuarioId },
+            onDelete: "CASCADE"
+        }
     }
 });
 
-export default UsuarioSchema;
+export default SolicitudAdopcionSchema;
