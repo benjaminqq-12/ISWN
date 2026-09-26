@@ -42,13 +42,12 @@ const EventoSchema = new EntitySchema({
     },
     relations: {
         organizador: {
-            target: "Voluntario",
+            target: "Usuario",
             type: "many-to-one",
             joinColumn: { name: "organizadorId" },
             nullable: false
         }
     },
-
     indices: [
         {
             name: "IDX_FECHA_EVENTO",
