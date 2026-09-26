@@ -10,7 +10,7 @@ const UsuarioSchema = new EntitySchema({
             primary: true,
             generated: true,
         },
-        rutUsuario: {
+        rut: {
             type: "varchar",
             length: 12,
             nullable: false,
@@ -28,8 +28,28 @@ const UsuarioSchema = new EntitySchema({
         usuarioPassword: {
             type: "varchar",
             nullable: false,
+        },
+
+        // integración de los campos de voluntario
+        rol: {
+            type: "varchar",
+            length: 15,
+            nullable: false,
+            default: "Usuario", //valores posibles: "Usuario", "Voluntario", "Admin"
+        },
+        activo: {
+            type: "boolean",
+            default: true,
+            nullable: false,
         }
-    }
+    },
+    // indice para acelerar la busqueda de personal vigente
+    indices: [
+        {
+            name: "IDX_USUARIO_ROL_ACTIVO",
+            columns: ["rol", "activo"]
+        }
+    ]
 });
 
 export default UsuarioSchema;

@@ -62,7 +62,14 @@ const animalSchema = new EntitySchema({
             type: "date",
             nullable: false,
         }
-    }
+    },
+
+    indices: [
+        {
+            name: "IDX_ESTADO_ANIMAL",
+            columns: ["estado"]
+        }
+    ]
 });
 
 export default animalSchema;
