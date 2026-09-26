@@ -32,7 +32,7 @@ export default function RootLayout() {
               </svg>
             </button>
             <div className="avatar">
-              <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&auto=format" alt="avatar" />
+              <img/>
             </div>
           </div>
 
