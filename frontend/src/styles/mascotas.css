@@ -1,0 +1,68 @@
+.mascotas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  padding: 1.5rem 0;
+}
+
+.mascota-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mascota-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mascota-card-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #f1f1f1;
+}
+
+.mascota-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mascota-card-body {
+  padding: 0.9rem 1rem;
+}
+
+.mascota-card-nombre {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.mascota-card-detalle {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.mascota-card-estado {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.estado-en-refugio {
+  background: #e6f7ec;
+  color: #1a7f4b;
+}
+
+.estado-en-cuarentena,
+.estado-en-observación {
+  background: #fdecea;
+  color: #b3261e;
+}
