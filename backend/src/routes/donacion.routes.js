@@ -1,11 +1,11 @@
 "use strict";
 
 import { Router } from "express";
-import donacionRoutes from "./donacion.routes.js";
+import { crearDonacion } from "../controllers/donacion.controller.js";
 
 const router = Router();
 
 router
-    .use("/donacion", donacionRoutes);
+    .post("/", crearDonacion);
 
 export default router;

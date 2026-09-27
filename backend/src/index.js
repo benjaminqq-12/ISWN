@@ -12,8 +12,12 @@ import { fileURLToPath } from "url";
 // importando configuraciones
 import indexRoutes from "./routes/index.routes.js";
 import { cookieKey, HOST, PORT } from "./config/configEnv.js";
-//import { connectDB } from "./config/configDb.js";
+import { connectDB } from "./config/configDb.js";
 import { passportJwtSetup } from "./auth/passport.auth.js";
+import { 
+  createUsuarios, 
+  createAnimales,  
+} from "./config/initialSetup.js";
 
 const app = express();
 
@@ -44,17 +48,23 @@ function configureApp() {
   app.use("/api", indexRoutes);
 }
 
-//funcion arranque
+// funcion arranque
 async function startServer() {
   try {
+    await connectDB();
+
+    await createUsuarios();
+    await createAnimales();
+
     configureApp();
     
     app.listen(PORT, () => {
       console.log(`=> Servidor corriendo en ${HOST}:${PORT}/api`);
       console.log("=> API Iniciada exitosamente");
     });
+
   } catch (error) {
-    console.error("Error crítico al iniciar la API:", error);
+    console.error("Error critico al iniciar la API:", error);
   }
 }
 
