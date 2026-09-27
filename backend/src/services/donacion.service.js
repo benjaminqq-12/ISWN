@@ -9,18 +9,6 @@ export const procesarDonacionService = async(datosDonacion) => {
         const donacionRepository = AppDataSource.getRepository(DonacionSchema);
         const animalRepository = AppDataSource.getRepository(AnimalSchema);
 
-        if(categoriaDonacion === "Dinero"){
-            if(!monto || monto <= 2000){
-                return [null, "El monto de la donacion economica debe ser estrictamente mayor a 2000 pesos."];
-            }
-        }else if(categoriaDonacion === "Insumo"){
-            if(!detalleInsumo || detalleInsumo.trim() === ""){
-                return [null, "Debe especificar que insumos (comida, medicinas, etc.) esta donando."];
-            }
-        }else{
-            return [null, "Categoria de donacion invalida. Especifique 'Dinero' o 'Insumo'."];
-        }
-
         let animalApadrinado = null;
 
         if(animalId){
@@ -33,7 +21,7 @@ export const procesarDonacionService = async(datosDonacion) => {
             }
 
             if(animalApadrinado.estado !== "Disponible"){
-                return [null, `Transaccion denegada: El animal esta en estado '${animalApadrinado.estado}' y no puede ser apadrinado.`];
+                return [null, `Transaccion denegada: El animal está en estado '${animalApadrinado.estado}' y no puede ser apadrinado.`];
             }
         }   
 
@@ -54,7 +42,7 @@ export const procesarDonacionService = async(datosDonacion) => {
         return [donacionGuardada, null];
     }catch(error){
         console.error("Error en procesarDonacionService:", error);
-        return [null, "Error interno al procesar la donacion en la base de datos."];
+        return [null, "Error interno al procesar la donación en la base de datos."];
     }
 
 };

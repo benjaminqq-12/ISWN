@@ -25,7 +25,7 @@ const EventoSchema = new EntitySchema({
         },
         horaInicio: {
             type: "varchar",
-            length: 5,
+            length: 5, // "HH:MM", "14:30"
             nullable: false,
         },
         lugar: {
@@ -35,20 +35,19 @@ const EventoSchema = new EntitySchema({
         },
         estado: {
             type: "varchar",
-            length: 20,
+            length: 20, // "Programado", "Finalizado", "Cancelado"
             nullable: false,
             default: "Programado"
         }
     },
     relations: {
         organizador: {
-            target: "Voluntario",
+            target: "Usuario", 
             type: "many-to-one",
             joinColumn: { name: "organizadorId" },
-            nullable: false
+            nullable: false 
         }
     },
-
     indices: [
         {
             name: "IDX_FECHA_EVENTO",
