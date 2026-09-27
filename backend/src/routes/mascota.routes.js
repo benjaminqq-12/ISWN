@@ -1,12 +1,12 @@
 "use strict";
 import { Router } from "express";
 import {
-  createMascotaController,
+  getMascotasController,
 } from "../controllers/mascota.controller.js";
 
 const router = Router();
 
 router
-  .get("/", getMascotaController);
+  .get("/", getMascotasController);
 
 export default router;

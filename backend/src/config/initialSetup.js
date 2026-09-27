@@ -67,6 +67,46 @@ export async function createAnimales() {
             mascota_estado: "En Refugio",
             mascota_antecedentesPrevios: "Desnutrición leve al ingreso"
         }),
+        mascotaRepository.create({
+            mascota_nombreCompleto: "Misha",
+            mascota_especie: "Gato",
+            mascota_edad: 2,
+            mascota_peso: 4.1,
+            mascota_sexo: "Hembra",
+            mascota_viaIngreso: "Hallazgo en vía pública",
+            mascota_estado: "En Refugio",
+            mascota_antecedentesPrevios: "Sin antecedentes"
+        }),
+        mascotaRepository.create({
+            mascota_nombreCompleto: "Firulais",
+            mascota_especie: "Perro",
+            mascota_edad: 5,
+            mascota_peso: 22.0,
+            mascota_sexo: "Macho",
+            mascota_viaIngreso: "Denuncia municipal",
+            mascota_estado: "En Refugio",
+            mascota_antecedentesPrevios: "Cartilla de vacunas al día"
+        }),
+        mascotaRepository.create({
+            mascota_nombreCompleto: "Luna",
+            mascota_especie: "Gato",
+            mascota_edad: 1,
+            mascota_peso: 3.4,
+            mascota_sexo: "Hembra",
+            mascota_viaIngreso: "Entrega voluntaria",
+            mascota_estado: "En Refugio",
+            mascota_antecedentesPrevios: "Sin antecedentes"
+        }),
+        mascotaRepository.create({
+            mascota_nombreCompleto: "Rocky",
+            mascota_especie: "Perro",
+            mascota_edad: 4,
+            mascota_peso: 18.7,
+            mascota_sexo: "Macho",
+            mascota_viaIngreso: "Otro refugio",
+            mascota_estado: "En Cuarentena",
+            mascota_antecedentesPrevios: "En evaluación veterinaria"
+        }),
     ]);
     console.log("* => Mascotas iniciales creadas exitosamente");
   } catch (error) {
