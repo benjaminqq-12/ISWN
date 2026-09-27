@@ -2,8 +2,8 @@
 import { EntitySchema } from "typeorm";
 
 const MascotaSchema = new EntitySchema({
-    name: "Usuario",
-    tableName: "usuarios",
+    name: "Mascota",
+    tableName: "mascotas",
     columns: {
         mascota_id: {
             type: "int",

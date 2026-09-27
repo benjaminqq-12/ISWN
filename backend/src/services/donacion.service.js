@@ -1,29 +1,29 @@
-import { AppDataSource }  from "../config/configDb.js";
+import { AppDataSource } from "../config/configDb.js";
 import DonacionSchema from "../entity/donacion.entity.js";
-import AnimalSchema from "../entity/animal.entity.js";
+import MascotaSchema from "../entity/mascota.entity.js";
 
-export const procesarDonacionService = async(datosDonacion) => {
-    try{
+export const procesarDonacionService = async (datosDonacion) => {
+    try {
         const { monto, categoriaDonacion, apadrinado, estado, fechaTransaccion, detalleInsumo, usuarioId, animalId } = datosDonacion;
 
         const donacionRepository = AppDataSource.getRepository(DonacionSchema);
-        const animalRepository = AppDataSource.getRepository(AnimalSchema);
+        const mascotaRepository = AppDataSource.getRepository(MascotaSchema);
 
         let animalApadrinado = null;
 
-        if(animalId){
-            animalApadrinado = await animalRepository.findOne({
-                where: { animalId: animalId }
+        if (animalId) {
+            animalApadrinado = await mascotaRepository.findOne({
+                where: { mascota_id: animalId }
             });
 
-            if(!animalApadrinado){
+            if (!animalApadrinado) {
                 return [null, "El animal seleccionado no existe en nuestros registros."];
             }
 
             if(animalApadrinado.estado !== "Disponible"){
-                return [null, `Transaccion denegada: El animal está en estado '${animalApadrinado.estado}' y no puede ser apadrinado.`];
+                return [null, `Transaccion denegada: El animal está en estado '${animalApadrinado.mascota_estado}' y no puede ser apadrinado.`];
             }
-        }   
+        }
 
         const estadoRegistro = apadrinado ? "Activo" : "Completado";
 
@@ -34,15 +34,14 @@ export const procesarDonacionService = async(datosDonacion) => {
             estado: estadoRegistro,
             fechaTransaccion: new Date(),
             usuario: { usuarioId: usuarioId },
-            animal: animalId ? { animalId: animalId } : null
+            animal: animalId ? { mascota_id: animalId } : null
         });
 
         const donacionGuardada = await donacionRepository.save(nuevaDonacion);
 
         return [donacionGuardada, null];
-    }catch(error){
+    } catch (error) {
         console.error("Error en procesarDonacionService:", error);
         return [null, "Error interno al procesar la donación en la base de datos."];
     }
-
 };

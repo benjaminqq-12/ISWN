@@ -16,8 +16,7 @@ import { connectDB } from "./config/configDb.js";
 import { passportJwtSetup } from "./auth/passport.auth.js";
 import { 
   createUsuarios, 
-  createAnimales, 
-  createVoluntarios 
+  createAnimales,  
 } from "./config/initialSetup.js";
 
 const app = express();
@@ -56,7 +55,6 @@ async function startServer() {
 
     await createUsuarios();
     await createAnimales();
-    await createVoluntarios();
 
     configureApp();
     

@@ -48,7 +48,7 @@ const donacionSchema = new EntitySchema({
             nullable: false
         },
         animal: {
-            target: "Animal",
+            target: "Mascota",
             type: "many-to-one",
             joinColumn: { name: "animal_id" },
             nullable: true
