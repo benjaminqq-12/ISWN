@@ -2,8 +2,8 @@
 import { EntitySchema, JoinColumn } from "typeorm";
 
 const SolicitudAdopcionSchema = new EntitySchema({
-    name: "Usuario",
-    tableName: "usuarios",
+    name: "SolicitudAdopcion",
+    tableName: "solicitudesAdopcion",
     columns: {
         solicitudAdopcion_id: {
             type: "int",
@@ -50,26 +50,27 @@ const SolicitudAdopcionSchema = new EntitySchema({
         },
     },
     relations: {
-        solicitudAdopcion_mascotaAdoptada: {
-            type: "many-to-one",
-            target: "mascota",
-            joinColumn: { name: mascota_id },
-            nullable: true,
-            onDelete: "CASCADE"
-        },
-        solicitudAdopcion_usuarioAdoptante: {
-            type: "one-to-one",
-            target: "usuario",
-            joinColumn: { name: usuarioId },
-            onDelete: "CASCADE"
-        },
-        solicitudAdopcion_voluntarioResponsable: {
-            type: "one-to-one",
-            targer: "usuario",
-            joinColumn: { name: usuarioId },
-            onDelete: "CASCADE"
-        }
+    solicitudAdopcion_mascotaAdoptada: {
+        type: "many-to-one",
+        target: "Mascota",
+        joinColumn: { name: "mascotaAdoptada_id" },
+        nullable: true,
+        onDelete: "CASCADE"
+    },
+    solicitudAdopcion_usuarioAdoptante: {
+        type: "many-to-one",
+        target: "Usuario",
+        joinColumn: { name: "usuarioAdoptante_id" },
+        onDelete: "CASCADE"
+    },
+    solicitudAdopcion_voluntarioResponsable: {
+        type: "many-to-one",
+        target: "Usuario",
+        joinColumn: { name: "voluntarioResponsable_id" },
+        nullable: true,
+        onDelete: "CASCADE"
     }
+}
 });
 
 export default SolicitudAdopcionSchema;
