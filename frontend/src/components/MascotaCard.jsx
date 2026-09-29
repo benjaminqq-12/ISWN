@@ -1,6 +1,11 @@
+import { useState } from 'react';
 import '../styles/mascotas.css';
+import SolicitudAdopcionForm from './SolicitudAdopcionForm';
 
 const MascotaCard = ({ mascota }) => {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
+
   const {
     mascota_nombreCompleto,
     mascota_especie,
@@ -26,7 +31,25 @@ const MascotaCard = ({ mascota }) => {
         <span className={`mascota-card-estado estado-${mascota_estado.replaceAll(" ", "-").toLowerCase()}`}>
           {mascota_estado}
         </span>
+
+        {mascota_estado === "En Refugio" && !solicitudEnviada && (
+          <button onClick={() => setMostrarFormulario(true)}>
+            Adoptar
+          </button>
+        )}
+        {solicitudEnviada && <p>Solicitud enviada ✓</p>}
       </div>
+
+      {mostrarFormulario && (
+        <SolicitudAdopcionForm
+          mascota={mascota}
+          onClose={() => setMostrarFormulario(false)}
+          onSuccess={() => {
+            setMostrarFormulario(false);
+            setSolicitudEnviada(true);
+          }}
+        />
+      )}
     </div>
   );
 };
