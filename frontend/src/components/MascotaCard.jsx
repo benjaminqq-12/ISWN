@@ -9,6 +9,11 @@ const MascotaCard = ({ mascota }) => {
     mascota_estado,
     mascota_fotoURL,
   } = mascota;
+  const estadoClass = `estado-${mascota_estado
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replaceAll(" ", "-")
+    .toLowerCase()}`;
 
   return (
     <div className="mascota-card">
@@ -23,7 +28,7 @@ const MascotaCard = ({ mascota }) => {
         <p className="mascota-card-detalle">
           {mascota_especie} · {mascota_edad} {mascota_edad === 1 ? "año" : "años"} · {mascota_sexo}
         </p>
-        <span className={`mascota-card-estado estado-${mascota_estado.replaceAll(" ", "-").toLowerCase()}`}>
+        <span className={`mascota-card-estado ${estadoClass}`}>
           {mascota_estado}
         </span>
       </div>

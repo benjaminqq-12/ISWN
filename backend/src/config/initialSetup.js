@@ -1,4 +1,5 @@
 "use strict";
+import bcrypt from "bcryptjs";
 import { AppDataSource } from "./configDb.js";
 import UsuarioSchema from "../entity/usuario.entity.js";
 import MascotaSchema from "../entity/mascota.entity.js";
@@ -8,28 +9,37 @@ export async function createUsuarios() {
     const userRepository = AppDataSource.getRepository(UsuarioSchema);
     const count = await userRepository.count();
 
-    if (count > 0) return;
+    if (count > 0) {
+      const usuarios = await userRepository.find();
+      for (const usuario of usuarios) {
+        if (!usuario.usuarioPassword.startsWith("$2")) {
+          usuario.usuarioPassword = await bcrypt.hash(usuario.usuarioPassword, 10);
+          await userRepository.save(usuario);
+        }
+      }
+      return;
+    }
 
     await userRepository.save([
         userRepository.create({
             rut: "11111111-1",
             usuarioNombre: "Administrador",
             usuarioEmail: "admin@gmail.com",
-            usuarioPassword: "adminPassword123",
+            usuarioPassword: await bcrypt.hash("adminPassword123", 10),
             rol: "Admin"
         }),
         userRepository.create({
             rut: "22222222-2",
             usuarioNombre: "Antonia Jerez",
             usuarioEmail: "AntoniaJJ@gmail.com",
-            usuarioPassword: "password123",
+            usuarioPassword: await bcrypt.hash("password123", 10),
             rol: "Voluntario"
         }),
         userRepository.create({
             rut: "33333333-3",
             usuarioNombre: "Alejandro Herrera",
             usuarioEmail: "Alejandro@gmail.com",
-            usuarioPassword: "password123",
+            usuarioPassword: await bcrypt.hash("password123", 10),
             rol: "Voluntario"
         }),
     ]);
