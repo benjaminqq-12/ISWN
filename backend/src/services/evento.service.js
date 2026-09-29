@@ -6,7 +6,7 @@ import { MoreThanOrEqual } from "typeorm";
 
 export const crearEventoService = async (datosEvento, creadorId) => {
     try {
-        const { titulo, descripcion, fechaEvento, horaInicio, lugar, organizadorId } = datosEvento;
+        const { titulo, descripcion, categoria, fechaEvento, horaInicio, lugar, organizadorId } = datosEvento;
 
         const eventoRepository = AppDataSource.getRepository(EventoSchema);
         const usuarioRepository = AppDataSource.getRepository(UsuarioSchema);
@@ -30,6 +30,7 @@ export const crearEventoService = async (datosEvento, creadorId) => {
         const nuevoEvento = eventoRepository.create({
             titulo,
             descripcion,
+            categoria,
             fechaEvento,
             horaInicio,
             lugar,
@@ -45,20 +46,23 @@ export const crearEventoService = async (datosEvento, creadorId) => {
     }
 };
 
-export const obtenerEventosService = async () => {
+export const obtenerEventosService = async (filtroCategoria = null) => {
     try {
         const eventoRepository = AppDataSource.getRepository(EventoSchema);
-        
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
 
+        const condiciones = {
+            fechaEvento: MoreThanOrEqual(hoy)
+        };
+
+        if (filtroCategoria && filtroCategoria !== 'todos') {
+            condiciones.categoria = filtroCategoria;
+        }
+
         const eventos = await eventoRepository.find({
-            where: {
-                fechaEvento: MoreThanOrEqual(hoy)
-            },
-            order: {
-                fechaEvento: "ASC" 
-            },
+            where: condiciones,
+            order: { fechaEvento: "ASC" },
             relations:{ "organizador": true }
         });
 
@@ -183,5 +187,100 @@ export const desinscribirUsuarioService = async (eventoId, usuarioId) => {
     } catch (error) {
         console.error("Error en desinscribirUsuarioService:", error);
         return [null, "Error interno al cancelar la inscripción."];
+    }
+};
+
+export const obtenerEventoPorIdService = async (eventoId) => {
+    try {
+        const eventoRepository = AppDataSource.getRepository(EventoSchema);
+        const evento = await eventoRepository.findOne({
+            where: { eventoId },
+            relations: { organizador: true }
+        });
+
+        if (!evento) return [null, "El evento no existe."];
+        return [evento, null];
+    } catch (error) {
+        console.error("error en obtenereventoporidservice:", error);
+        return [null, "Error interno al obtener el evento."];
+    }
+};
+
+export const obtenerMisInscripcionesService = async (usuarioId) => {
+    try {
+        const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
+        // buscamos todas las inscripciones de este usuario y traemos los datos del evento
+        const inscripciones = await inscripcionRepository.find({
+            where: { usuario: { usuarioId } },
+            relations: { evento: true }
+        });
+
+        return [inscripciones, null];
+    } catch (error) {
+        console.error("error en obtenermisinscripcionesservice:", error);
+        return [null, "Error interno al obtener tus inscripciones."];
+    }
+};
+
+export const obtenerInscritosPorEventoService = async (eventoId, usuarioSolicitanteId) => {
+    try {
+        const eventoRepository = AppDataSource.getRepository(EventoSchema);
+        const usuarioRepository = AppDataSource.getRepository(UsuarioSchema);
+        const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
+
+        const evento = await eventoRepository.findOne({ where: { eventoId }, relations: { organizador: true } });
+        if (!evento) return [null, "El evento no existe."];
+
+        const usuario = await usuarioRepository.findOne({ where: { usuarioId: usuarioSolicitanteId } });
+        
+        // regla de seguridad: solo admin o el organizador a cargo pueden ver la lista
+        const esAdmin = usuario?.rol === "Administrador";
+        const esOrganizador = evento.organizador.usuarioId === usuarioSolicitanteId;
+
+        if (!esAdmin && !esOrganizador) {
+            return [null, "No tienes permisos para ver la lista de asistentes de este evento."];
+        }
+
+        const inscritos = await inscripcionRepository.find({
+            where: { evento: { eventoId } },
+            relations: { usuario: true }
+        });
+
+        return [inscritos, null];
+    } catch (error) {
+        console.error("error en obtenerinscritosoporeventoservice:", error);
+        return [null, "Error interno al obtener la lista de inscritos."];
+    }
+};
+
+export const marcarAsistenciaService = async (eventoId, usuarioId, usuarioSolicitanteId) => {
+    try {
+        const eventoRepository = AppDataSource.getRepository(EventoSchema);
+        const usuarioRepository = AppDataSource.getRepository(UsuarioSchema);
+        const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
+
+        const evento = await eventoRepository.findOne({ where: { eventoId }, relations: { organizador: true } });
+        if (!evento) return [null, "El evento no existe."];
+
+        const usuario = await usuarioRepository.findOne({ where: { usuarioId: usuarioSolicitanteId } });
+        
+        if (usuario?.rol !== "Administrador" && evento.organizador.usuarioId !== usuarioSolicitanteId) {
+            return [null, "No tienes permisos para pasar lista en este evento."];
+        }
+
+        const inscripcion = await inscripcionRepository.findOne({
+            where: { evento: { eventoId }, usuario: { usuarioId } }
+        });
+
+        if (!inscripcion) return [null, "El usuario no está inscrito en este evento."];
+        if (inscripcion.asistenciaConfirmada) return [null, "El usuario ya tiene su asistencia confirmada."];
+
+        inscripcion.asistenciaConfirmada = true;
+        await inscripcionRepository.save(inscripcion);
+
+        return [inscripcion, null];
+    } catch (error) {
+        console.error("error en marcarasistenciaservice:", error);
+        return [null, "Error interno al registrar la asistencia."];
     }
 };

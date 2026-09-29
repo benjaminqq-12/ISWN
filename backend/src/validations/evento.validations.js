@@ -29,7 +29,12 @@ export const eventoBodyValidation = Joi.object({
         "number.base": "El id del organizador debe ser un número.",
         "number.positive": "El id del organizador debe ser positivo.",
         "any.required": "Debes asignar un organizador al evento."
-    })
+    }),
+    categoria: Joi.string().valid("adopcion", "salud", "taller", "feria").required().messages({
+    "any.only": "La categoría debe ser adopcion, salud, taller o feria.",
+    "string.empty": "La categoría no puede estar vacía.",
+    "any.required": "La categoría es obligatoria."
+    }),
 });
 
 export const eventoUpdateValidation = Joi.object({
@@ -57,7 +62,11 @@ export const eventoUpdateValidation = Joi.object({
     }),
     organizadorId: Joi.number().integer().positive().optional().messages({
         "number.base": "El id del organizador debe ser un número."
-    })
+    }),
+    categoria: Joi.string().valid("adopcion", "salud", "taller", "feria").optional().messages({
+    "any.only": "La categoría debe ser adopcion, salud, taller o feria.",
+    "string.empty": "La categoría no puede estar vacía."
+    }),
 });
 
 export const idValidation = Joi.object({
@@ -65,5 +74,16 @@ export const idValidation = Joi.object({
         "number.base": "El id del evento debe ser un número.",
         "number.positive": "El id del evento debe ser positivo.",
         "any.required": "El id del evento es obligatorio."
+    })
+});
+
+export const eventoUsuarioIdValidation = Joi.object({
+    eventoId: Joi.number().integer().positive().required().messages({
+        "number.base": "El id del evento debe ser un número válido.",
+        "any.required": "El id del evento es obligatorio."
+    }),
+    usuarioId: Joi.number().integer().positive().required().messages({
+        "number.base": "El id del usuario debe ser un número válido.",
+        "any.required": "El id del usuario es obligatorio."
     })
 });

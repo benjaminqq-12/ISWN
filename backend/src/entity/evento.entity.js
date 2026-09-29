@@ -19,6 +19,11 @@ const EventoSchema = new EntitySchema({
             type: "text",
             nullable: false,
         },
+        categoria: {
+            type: "varchar",
+            length: 20,
+            nullable: false
+        },
         fechaEvento: {
             type: "date",
             nullable: false,
@@ -52,6 +57,10 @@ const EventoSchema = new EntitySchema({
         {
             name: "IDX_FECHA_EVENTO",
             columns: ["fechaEvento"]
+        },
+        {
+            name: "IDX_CATEGORIA_EVENTO",
+            columns: ["categoria"]
         }
     ]
 });
