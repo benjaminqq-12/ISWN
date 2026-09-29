@@ -1,6 +1,7 @@
 import '../styles/mascotas.css';
+import { Link } from 'react-router-dom';
 
-const MascotaCard = ({ mascota }) => {
+const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, ocupado = false }) => {
   const {
     mascota_nombreCompleto,
     mascota_especie,
@@ -16,7 +17,8 @@ const MascotaCard = ({ mascota }) => {
     .toLowerCase()}`;
 
   return (
-    <div className="mascota-card">
+    <article className="mascota-card">
+      <Link className="mascota-card-link" to={`/mascotas/${mascota.mascota_id}`}>
       <div className="mascota-card-img">
         <img
           src={mascota_fotoURL || "/placeholder-mascota.png"}
@@ -32,7 +34,18 @@ const MascotaCard = ({ mascota }) => {
           {mascota_estado}
         </span>
       </div>
-    </div>
+      </Link>
+      {puedeGestionar && (
+        <div className="mascota-card-actions" role="group" aria-label={`Acciones para ${mascota_nombreCompleto}`}>
+          <button className="btn-secondary" type="button" onClick={() => onEditar(mascota)} disabled={ocupado}>
+            Editar
+          </button>
+          <button className="btn-danger" type="button" onClick={() => onEliminar(mascota)} disabled={ocupado}>
+            Eliminar
+          </button>
+        </div>
+      )}
+    </article>
   );
 };
 

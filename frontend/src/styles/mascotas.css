@@ -12,6 +12,7 @@
 
 .mascota-form {
   margin: 1rem 0;
+  scroll-margin-top: 1rem;
   padding: 1.5rem;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -47,6 +48,50 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
+.mascota-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mascota-card-link:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: -3px;
+}
+
+.mascota-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem;
+}
+
+.mascota-card-actions button {
+  flex: 1;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.btn-danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b3261e;
+  border-radius: 30px;
+  padding: 10px 24px;
+  background: #b3261e;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-danger:hover { background: #8f1d17; }
+.btn-danger:disabled,
+.mascota-card-actions .btn-secondary:disabled { cursor: wait; opacity: 0.6; }
 
 .mascota-card-img {
   width: 100%;
@@ -107,8 +152,61 @@
   color: #b3261e;
 }
 
+.mascota-perfil {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.mascota-perfil-back { display: inline-flex; text-decoration: none; }
+
+.mascota-perfil-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+  padding: 1.5rem 0;
+}
+
+.mascota-perfil-image {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.mascota-perfil-image img { width: 100%; height: 100%; object-fit: cover; }
+.mascota-perfil-info { padding: 0.25rem 0; }
+.mascota-perfil-eyebrow { margin-bottom: 0.35rem; color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.mascota-perfil-info h1 { margin-bottom: 0.75rem; font-size: 1.75rem; }
+
+.mascota-perfil-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.mascota-perfil-datos > div { min-width: 0; }
+.mascota-perfil-datos dt { color: var(--text-muted); font-size: 0.8rem; }
+.mascota-perfil-datos dd { overflow-wrap: anywhere; font-weight: 600; }
+.mascota-perfil-wide { grid-column: 1 / -1; }
+
+.mascota-perfil-interno {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.mascota-perfil-interno h2 { font-size: 1.1rem; }
+.mascota-feedback { display: grid; gap: 1rem; padding-top: 2rem; }
+.mascota-feedback .btn-secondary { width: fit-content; text-decoration: none; }
+
 @media (max-width: 640px) {
   .mascotas-heading { align-items: flex-start; flex-direction: column; }
   .mascota-form-grid { grid-template-columns: 1fr; }
   .mascota-form-wide { grid-column: auto; }
+  .mascota-perfil-main { grid-template-columns: 1fr; gap: 1.25rem; }
+  .mascota-perfil-info h1 { font-size: 1.5rem; }
+  .mascota-card-actions button { padding: 8px; }
 }
