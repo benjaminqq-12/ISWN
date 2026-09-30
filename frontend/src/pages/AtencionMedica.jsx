@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { registrarAtencionMedica } from "../services/atencionMedica.service";
 import "../styles/atencionMedica.css";
 
 export default function AtencionMedica() {
@@ -12,6 +13,7 @@ export default function AtencionMedica() {
   });
 
   const [mensaje, setMensaje] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   const handleChange = (e) => {
     setFormulario({
@@ -23,33 +25,18 @@ export default function AtencionMedica() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setMensaje("Registrando atención...");
+    setMensaje("");
+    setGuardando(true);
 
     try {
-      const respuesta = await fetch(
-        "http://localhost:3000/api/atenciones-medicas",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            mascota_id: Number(formulario.mascota_id),
-            veterinario_id: Number(formulario.veterinario_id),
-            atencion_tipo: formulario.atencion_tipo,
-            atencion_diagnostico: formulario.atencion_diagnostico,
-            atencion_tratamiento: formulario.atencion_tratamiento,
-            atencion_observaciones: formulario.atencion_observaciones
-          })
-        }
-      );
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        setMensaje(datos.message || "Ocurrió un error");
-        return;
-      }
+      await registrarAtencionMedica({
+        mascota_id: Number(formulario.mascota_id),
+        veterinario_id: Number(formulario.veterinario_id),
+        atencion_tipo: formulario.atencion_tipo,
+        atencion_diagnostico: formulario.atencion_diagnostico,
+        atencion_tratamiento: formulario.atencion_tratamiento,
+        atencion_observaciones: formulario.atencion_observaciones
+      });
 
       setMensaje("Atención médica registrada correctamente.");
 
@@ -63,8 +50,9 @@ export default function AtencionMedica() {
       });
 
     } catch (error) {
-      console.error(error);
-      setMensaje("No se pudo conectar con el servidor.");
+      setMensaje(error.message || "No se pudo conectar con el servidor.");
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -169,8 +157,8 @@ export default function AtencionMedica() {
             ></textarea>
           </div>
 
-          <button type="submit" className="btn-registrar">
-            Registrar atención
+          <button type="submit" className="btn-registrar" disabled={guardando}>
+            {guardando ? "Registrando..." : "Registrar atención"}
           </button>
 
         </form>

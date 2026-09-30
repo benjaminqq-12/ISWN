@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { iniciarSesion } from "../services/mascota.service";
+import LoginModal from "../components/LoginModal";
 import "../styles/navbar.css";
 
 /* =========================================
@@ -11,8 +12,17 @@ const NAV = [
   { label: "Inicio", to: "/" },
   { label: "Mascotas", to: "/mascotas" },
   { label: "Adopciones"},
-  { label: "Atencion Medica"},
-  { label: "Voluntarios"},
+  { label: "Atención Médica", to: "/atencion-medica" },
+  {
+    label: "Voluntarios",
+    submenu: [
+      {
+        label: "Registrar voluntario",
+        to: "/voluntarios/registrar",
+      },
+    ],
+  },
+
   { label: "Donaciones"},
   { label: "Eventos", to: "/eventos" },
 ];
@@ -155,21 +165,6 @@ export default function RootLayout() {
 
           <nav className="nav-links">
             {NAV.map((item) => {
-              const active = location.pathname === item.to
-                || (item.to === "/mascotas" && location.pathname.startsWith("/mascotas/"));
-              return (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className={`nav-link ${active ? "active" : ""}`}
-                  aria-current={active ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-
-            {NAV.map((item) => {
 
               /* =============================
                  LINKS NORMALES
@@ -183,9 +178,11 @@ export default function RootLayout() {
                     to={item.to}
                     className={`nav-link ${
                       location.pathname === item.to
+                        || (item.to === "/mascotas" && location.pathname.startsWith("/mascotas/"))
                         ? "active"
                         : ""
                     }`}
+                    aria-current={location.pathname === item.to ? "page" : undefined}
                   >
                     {item.label}
                   </Link>
@@ -220,6 +217,8 @@ export default function RootLayout() {
                           ? "active"
                           : ""
                       }`}
+                      aria-haspopup="true"
+                      aria-expanded={submenuAbierto === item.label}
                       onClick={() =>
                         toggleSubmenu(item.label)
                       }
@@ -229,13 +228,10 @@ export default function RootLayout() {
 
                       <span
                         className={`dropdown-arrow ${
-                          submenuAbierto === item.label
-                            ? "open"
-                            : ""
+                          submenuAbierto === item.label ? "open" : ""
                         }`}
-                      >
-                        ▾
-                      </span>
+                        aria-hidden="true"
+                      />
 
                     </button>
 
@@ -271,9 +267,7 @@ export default function RootLayout() {
               }
 
               /* =============================
-                 LINKS SIN PÁGINA TODAVÍA
-                 Adopciones / Eventos /
-                 Donaciones
+                 OPCIONES AÚN SIN PÁGINA
               ============================= */
 
               return (
@@ -298,16 +292,15 @@ export default function RootLayout() {
 
             {session ? (
               <>
-
-                <span className="nav-user">
-
-                  {session.user.usuarioNombre}
-
-                  {" · "}
-
-                  {session.user.rol}
-
-                </span>
+                <div className="nav-user" title={`${session.user.usuarioNombre} · ${session.user.rol}`}>
+                  <span className="nav-user-avatar" aria-hidden="true">
+                    {session.user.usuarioNombre?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                  <span className="nav-user-details">
+                    <span className="nav-user-name">{session.user.usuarioNombre}</span>
+                    <span className="nav-user-role">{session.user.rol}</span>
+                  </span>
+                </div>
 
                 <button
                   className="auth-toggle"
@@ -344,68 +337,13 @@ export default function RootLayout() {
 
       </header>
 
-      {/* =====================================
-          PANEL DE LOGIN
-      ===================================== */}
-
       {!session && loginVisible && (
-
-        <form
-          className="login-panel"
+        <LoginModal
+          onClose={() => setLoginVisible(false)}
           onSubmit={handleLogin}
-        >
-
-          <label>
-
-            Correo electrónico
-
-            <input
-              name="usuarioEmail"
-              type="email"
-              autoComplete="username"
-              required
-            />
-
-          </label>
-
-          <label>
-
-            Contraseña
-
-            <input
-              name="usuarioPassword"
-              type="password"
-              autoComplete="current-password"
-              required
-            />
-
-          </label>
-
-          {loginError && (
-
-            <p
-              className="login-error"
-              role="alert"
-            >
-              {loginError}
-            </p>
-
-          )}
-
-          <button
-            className="btn-primary"
-            type="submit"
-            disabled={loginLoading}
-          >
-
-            {loginLoading
-              ? "Ingresando..."
-              : "Ingresar"}
-
-          </button>
-
-        </form>
-
+          error={loginError}
+          loading={loginLoading}
+        />
       )}
 
       {/* =====================================

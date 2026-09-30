@@ -15,7 +15,7 @@ const router = Router();
 
 router
     .use("/donacion", donacionRoutes)
-    .use("/atenciones-medicas", atencionMedicaRoutes);
+    .use("/atenciones-medicas", atencionMedicaRoutes)
     .use("/eventos", eventoRoutes)
     .use("/auth", authRoutes)
     .use("/mascotas", mascotasRoutes)
