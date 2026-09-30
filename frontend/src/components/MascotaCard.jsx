@@ -1,6 +1,8 @@
 import '../styles/mascotas.css';
 import { Link } from 'react-router-dom';
 
+const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
+
 const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, ocupado = false }) => {
   const {
     mascota_nombreCompleto,
@@ -21,8 +23,14 @@ const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, oc
       <Link className="mascota-card-link" to={`/mascotas/${mascota.mascota_id}`}>
       <div className="mascota-card-img">
         <img
-          src={mascota_fotoURL || "/placeholder-mascota.png"}
+          src={mascota_fotoURL || DEFAULT_PLACEHOLDER}
           alt={mascota_nombreCompleto}
+          onError={(e) => {
+            if (e.currentTarget.src !== window.location.origin + DEFAULT_PLACEHOLDER) {
+              e.currentTarget.src = DEFAULT_PLACEHOLDER;
+            }
+          }}
+          loading="lazy"
         />
       </div>
       <div className="mascota-card-body">

@@ -4,17 +4,28 @@ import { AppDataSource } from "./configDb.js";
 import UsuarioSchema from "../entity/usuario.entity.js";
 import MascotaSchema from "../entity/mascota.entity.js";
 
+const FOTOS_DEFAULT = {
+  "Brandy": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop&q=80",
+  "Hachiko": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800&auto=format&fit=crop&q=80",
+  "Misha": "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80",
+  "Firulais": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&auto=format&fit=crop&q=80",
+  "Luna": "https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800&auto=format&fit=crop&q=80",
+  "Rocky": "https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80",
+};
+
 export async function createUsuarios() {
   try {
     const userRepository = AppDataSource.getRepository(UsuarioSchema);
     const count = await userRepository.count();
 
+    const mascotaRepository = AppDataSource.getRepository(MascotaSchema);
+
     if (count > 0) {
-      const usuarios = await userRepository.find();
-      for (const usuario of usuarios) {
-        if (!usuario.usuarioPassword.startsWith("$2")) {
-          usuario.usuarioPassword = await bcrypt.hash(usuario.usuarioPassword, 10);
-          await userRepository.save(usuario);
+      const mascotas = await mascotaRepository.find();
+      for (const m of mascotas) {
+        if (!m.mascota_fotoURL && FOTOS_DEFAULT[m.mascota_nombreCompleto]) {
+          m.mascota_fotoURL = FOTOS_DEFAULT[m.mascota_nombreCompleto];
+          await mascotaRepository.save(m);
         }
       }
       return;
@@ -65,7 +76,8 @@ export async function createAnimales() {
             mascota_sexo: "Macho",
             mascota_viaIngreso: "Rescate",
             mascota_estado: "En Refugio",
-            mascota_antecedentesPrevios: "Sin antecedentes"
+            mascota_antecedentesPrevios: "Sin antecedentes",
+            mascota_fotoURL: FOTOS_DEFAULT["Brandy"]
         }),
         mascotaRepository.create({
             mascota_nombreCompleto: "Hachiko",
@@ -75,6 +87,7 @@ export async function createAnimales() {
             mascota_sexo: "Macho",
             mascota_viaIngreso: "Abandono",
             mascota_estado: "En Refugio",
+            mascota_fotoURL: FOTOS_DEFAULT["Hachiko"],
             mascota_antecedentesPrevios: "Desnutrición leve al ingreso"
         }),
         mascotaRepository.create({
@@ -85,7 +98,8 @@ export async function createAnimales() {
             mascota_sexo: "Hembra",
             mascota_viaIngreso: "Hallazgo en vía pública",
             mascota_estado: "En Refugio",
-            mascota_antecedentesPrevios: "Sin antecedentes"
+            mascota_antecedentesPrevios: "Sin antecedentes",
+            mascota_fotoURL: FOTOS_DEFAULT["Misha"]
         }),
         mascotaRepository.create({
             mascota_nombreCompleto: "Firulais",
@@ -95,7 +109,8 @@ export async function createAnimales() {
             mascota_sexo: "Macho",
             mascota_viaIngreso: "Denuncia municipal",
             mascota_estado: "En Refugio",
-            mascota_antecedentesPrevios: "Cartilla de vacunas al día"
+            mascota_antecedentesPrevios: "Cartilla de vacunas al día",
+            mascota_fotoURL: FOTOS_DEFAULT["Firulais"]
         }),
         mascotaRepository.create({
             mascota_nombreCompleto: "Luna",
@@ -105,7 +120,8 @@ export async function createAnimales() {
             mascota_sexo: "Hembra",
             mascota_viaIngreso: "Entrega voluntaria",
             mascota_estado: "En Refugio",
-            mascota_antecedentesPrevios: "Sin antecedentes"
+            mascota_antecedentesPrevios: "Sin antecedentes",
+            mascota_fotoURL: FOTOS_DEFAULT["Luna"]
         }),
         mascotaRepository.create({
             mascota_nombreCompleto: "Rocky",
@@ -115,8 +131,9 @@ export async function createAnimales() {
             mascota_sexo: "Macho",
             mascota_viaIngreso: "Otro refugio",
             mascota_estado: "En Cuarentena",
-            mascota_antecedentesPrevios: "En evaluación veterinaria"
-        }),
+            mascota_antecedentesPrevios: "En evaluación veterinaria",
+            mascota_fotoURL: FOTOS_DEFAULT["Rocky"]
+          }),
     ]);
     console.log("* => Mascotas iniciales creadas exitosamente");
   } catch (error) {

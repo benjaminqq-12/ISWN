@@ -3,6 +3,8 @@ import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { getMascota, getMascotaInterna } from '../services/mascota.service';
 import '../styles/mascotas.css';
 
+const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
+
 const MascotaPerfil = () => {
   const { id } = useParams();
   const { session } = useOutletContext();
@@ -68,8 +70,13 @@ const MascotaPerfil = () => {
       <div className="mascota-perfil-main">
         <div className="mascota-perfil-image">
           <img
-            src={mascota.mascota_fotoURL || '/placeholder-mascota.png'}
+            src={mascota.mascota_fotoURL || DEFAULT_PLACEHOLDER}
             alt={mascota.mascota_nombreCompleto}
+            onError={(e) => {
+              if (e.currentTarget.src !== window.location.origin + DEFAULT_PLACEHOLDER) {
+                e.currentTarget.src = DEFAULT_PLACEHOLDER;
+              }
+            }}
           />
         </div>
         <div className="mascota-perfil-info">

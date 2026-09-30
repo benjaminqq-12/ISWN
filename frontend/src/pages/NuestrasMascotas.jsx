@@ -216,7 +216,7 @@ const NuestrasMascotas = () => {
             </label>
             <label>
               URL de foto (opcional)
-              <input name="mascota_fotoURL" type="url" maxLength="512" defaultValue={mascotaEnEdicion?.mascota_fotoURL ?? ""} />
+              <input name="mascota_fotoURL" type="url" placeholder="https://ejemplo.com/foto.jpg" maxLength="512" defaultValue={mascotaEnEdicion?.mascota_fotoURL ?? ""} />
             </label>
             <label className="mascota-form-wide">
               Antecedentes previos
