@@ -1,9 +1,62 @@
-import { Outlet } from "react-router-dom";
+import { useState } from "react";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { iniciarSesion } from "../services/mascota.service";
 import '../styles/navbar.css';
 
-const NAV = ["Inicio", "Mascotas", "Adopciones", "Atención Médica", "Voluntarios", "Eventos", "Donaciones"];
+const NAV = [
+  { label: "Inicio", to: "/" },
+  { label: "Mascotas", to: "/mascotas" },
+  { label: "Adopciones" },
+  { label: "Voluntarios" },
+  { label: "Eventos" },
+  { label: "Donaciones" },
+];
+
+function cargarSesion() {
+  try {
+    const sesion = JSON.parse(localStorage.getItem("sesion") || "null");
+    return sesion?.token && sesion?.user ? sesion : null;
+  } catch (error) {
+    console.error("No se pudo recuperar la sesión guardada:", error);
+    return null;
+  }
+}
 
 export default function RootLayout() {
+  const [session, setSession] = useState(cargarSesion);
+  const [loginVisible, setLoginVisible] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const location = useLocation();
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    setLoginError("");
+    setLoginLoading(true);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    try {
+      const sesion = await iniciarSesion(
+        formData.get("usuarioEmail"),
+        formData.get("usuarioPassword")
+      );
+      localStorage.setItem("sesion", JSON.stringify(sesion));
+      setSession(sesion);
+      setLoginVisible(false);
+      form.reset();
+    } catch (error) {
+      setLoginError(error.message);
+    } finally {
+      setLoginLoading(false);
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("sesion");
+    setSession(null);
+  }
+
   return (
     <div>
       <header className="navbar">
@@ -18,29 +71,69 @@ export default function RootLayout() {
           </div>
 
           <nav className="nav-links">
-            {NAV.map((item, i) => (
-              <a key={item} href="#" className={`nav-link ${i === 0 ? "active" : ""}`}>
-                {item}
-              </a>
+            {NAV.map((item) => (
+              item.to ? (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className={`nav-link ${location.pathname === item.to ? "active" : ""}`}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a key={item.label} href="#" className="nav-link">
+                  {item.label}
+                </a>
+              )
             ))}
           </nav>
 
           <div className="nav-controls">
-            <button className="btn-nav-icon">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </button>
-            <div className="avatar">
-              <img/>
-            </div>
+            {session ? (
+              <>
+                <span className="nav-user">
+                  {session.user.usuarioNombre} · {session.user.rol}
+                </span>
+                <button className="auth-toggle" type="button" onClick={handleLogout}>
+                  Cerrar sesión
+                </button>
+              </>
+            ) : (
+              <button
+                className="auth-toggle"
+                type="button"
+                onClick={() => {
+                  setLoginVisible((visible) => !visible);
+                  setLoginError("");
+                }}
+              >
+                Iniciar sesión
+              </button>
+            )}
           </div>
 
         </div>
       </header>
 
+      {!session && loginVisible && (
+        <form className="login-panel" onSubmit={handleLogin}>
+          <label>
+            Correo electrónico
+            <input name="usuarioEmail" type="email" autoComplete="username" required />
+          </label>
+          <label>
+            Contraseña
+            <input name="usuarioPassword" type="password" autoComplete="current-password" required />
+          </label>
+          {loginError && <p className="login-error" role="alert">{loginError}</p>}
+          <button className="btn-primary" type="submit" disabled={loginLoading}>
+            {loginLoading ? "Ingresando..." : "Ingresar"}
+          </button>
+        </form>
+      )}
+
       <main>
-        <Outlet />
+        <Outlet context={{ session }} />
       </main>
     </div>
   );

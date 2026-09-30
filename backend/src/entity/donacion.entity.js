@@ -44,7 +44,7 @@ const donacionSchema = new EntitySchema({
         usuario: {
             target: "Usuario",
             type: "many-to-one",
-            joinColumn: { name: "usuario_id" },
+            joinColumn: { name: "usuarioId" },
             nullable: false
         },
         animal: {

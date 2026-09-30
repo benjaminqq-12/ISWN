@@ -1,0 +1,302 @@
+.mascotas-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0 1rem;
+}
+
+.mascotas-heading h1 { font-size: 1.75rem; }
+.mascotas-heading p { margin-top: 4px; color: var(--text-muted); font-size: 0.875rem; }
+.mascotas-access-note { margin: 0.5rem 0; color: var(--text-muted); font-size: 0.875rem; }
+
+.mascota-form {
+  margin: 1rem 0;
+  scroll-margin-top: 1rem;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.mascota-form h2 { margin-bottom: 1rem; font-size: 1.125rem; }
+.mascota-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.mascota-form-wide { grid-column: 1 / -1; }
+.mascota-form select,
+.mascota-form textarea { resize: vertical; }
+.mascota-form > .btn-primary { margin-top: 1rem; }
+.form-message { margin-top: 1rem; font-size: 0.875rem; }
+.form-error { color: #b3261e; }
+.form-success { color: #1a7f4b; }
+
+.mascotas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  padding: 1.5rem 0;
+}
+
+.mascota-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mascota-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.mascota-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mascota-card-link:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: -3px;
+}
+
+.mascota-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem;
+}
+
+.mascota-card-actions button {
+  flex: 1;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.btn-danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b3261e;
+  border-radius: 30px;
+  padding: 10px 24px;
+  background: #b3261e;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-danger:hover { background: #8f1d17; }
+.btn-danger:disabled,
+.mascota-card-actions .btn-secondary:disabled { cursor: wait; opacity: 0.6; }
+
+.mascota-card-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #f1f1f1;
+}
+
+.mascota-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mascota-card-body {
+  padding: 0.9rem 1rem;
+}
+
+.mascota-card-nombre {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.mascota-card-detalle {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.mascota-card-estado {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.estado-en-refugio {
+  background: #e6f7ec;
+  color: #1a7f4b;
+}
+
+.estado-en-adopcion {
+  background: #e6f7ec;
+  color: #1a7f4b;
+}
+
+.estado-en-tratamiento {
+  background: #fdf0e8;
+  color: #c2692a;
+}
+
+.estado-en-cuarentena,
+.estado-en-observación {
+  background: #fdecea;
+  color: #b3261e;
+}
+
+.mascota-card-body button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 6px 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mascota-perfil-adoptar {
+  margin-top: 1rem;
+  margin-left: 0.75rem;
+  width: auto;
+  padding: 10px 24px;
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mascota-perfil-adoptar:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(194, 105, 42, 0.25);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.form-error {
+  color: #b3261e;
+  font-size: 0.85rem;
+}
+
+.mascota-perfil {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.mascota-perfil-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mascota-perfil-back:hover { color: var(--primary); }
+.mascota-perfil-back span { font-size: 1.25rem; line-height: 1; }
+
+.mascota-perfil-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: 2rem;
+  align-items: start;
+  padding: 1.5rem 0;
+}
+
+.mascota-perfil-image {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.mascota-perfil-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mascota-perfil-info { min-width: 0; padding: 0.25rem 0; }
+.mascota-perfil-eyebrow {
+  margin-bottom: 0.35rem;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mascota-perfil-info h1 { margin-bottom: 0.75rem; font-size: 1.75rem; }
+
+.mascota-perfil-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.mascota-perfil-datos > div { min-width: 0; }
+.mascota-perfil-datos dt { color: var(--text-muted); font-size: 0.8rem; }
+.mascota-perfil-datos dd { overflow-wrap: anywhere; font-weight: 600; }
+.mascota-perfil-wide { grid-column: 1 / -1; }
+
+.mascota-perfil-interno {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.mascota-perfil-interno h2 { font-size: 1.1rem; }
+.mascota-feedback { display: grid; gap: 1rem; padding-top: 2rem; }
+
+@media (max-width: 640px) {
+  .mascota-perfil-main { grid-template-columns: 1fr; gap: 1.25rem; }
+  .mascota-perfil-image { max-width: none; }
+  .mascota-perfil-info h1 { font-size: 1.5rem; }
+}
