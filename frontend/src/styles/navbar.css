@@ -1,87 +1,17 @@
-.navbar {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-.navbar-content {
-  display: flex; align-items: center; justify-content: space-between; height: 3.5rem;
-}
-.nav-brand { display: flex; align-items: center; gap: 10px; }
-.nav-logo {
-  width: 2rem; height: 2rem; border-radius: 50%;
-  background: var(--primary); color: white;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: bold; font-size: 0.875rem;
-}
-.nav-title { font-size: 0.875rem; font-weight: bold; line-height: 1; }
-.nav-subtitle { font-size: 0.625rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-.nav-links { display: flex; gap: 4px; }
-.nav-link {
-  text-decoration: none; font-size: 0.875rem; font-weight: 500;
-  padding: 6px 14px; border-radius: 20px; transition: 0.2s;
-  color: var(--text-muted);
-}
-.nav-link.active { color: var(--primary); }
-.nav-link:hover:not(.active) { color: var(--text-main); }
-.nav-controls { display: flex; align-items: center; gap: 12px; }
-.nav-user { color: var(--text-muted); font-size: 0.8rem; }
-.auth-toggle {
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  padding: 7px 14px;
-  background: white;
-  color: var(--primary);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.auth-toggle:hover { background: #faf6f2; }
-.login-panel {
-  position: absolute;
-  z-index: 21;
-  top: 4rem;
-  right: max(2rem, calc((100vw - 1152px) / 2));
-  display: grid;
-  gap: 12px;
-  width: min(320px, calc(100vw - 2rem));
-  padding: 1.25rem;
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-.login-panel label,
-.mascota-form label { display: grid; gap: 6px; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
-.login-panel input,
-.mascota-form input,
-.mascota-form textarea {
-  width: 100%;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: white;
-  color: var(--text-main);
-  font-size: 0.875rem;
-}
-.login-error { color: #b3261e; font-size: 0.8rem; }
-.avatar { width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid white; overflow: hidden; }
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
+@reference "./index.css";
 
-.btn-nav-icon {
-  background: none;
-  border: none;
-  color: var(--text-light);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-  padding: 6px;
-}
-
-.btn-nav-icon:hover {
-  color: var(--text-main);
+@layer components {
+  .navbar { @apply sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur; }
+  .navbar .container { @apply mx-auto max-w-6xl px-5 sm:px-8; }
+  .navbar-content { @apply flex min-h-[72px] flex-wrap items-center justify-between gap-x-5 gap-y-3 py-3 lg:flex-nowrap; }
+  .nav-brand { @apply flex items-center gap-2.5; }
+  .nav-logo { @apply flex size-9 items-center justify-center rounded-full bg-brand font-bold text-white; }
+  .nav-title { @apply font-display text-[15px] leading-tight font-bold sm:text-[17px]; }
+  .nav-subtitle { @apply mt-0.5 text-[8px] tracking-widest text-forest uppercase; }
+  .nav-links { @apply order-last flex w-full items-center gap-5 overflow-x-auto pb-1 lg:order-none lg:w-auto lg:gap-6 lg:pb-0; }
+  .nav-link { @apply shrink-0 rounded py-2 text-xs font-medium text-muted transition hover:text-brand; }
+  .nav-link.active { @apply text-brand; }
+  .nav-controls { @apply flex items-center gap-3; }
+  .btn-nav-icon { @apply flex size-9 items-center justify-center rounded-full text-muted; }
+  .avatar { @apply flex size-8 items-center justify-center rounded-full bg-sage text-xs font-semibold text-forest; }
 }

@@ -1,0 +1,23 @@
+@reference "./index.css";
+
+@layer components {
+  .calendario { @apply scroll-mt-24 pt-16 pb-8; }
+  .calendario-cabecera { @apply mb-6 flex flex-wrap items-end justify-between gap-4; }
+  .calendario-navegacion { @apply flex items-center gap-1 rounded-lg border border-line bg-white p-1 shadow-card; }
+  .calendario-navegacion .boton-icono { @apply size-9 rounded-md; }
+  .calendario-navegacion span { @apply min-w-28 text-center text-xs font-semibold capitalize; }
+  .calendario-panel { @apply rounded-2xl border border-line bg-white p-3 shadow-card sm:p-6; }
+  .calendario-aviso { @apply mb-4 text-sm text-muted; }
+  .calendario-ayuda { @apply mb-3 text-xs text-muted md:hidden; }
+  .calendario-scroll { @apply overflow-x-auto rounded-xl border border-line focus-visible:outline-brand; }
+  .calendario-tabla { @apply w-full min-w-[640px] table-fixed border-collapse text-xs; }
+  .calendario-tabla thead { @apply bg-canvas text-muted; }
+  .calendario-tabla th { @apply py-3 font-medium; }
+  .calendario-dia { @apply h-28 border-t border-line/45 px-1.5 py-2 align-top lg:h-32; }
+  .calendario-dia time { @apply mb-2 flex size-6 items-center justify-center rounded-full text-[10px] text-ink; }
+  .fuera-del-mes { @apply bg-stone-50/50; }
+  .fuera-del-mes time { @apply text-stone-400; }
+  .calendario-dia time[aria-current="date"] { @apply bg-brand font-bold text-white; }
+  .calendario-eventos { @apply max-h-24 space-y-1 overflow-y-auto; }
+  .calendario-evento { @apply block w-full truncate rounded bg-peach px-1.5 py-1 text-left text-[9px] font-medium text-brand hover:brightness-95; }
+}
