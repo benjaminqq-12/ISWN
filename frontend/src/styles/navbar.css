@@ -52,3 +52,105 @@
   .login-submit:hover { background: var(--color-brand-hover); }
   .login-submit:disabled { cursor: wait; opacity: 0.6; }
 }
+
+.btn-nav-icon:hover {
+  color: var(--text-main);
+}
+
+/* ===================================== */
+/* MENÚ DESPLEGABLE */
+/* ===================================== */
+
+.nav-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  background: transparent;
+  border: none;
+
+  font-family: inherit;
+
+  cursor: pointer;
+}
+
+.dropdown-arrow {
+  display: inline-block;
+
+  font-size: 12px;
+
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+
+/* CAJA DEL SUBMENÚ */
+
+.nav-dropdown-menu {
+
+  position: absolute;
+
+  top: calc(100% + 12px);
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  z-index: 1000;
+
+  min-width: 210px;
+
+  padding: 7px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2d9d1;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 8px 24px
+    rgba(0, 0, 0, 0.10);
+}
+
+
+/* OPCIÓN */
+
+.nav-dropdown-item {
+
+  display: block;
+
+  padding: 11px 14px;
+
+  color: #514b46;
+
+  text-decoration: none;
+
+  border-radius: 7px;
+
+  font-size: 14px;
+
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+
+.nav-dropdown-item:hover {
+
+  background: #fff3e9;
+
+  color: #c96b24;
+
+}
