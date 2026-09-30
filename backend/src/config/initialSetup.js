@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { AppDataSource } from "./configDb.js";
 import UsuarioSchema from "../entity/usuario.entity.js";
 import MascotaSchema from "../entity/mascota.entity.js";
+import VeterinarioSchema from "../entity/Veterinario.entity.js";
 
 const FOTOS_DEFAULT = {
   "Brandy": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop&q=80",

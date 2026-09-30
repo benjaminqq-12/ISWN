@@ -7,6 +7,7 @@ import {
 import RootLayout from "./layouts/RootLayout";
 
 import Home from "./pages/Home";
+import AtencionMedica from "./pages/AtencionMedica";
 import Eventos from "./pages/Eventos.jsx";
 import NuestrasMascotas from "./pages/NuestrasMascotas";
 import RegistrarVoluntario from "./pages/RegistrarVoluntario";
@@ -21,13 +22,19 @@ export default function App() {
           {/* Página de inicio */}
           <Route index element={<Home />} />
 
-          {/* Eventos */}
+          {/* Atención médica - Desarrollo */}
+          <Route
+            path="atencion-medica"
+            element={<AtencionMedica />}
+          />
+
+          {/* Eventos - Desarrollo */}
           <Route
             path="eventos"
             element={<Eventos />}
           />
 
-          {/* Mascotas */}
+          {/* Mascotas - Desarrollo */}
           <Route
             path="mascotas"
             element={<NuestrasMascotas />}
@@ -38,7 +45,7 @@ export default function App() {
             element={<MascotaPerfil />}
           />
 
-          {/* Voluntarios */}
+          {/* Voluntarios - ramaIgnacio */}
           <Route
             path="voluntarios/registrar"
             element={<RegistrarVoluntario />}
