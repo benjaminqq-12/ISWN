@@ -12,7 +12,7 @@ export const crearEventoService = async (datosEvento, creadorId) => {
         const usuarioRepository = AppDataSource.getRepository(UsuarioSchema);
 
         const admin = await usuarioRepository.findOne({
-            where: { usuarioId: creadorId, rol: "Administrador", activo: true }
+            where: { usuarioId: creadorId, rol: "Admin", activo: true }
         });
 
         if (!admin) {
@@ -87,7 +87,7 @@ export const actualizarEventoService = async (eventoId, datosActualizados, usuar
         });
         if(!evento) return [null, "El evento no existe."];
 
-        if(usuario.rol !== "Administrador" && evento.organizador.usuarioId !== usuarioId) {
+        if(usuario.rol !== "Admin" && evento.organizador.usuarioId !== usuarioId) {
             return [null, "No tienes permisos para modificar este evento."];
         }
 
@@ -122,7 +122,7 @@ export const eliminarEventoService = async (eventoId, usuarioId) => {
         const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
 
         const usuario = await usuarioRepository.findOne({ where: { usuarioId } });
-        if (!usuario || !usuario.activo || usuario.rol !== "Administrador") {
+        if (!usuario || !usuario.activo || usuario.rol !== "Admin") {
             return [null, "Solo los administradores pueden eliminar eventos de forma definitiva."];
         }
 
@@ -234,7 +234,7 @@ export const obtenerInscritosPorEventoService = async (eventoId, usuarioSolicita
         const usuario = await usuarioRepository.findOne({ where: { usuarioId: usuarioSolicitanteId } });
         
         // regla de seguridad: solo admin o el organizador a cargo pueden ver la lista
-        const esAdmin = usuario?.rol === "Administrador";
+        const esAdmin = usuario?.rol === "Admin";
         const esOrganizador = evento.organizador.usuarioId === usuarioSolicitanteId;
 
         if (!esAdmin && !esOrganizador) {
@@ -264,7 +264,7 @@ export const marcarAsistenciaService = async (eventoId, usuarioId, usuarioSolici
 
         const usuario = await usuarioRepository.findOne({ where: { usuarioId: usuarioSolicitanteId } });
         
-        if (usuario?.rol !== "Administrador" && evento.organizador.usuarioId !== usuarioSolicitanteId) {
+        if (usuario?.rol !== "Admin" && evento.organizador.usuarioId !== usuarioSolicitanteId) {
             return [null, "No tienes permisos para pasar lista en este evento."];
         }
 
