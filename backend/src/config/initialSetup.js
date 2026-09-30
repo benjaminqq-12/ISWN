@@ -1,0 +1,115 @@
+"use strict";
+import { AppDataSource } from "./configDb.js";
+import UsuarioSchema from "../entity/usuario.entity.js";
+import MascotaSchema from "../entity/mascota.entity.js";
+import VeterinarioSchema from "../entity/Veterinario.entity.js";
+
+export async function createUsuarios() {
+  try {
+    const userRepository = AppDataSource.getRepository(UsuarioSchema);
+    const count = await userRepository.count();
+
+    if (count === 0) {
+        await userRepository.save([
+            userRepository.create({
+                rut: "11111111-1",
+                usuarioNombre: "Administrador",
+                usuarioEmail: "admin@gmail.com",
+                usuarioPassword: "adminPassword123",
+                rol: "Admin"
+            }),
+            userRepository.create({
+                rut: "22222222-2",
+                usuarioNombre: "Antonia Jerez",
+                usuarioEmail: "AntoniaJJ@gmail.com",
+                usuarioPassword: "password123",
+                rol: "Voluntario"
+            }),
+            userRepository.create({
+                rut: "33333333-3",
+                usuarioNombre: "Alejandro Herrera",
+                usuarioEmail: "Alejandro@gmail.com",
+                usuarioPassword: "password123",
+                rol: "Voluntario"
+            }),
+        ]);
+    }
+
+    let usuarioVeterinario = await userRepository.findOne({
+        where: {
+            usuarioEmail: "veterinario@gmail.com"
+        }
+    });
+
+    if (!usuarioVeterinario) {
+        usuarioVeterinario = userRepository.create({
+            rut: "44444444-4",
+            usuarioNombre: "Veterinario",
+            usuarioEmail: "veterinario@gmail.com",
+            usuarioPassword: "password123",
+            rol: "Veterinario"
+        });
+
+        usuarioVeterinario = await userRepository.save(usuarioVeterinario);
+    }
+
+    const veterinarioRepository = AppDataSource.getRepository(VeterinarioSchema);
+
+    const veterinarioEncontrado = await veterinarioRepository.findOne({
+        where: {
+            usuario: {
+                usuarioId: usuarioVeterinario.usuarioId
+            }
+        }
+    });
+
+    if (!veterinarioEncontrado) {
+        await veterinarioRepository.save(
+            veterinarioRepository.create({
+                veterinario_especialidad: "Medicina Veterinaria",
+                veterinario_registroProfesional: "VET-001",
+                usuario: usuarioVeterinario
+            })
+        );
+    }
+
+    console.log("* => Usuarios iniciales creados exitosamente");
+  } catch (error) {
+    console.error("Error al crear usuarios:", error);
+  }
+}
+
+export async function createAnimales() {
+  try {
+    const mascotaRepository = AppDataSource.getRepository(MascotaSchema);
+    const count = await mascotaRepository.count();
+
+    if (count > 0) return;
+
+    await mascotaRepository.save([
+        mascotaRepository.create({
+            mascota_nombreCompleto: "Brandy",
+            mascota_especie: "Perro",
+            mascota_edad: 3,
+            mascota_peso: 15.5,
+            mascota_sexo: "Macho",
+            mascota_viaIngreso: "Rescate",
+            mascota_estado: "En Refugio",
+            mascota_antecedentesPrevios: "Sin antecedentes"
+        }),
+        mascotaRepository.create({
+            mascota_nombreCompleto: "Hachiko",
+            mascota_especie: "Perro",
+            mascota_edad: 1,
+            mascota_peso: 8.2,
+            mascota_sexo: "Macho",
+            mascota_viaIngreso: "Abandono",
+            mascota_estado: "En Refugio",
+            mascota_antecedentesPrevios: "Desnutrición leve al ingreso"
+        }),
+    ]);
+    console.log("* => Mascotas iniciales creadas exitosamente");
+  } catch (error) {
+    console.error("Error al crear mascotas:", error);
+  }
+}
