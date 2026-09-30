@@ -164,6 +164,25 @@
   cursor: pointer;
 }
 
+.mascota-perfil-adoptar {
+  margin-top: 1rem;
+  margin-left: 0.75rem;
+  width: auto;
+  padding: 10px 24px;
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mascota-perfil-adoptar:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(194, 105, 42, 0.25);
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -199,4 +218,85 @@
 .form-error {
   color: #b3261e;
   font-size: 0.85rem;
+}
+
+.mascota-perfil {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.mascota-perfil-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mascota-perfil-back:hover { color: var(--primary); }
+.mascota-perfil-back span { font-size: 1.25rem; line-height: 1; }
+
+.mascota-perfil-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: 2rem;
+  align-items: start;
+  padding: 1.5rem 0;
+}
+
+.mascota-perfil-image {
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.mascota-perfil-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mascota-perfil-info { min-width: 0; padding: 0.25rem 0; }
+.mascota-perfil-eyebrow {
+  margin-bottom: 0.35rem;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mascota-perfil-info h1 { margin-bottom: 0.75rem; font-size: 1.75rem; }
+
+.mascota-perfil-datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.mascota-perfil-datos > div { min-width: 0; }
+.mascota-perfil-datos dt { color: var(--text-muted); font-size: 0.8rem; }
+.mascota-perfil-datos dd { overflow-wrap: anywhere; font-weight: 600; }
+.mascota-perfil-wide { grid-column: 1 / -1; }
+
+.mascota-perfil-interno {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.mascota-perfil-interno h2 { font-size: 1.1rem; }
+.mascota-feedback { display: grid; gap: 1rem; padding-top: 2rem; }
+
+@media (max-width: 640px) {
+  .mascota-perfil-main { grid-template-columns: 1fr; gap: 1.25rem; }
+  .mascota-perfil-image { max-width: none; }
+  .mascota-perfil-info h1 { font-size: 1.5rem; }
 }

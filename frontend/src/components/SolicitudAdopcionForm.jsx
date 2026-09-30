@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getUsuarios } from '../services/usuario.service';
 import { crearSolicitudAdopcion } from '../services/solicitudAdopcion.service';
 import '../styles/mascotas.css';
@@ -38,9 +39,9 @@ const SolicitudAdopcionForm = ({ mascota, onClose, onSuccess }) => {
     }
   };
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" onClick={(event) => event.stopPropagation()}>
         <h2>Solicitar adopción de {mascota.mascota_nombreCompleto}</h2>
 
         <form onSubmit={handleSubmit}>
@@ -48,12 +49,12 @@ const SolicitudAdopcionForm = ({ mascota, onClose, onSuccess }) => {
           <select
             id="usuarioAdoptante"
             value={usuarioAdoptanteId}
-            onChange={(e) => setUsuarioAdoptanteId(e.target.value)}
+            onChange={(event) => setUsuarioAdoptanteId(event.target.value)}
           >
             <option value="">-- Selecciona un usuario --</option>
-            {usuarios.map((u) => (
-              <option key={u.usuarioId} value={u.usuarioId}>
-                {u.usuarioNombre} ({u.usuarioEmail})
+            {usuarios.map((usuario) => (
+              <option key={usuario.usuarioId} value={usuario.usuarioId}>
+                {usuario.usuarioNombre} ({usuario.usuarioEmail})
               </option>
             ))}
           </select>
@@ -70,7 +71,8 @@ const SolicitudAdopcionForm = ({ mascota, onClose, onSuccess }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

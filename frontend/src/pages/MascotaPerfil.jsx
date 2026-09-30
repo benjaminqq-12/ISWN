@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { getMascota, getMascotaInterna } from '../services/mascota.service';
+import SolicitudAdopcionForm from '../components/SolicitudAdopcionForm';
 import '../styles/mascotas.css';
 
 const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
@@ -13,6 +14,8 @@ const MascotaPerfil = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [errorInterno, setErrorInterno] = useState('');
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
 
   useEffect(() => {
     let vigente = true;
@@ -52,7 +55,9 @@ const MascotaPerfil = () => {
     return (
       <section className="container mascota-feedback">
         <p role="alert">{error}</p>
-        <Link className="btn-secondary" to="/mascotas">Volver a las mascotas</Link>
+        <Link className="mascota-perfil-back" to="/mascotas">
+          <span aria-hidden="true">←</span> Volver a las mascotas
+        </Link>
       </section>
     );
   }
@@ -66,7 +71,9 @@ const MascotaPerfil = () => {
 
   return (
     <section className="container mascota-perfil">
-      <Link className="btn-secondary mascota-perfil-back" to="/mascotas">Volver a las mascotas</Link>
+      <Link className="mascota-perfil-back" to="/mascotas">
+        <span aria-hidden="true">←</span> Volver a las mascotas
+      </Link>
       <div className="mascota-perfil-main">
         <div className="mascota-perfil-image">
           <img
@@ -85,6 +92,16 @@ const MascotaPerfil = () => {
           <span className={`mascota-card-estado ${estadoClass}`}>
             {mascota.mascota_estado}
           </span>
+          {mascota.mascota_estado === 'En Refugio' && !solicitudEnviada && (
+            <button
+              className="mascota-adoptar-button mascota-perfil-adoptar"
+              type="button"
+              onClick={() => setMostrarFormulario(true)}
+            >
+              Adoptar
+            </button>
+          )}
+          {solicitudEnviada && <p className="form-message form-success" role="status">Solicitud enviada ✓</p>}
           <dl className="mascota-perfil-datos">
             <div><dt>Especie</dt><dd>{mascota.mascota_especie}</dd></div>
             <div><dt>Edad</dt><dd>{mascota.mascota_edad} {mascota.mascota_edad === 1 ? 'año' : 'años'}</dd></div>
@@ -106,6 +123,16 @@ const MascotaPerfil = () => {
           {errorInterno && <p className="form-message form-error" role="alert">{errorInterno}</p>}
         </div>
       </div>
+      {mostrarFormulario && (
+        <SolicitudAdopcionForm
+          mascota={mascota}
+          onClose={() => setMostrarFormulario(false)}
+          onSuccess={() => {
+            setMostrarFormulario(false);
+            setSolicitudEnviada(true);
+          }}
+        />
+      )}
     </section>
   );
 };
