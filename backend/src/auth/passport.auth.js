@@ -19,7 +19,7 @@ const verifyUser = async (jwt_payload, done) => {
       where: { usuarioEmail: jwt_payload.email },
     });
 
-    if (userFound) return done(null, userFound);
+    if (userFound?.activo) return done(null, userFound);
 
     return done(null, false);
 
