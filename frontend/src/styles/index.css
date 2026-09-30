@@ -19,6 +19,15 @@
   --shadow-card: 0 4px 18px -9px rgb(71 45 24 / 18%);
 }
 
+:root {
+  --primary: #c65a34;
+  --primary-hover: #ab4827;
+  --bg-card: #fff;
+  --border-color: #eae2d8;
+  --text-main: #352e2a;
+  --text-muted: #776e66;
+}
+
 @layer base {
   html { @apply scroll-smooth motion-reduce:scroll-auto; }
   body { @apply bg-canvas font-sans text-ink antialiased; }

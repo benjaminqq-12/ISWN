@@ -6,10 +6,11 @@ import '../styles/navbar.css';
 const NAV = [
   { label: "Inicio", to: "/" },
   { label: "Mascotas", to: "/mascotas" },
-  { label: "Adopciones" },
-  { label: "Voluntarios" },
-  { label: "Eventos" },
-  { label: "Donaciones" },
+  { label: "Adopciones"},
+  { label: "Atencion Medica"},
+  { label: "Voluntarios"},
+  { label: "Donaciones"},
+  { label: "Eventos", to: "/eventos" },
 ];
 
 function cargarSesion() {
@@ -71,21 +72,20 @@ export default function RootLayout() {
           </div>
 
           <nav className="nav-links">
-            {NAV.map((item) => (
-              item.to ? (
+            {NAV.map((item) => {
+              const active = location.pathname === item.to
+                || (item.to === "/mascotas" && location.pathname.startsWith("/mascotas/"));
+              return (
                 <Link
                   key={item.label}
                   to={item.to}
-                  className={`nav-link ${location.pathname === item.to ? "active" : ""}`}
+                  className={`nav-link ${active ? "active" : ""}`}
+                  aria-current={active ? "page" : undefined}
                 >
                   {item.label}
                 </Link>
-              ) : (
-                <a key={item.label} href="#" className="nav-link">
-                  {item.label}
-                </a>
-              )
-            ))}
+              );
+            })}
           </nav>
 
           <div className="nav-controls">

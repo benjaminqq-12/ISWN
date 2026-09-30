@@ -1,3 +1,5 @@
+import axios from "./root.service.js";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 async function leerRespuesta(response, mensajeError) {
@@ -26,18 +28,21 @@ export async function getMascotaInterna(id, token) {
 }
 
 export async function iniciarSesion(usuarioEmail, usuarioPassword) {
-  const response = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ usuarioEmail, usuarioPassword }),
-  });
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || "No se pudo iniciar sesión");
+  try {
+    const response = await axios.post("/auth/login", { usuarioEmail, usuarioPassword });
+    const sesion = response.data?.data;
+    if (!sesion?.token || !sesion?.user) {
+      throw new Error(response.data?.message || "El servidor devolvió una sesión inválida.");
+    }
+    return sesion;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
   }
-
-  return result.data;
 }
 
 export async function crearMascota(mascota, token) {
