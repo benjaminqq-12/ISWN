@@ -16,8 +16,7 @@ import { connectDB } from "./config/configDb.js";
 import { passportJwtSetup } from "./auth/passport.auth.js";
 import { 
   createUsuarios, 
-  createAnimales, 
-  createVoluntarios 
+  createAnimales,  
 } from "./config/initialSetup.js";
 
 const app = express();
@@ -56,7 +55,6 @@ async function startServer() {
 
     await createUsuarios();
     await createAnimales();
-    await createVoluntarios();
 
     configureApp();
     
@@ -66,7 +64,7 @@ async function startServer() {
     });
 
   } catch (error) {
-    console.error("Error crítico al iniciar la API:", error);
+    console.error("Error critico al iniciar la API:", error);
   }
 }
 

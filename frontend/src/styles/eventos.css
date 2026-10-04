@@ -1,0 +1,50 @@
+@reference "./index.css";
+
+@layer components {
+  .eventos-contenedor { @apply mx-auto max-w-6xl px-5 pb-10 sm:px-8; }
+  .eventos-selector { @apply mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-white px-5 py-4; }
+  .eventos-vista-etiqueta { @apply text-[10px] font-semibold tracking-wide text-muted uppercase; }
+  .eventos-vista-actual { @apply mt-1 text-xs font-semibold; }
+  .eventos-hero { @apply py-10 md:py-12; }
+  .eventos-etiqueta { @apply mb-4 text-[10px] font-bold tracking-wider text-brand uppercase; }
+  .eventos-hero h1 { @apply max-w-lg font-display text-[40px] leading-[1.08] font-bold tracking-tight sm:text-5xl; }
+  .eventos-hero h1 span { @apply text-brand; }
+  .eventos-introduccion { @apply mt-5 max-w-2xl text-sm leading-7 text-muted; }
+  .eventos-acciones { @apply mt-6 flex flex-wrap gap-3; }
+  .eventos-listado { @apply scroll-mt-24; }
+  .eventos-cabecera { @apply mb-6 flex flex-wrap items-center justify-between gap-3; }
+  .eventos-tarjetas { @apply space-y-5; }
+
+  .evento-card { @apply overflow-hidden rounded-2xl border border-line bg-white shadow-card; }
+  .evento-contenido { @apply min-w-0 flex-1 px-6 py-6 lg:px-7; }
+  .evento-cabecera { @apply mb-3 flex flex-wrap items-center justify-between gap-3; }
+  .evento-datos { @apply flex items-center gap-3; }
+  .evento-fecha { @apply flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-peach text-brand; }
+  .evento-dia { @apply font-display text-xl leading-none font-bold; }
+  .evento-mes { @apply mt-1 text-[9px] font-bold tracking-wide uppercase; }
+  .evento-metadatos { @apply space-y-1 text-[11px]; }
+  .evento-metadatos p { @apply flex items-start gap-1.5 text-muted; }
+  .evento-metadatos p:first-child { @apply font-semibold text-ink; }
+  .evento-metadatos svg { @apply mt-0.5 size-3 shrink-0 text-muted; }
+  .evento-card h3 { @apply font-display text-xl leading-tight font-bold lg:text-[23px]; }
+  .evento-descripcion { @apply mt-2 line-clamp-2 text-xs leading-5 text-muted; }
+  .evento-info { @apply mt-2 text-sm leading-6 text-muted; }
+  .evento-detalle { @apply mt-5 whitespace-pre-wrap text-sm leading-7 text-muted; }
+  .evento-acciones { @apply mt-4 flex flex-wrap items-center gap-3; }
+  .evento-estado { @apply rounded-full bg-sage px-2.5 py-1 text-[9px] font-semibold tracking-wide text-forest uppercase; }
+
+  .estado-pagina { @apply rounded-2xl border border-line bg-white px-6 py-12 text-center; }
+  .estado-pagina h3 { @apply font-display text-xl font-bold; }
+  .estado-pagina p { @apply my-4 text-sm text-muted; }
+  .mensaje { @apply mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4 text-sm; }
+  .mensaje p { @apply min-w-0 flex-1; }
+  .mensaje-exito { @apply border-emerald-200 bg-sage text-forest; }
+  .mensaje-error { @apply border-red-200 bg-red-50 text-red-900; }
+
+  .modal-abierto { @apply overflow-hidden; }
+  .modal { @apply fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-2xl border border-line bg-white p-0 text-ink shadow-2xl; }
+  .modal::backdrop { @apply bg-ink/45 backdrop-blur-sm; }
+  .modal-cabecera { @apply sticky top-0 flex items-center justify-between gap-4 border-b border-line bg-white px-6 py-4; }
+  .modal-cabecera h2 { @apply font-display text-xl font-bold; }
+  .modal-contenido { @apply p-6; }
+}
