@@ -13,6 +13,7 @@ import NuestrasMascotas from "./pages/NuestrasMascotas";
 import RegistrarVoluntario from "./pages/RegistrarVoluntario";
 import MascotaPerfil from "./pages/MascotaPerfil";
 import Error404 from "./pages/Error404";
+import Solicitudes from "./pages/Solicitudes";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/mascotas" element={<NuestrasMascotas />} />
           <Route path="/mascotas/:id" element={<MascotaPerfil />} />
+          <Route path="/solicitudes" element={<Solicitudes />} />
           <Route path="*" element={<Error404 />} />
 
           {/* Atención médica - Desarrollo */}

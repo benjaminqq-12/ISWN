@@ -15,3 +15,26 @@ export async function crearSolicitudAdopcion({ mascotaId, usuarioAdoptanteId }) 
 
   return body.data;
 }
+
+export async function getSolicitudes() {
+  const response = await fetch(`${API_URL}/solicitudes-adopcion`);
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(body.message || "Error al obtener las solicitudes");
+  }
+  return body.data;
+}
+
+export async function avanzarEstadoSolicitud(id, { nuevoEstado, detalle, usuarioId }) {
+  const response = await fetch(`${API_URL}/solicitudes-adopcion/${id}/estado`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nuevoEstado, detalle, usuarioId }),
+  });
+
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(body.message || "Error al actualizar el estado de la solicitud");
+  }
+  return body.data;
+}

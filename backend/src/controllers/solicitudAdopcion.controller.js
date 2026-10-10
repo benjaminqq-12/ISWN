@@ -7,6 +7,7 @@ import {
 import {
   crearSolicitudAdopcionService,
   avanzarEstadoSolicitudService,
+  getSolicitudesService
  } from "../services/solicitudAdopcion.service.js";
 import {
   avanzarEstadoBodyValidation,
@@ -35,6 +36,16 @@ export async function avanzarEstadoSolicitudController(req, res) {
     if (error) return handleErrorClient(res, 400, error);
 
     handleSuccess(res, 200, "Estado de la solicitud actualizado", solicitud);
+  } catch (error) {
+    return handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function getSolicitudesController(req, res) {
+  try {
+    const [solicitudes, error] = await getSolicitudesService();
+    if (error) return handleErrorServer(res, 500, error);
+    handleSuccess(res, 200, "Solicitudes encontradas", solicitudes);
   } catch (error) {
     return handleErrorServer(res, 500, error.message);
   }
