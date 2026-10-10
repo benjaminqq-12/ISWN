@@ -17,7 +17,7 @@ const HistorialMascotaSchema = new EntitySchema({
         },
         historialMascota_descripcion: {
             type: "varchar",
-            length: 100,
+            length: 512,
         },
         historialMascota_fecha: {
             type: "date"
