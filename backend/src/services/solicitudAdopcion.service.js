@@ -8,6 +8,7 @@ import {
   ESTADOS_SOLICITUD,
   esTransicionValida,
   puedeAutorizar,
+  getSiguientesEstados
 } from "../config/estadosSolicitud.js";
 
 export async function crearSolicitudAdopcionService(datos) {
@@ -62,7 +63,7 @@ async function obtenerSolicitudParaAvanzar(solicitudId, nuevoEstado) {
   const solicitudRepository = AppDataSource.getRepository(SolicitudAdopcionSchema);
   const solicitud = await solicitudRepository.findOne({
     where: { solicitudAdopcion_id: solicitudId },
-    relations: ["solicitudAdopcion_mascotaAdoptada"],
+    relations: { solicitudAdopcion_mascotaAdoptada: true },
   });
 
   if (!solicitud) return [null, "La solicitud de adopción no existe."];
@@ -133,6 +134,39 @@ export async function avanzarEstadoSolicitudService(solicitudId, { nuevoEstado, 
     return [solicitudActualizada, null];
   } catch (error) {
     console.error("Error al avanzar el estado de la solicitud:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
+export async function getSolicitudesService() {
+  try {
+    const solicitudRepository = AppDataSource.getRepository(SolicitudAdopcionSchema);
+    const solicitudes = await solicitudRepository.find({
+      relations: {
+        solicitudAdopcion_mascotaAdoptada: true,
+        solicitudAdopcion_usuarioAdoptante: true,
+      },
+      order: { solicitudAdopcion_id: "DESC" },
+    });
+
+    const data = solicitudes.map((s) => {
+      // nunca devolver el password del adoptante
+      let adoptante = null;
+      if (s.solicitudAdopcion_usuarioAdoptante) {
+        const { usuarioPassword, ...resto } = s.solicitudAdopcion_usuarioAdoptante;
+        adoptante = resto;
+      }
+      return {
+        ...s,
+        solicitudAdopcion_usuarioAdoptante: adoptante,
+        // el frontend muestra solo los pasos que el backend permite
+        siguientesEstados: getSiguientesEstados(s.solicitudAadopcion_estado),
+      };
+    });
+
+    return [data, null];
+  } catch (error) {
+    console.error("Error al obtener las solicitudes:", error);
     return [null, "Error interno del servidor"];
   }
 }
