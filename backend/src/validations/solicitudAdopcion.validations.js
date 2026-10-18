@@ -11,11 +11,14 @@ export const avanzarEstadoBodyValidation = Joi.object({
         "string.empty": "Debes adjuntar un detalle de cómo procedió este paso.",
         "string.max": "El detalle no debe exceder los 512 caracteres.",
         "any.required": "El detalle del paso es obligatorio."
-    }),
-    usuarioId: Joi.number().integer().positive().required().messages({
-        "number.base": "El id del usuario que autoriza debe ser un número.",
-        "number.positive": "El id del usuario que autoriza debe ser positivo.",
-        "any.required": "Debes indicar el usuario que autoriza el avance."
+    })
+});
+
+export const crearSolicitudBodyValidation = Joi.object({
+    mascotaId: Joi.number().integer().positive().required().messages({
+        "number.base": "El id de la mascota debe ser un número.",
+        "number.positive": "El id de la mascota debe ser positivo.",
+        "any.required": "Debes indicar la mascota que quieres adoptar."
     }),
 });
 

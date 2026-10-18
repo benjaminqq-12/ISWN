@@ -12,12 +12,20 @@ import {
 import {
   avanzarEstadoBodyValidation,
   solicitudIdValidation,
+  crearSolicitudBodyValidation
 } from "../validations/solicitudAdopcion.validations.js";
 
 export async function crearSolicitudAdopcionController(req, res) {
   try {
-    const [solicitud, error] = await crearSolicitudAdopcionService(req.body);
+    const { error: errorBody, value: body } = crearSolicitudBodyValidation.validate(req.body ?? {});
+    if (errorBody) return handleErrorClient(res, 400, errorBody.message);
+
+    const [solicitud, error] = await crearSolicitudAdopcionService({
+      mascotaId: body.mascotaId,
+      usuarioAdoptanteId: req.user.usuarioId,
+    });
     if (error) return handleErrorClient(res, 400, error);
+
     handleSuccess(res, 201, "Solicitud de adopción creada", solicitud);
   } catch (error) {
     return handleErrorServer(res, 500, error.message);
@@ -32,7 +40,10 @@ export async function avanzarEstadoSolicitudController(req, res) {
     const { error: errorBody, value: body } = avanzarEstadoBodyValidation.validate(req.body ?? {});
     if (errorBody) return handleErrorClient(res, 400, errorBody.message);
 
-    const [solicitud, error] = await avanzarEstadoSolicitudService(params.id, body);
+    const [solicitud, error] = await avanzarEstadoSolicitudService(params.id, {
+      ...body,
+      usuarioId: req.user.usuarioId,
+    });
     if (error) return handleErrorClient(res, 400, error);
 
     handleSuccess(res, 200, "Estado de la solicitud actualizado", solicitud);
