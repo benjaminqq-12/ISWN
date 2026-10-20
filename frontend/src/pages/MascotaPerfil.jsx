@@ -93,13 +93,17 @@ const MascotaPerfil = () => {
             {mascota.mascota_estado}
           </span>
           {mascota.mascota_estado === 'En Refugio' && !solicitudEnviada && (
-            <button
-              className="mascota-adoptar-button mascota-perfil-adoptar"
-              type="button"
-              onClick={() => setMostrarFormulario(true)}
-            >
-              Adoptar
-            </button>
+            session ? (
+              <button
+                className="mascota-adoptar-button mascota-perfil-adoptar"
+                type="button"
+                onClick={() => setMostrarFormulario(true)}
+              >
+                Adoptar
+              </button>
+            ) : (
+              <p className="mascota-card-login-hint">Inicia sesión para solicitar la adopción</p>
+            )
           )}
           {solicitudEnviada && <p className="form-message form-success" role="status">Solicitud enviada ✓</p>}
           <dl className="mascota-perfil-datos">

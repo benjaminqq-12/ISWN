@@ -30,12 +30,12 @@ const Solicitudes = () => {
         setSolicitudes(data);
         setError(null);
       })
-      .catch(() => setError("No se pudieron cargar las solicitudes."))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [version]);
 
   if (loading) return <p>Cargando solicitudes...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <p className="container" role="alert">{error}</p>;
 
   return (
     <div className="container">
