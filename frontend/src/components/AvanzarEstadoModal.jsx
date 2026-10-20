@@ -1,34 +1,18 @@
-import { useEffect, useState } from 'react';
-import { getUsuarios } from '../services/usuario.service';
+import { useState } from 'react';
 import { avanzarEstadoSolicitud } from '../services/solicitudAdopcion.service';
 import '../styles/mascotas.css';
 import '../styles/solicitudes.css';
 
-const ROLES_AUTORIZADORES = ["Admin", "Voluntario"];
 const MAX_DETALLE = 512;
 
 const AvanzarEstadoModal = ({ solicitud, onClose, onSuccess }) => {
-  const [autorizadores, setAutorizadores] = useState([]);
-  const [usuarioId, setUsuarioId] = useState('');
   const [nuevoEstado, setNuevoEstado] = useState(solicitud.siguientesEstados[0]);
   const [detalle, setDetalle] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    getUsuarios()
-      .then((lista) =>
-        setAutorizadores(lista.filter((u) => u.activo && ROLES_AUTORIZADORES.includes(u.rol)))
-      )
-      .catch(() => setError("No se pudieron cargar los usuarios."));
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!usuarioId) {
-      setError("Selecciona quién autoriza el avance.");
-      return;
-    }
     if (!detalle.trim()) {
       setError("Debes adjuntar un detalle de cómo procedió este paso.");
       return;
@@ -41,7 +25,6 @@ const AvanzarEstadoModal = ({ solicitud, onClose, onSuccess }) => {
       await avanzarEstadoSolicitud(solicitud.solicitudAdopcion_id, {
         nuevoEstado,
         detalle: detalle.trim(),
-        usuarioId: Number(usuarioId),
       });
       onSuccess();
     } catch (err) {
@@ -63,16 +46,6 @@ const AvanzarEstadoModal = ({ solicitud, onClose, onSuccess }) => {
         </p>
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="autorizador">Autoriza (temporal, mientras no hay login)</label>
-          <select id="autorizador" value={usuarioId} onChange={(e) => setUsuarioId(e.target.value)}>
-            <option value="">-- Selecciona un usuario --</option>
-            {autorizadores.map((u) => (
-              <option key={u.usuarioId} value={u.usuarioId}>
-                {u.usuarioNombre} ({u.rol})
-              </option>
-            ))}
-          </select>
-
           <label htmlFor="nuevoEstado">Nuevo estado</label>
           <select id="nuevoEstado" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
             {solicitud.siguientesEstados.map((estado) => (

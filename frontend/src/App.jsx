@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 
 import RootLayout from "./layouts/RootLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import AtencionMedica from "./pages/AtencionMedica";
@@ -26,7 +27,9 @@ export default function App() {
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/mascotas" element={<NuestrasMascotas />} />
           <Route path="/mascotas/:id" element={<MascotaPerfil />} />
-          <Route path="/solicitudes" element={<Solicitudes />} />
+          <Route element={<ProtectedRoute roles={["Admin", "Voluntario"]} />}>
+            <Route path="/solicitudes" element={<Solicitudes />} />
+          </Route>
           <Route path="*" element={<Error404 />} />
 
           {/* Atención médica - Desarrollo */}

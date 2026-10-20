@@ -1,40 +1,54 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-export async function crearSolicitudAdopcion({ mascotaId, usuarioAdoptanteId }) {
-  const response = await fetch(`${API_URL}/solicitudes-adopcion`, {
+function getToken() {
+  try {
+    return JSON.parse(localStorage.getItem("sesion") || "null")?.token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function request(path, options = {}) {
+  const token = getToken();
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  const body = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    localStorage.removeItem("sesion");
+    throw new Error("Tu sesión expiró o no has iniciado sesión. Inicia sesión nuevamente.");
+  }
+  if (response.status === 403) {
+    throw new Error("No tienes permisos para realizar esta acción.");
+  }
+  if (!response.ok) {
+    throw new Error(body.message || "Ocurrió un error al comunicarse con el servidor.");
+  }
+
+  return body.data;
+}
+
+export function getSolicitudes() {
+  return request("/solicitudes-adopcion");
+}
+
+export function crearSolicitudAdopcion({ mascotaId }) {
+  return request("/solicitudes-adopcion", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mascotaId, usuarioAdoptanteId }),
+    body: JSON.stringify({ mascotaId }),
   });
-
-  const body = await response.json();
-
-  if (!response.ok) {
-    throw new Error(body.message || "Error al enviar la solicitud de adopción");
-  }
-
-  return body.data;
 }
 
-export async function getSolicitudes() {
-  const response = await fetch(`${API_URL}/solicitudes-adopcion`);
-  const body = await response.json();
-  if (!response.ok) {
-    throw new Error(body.message || "Error al obtener las solicitudes");
-  }
-  return body.data;
-}
-
-export async function avanzarEstadoSolicitud(id, { nuevoEstado, detalle, usuarioId }) {
-  const response = await fetch(`${API_URL}/solicitudes-adopcion/${id}/estado`, {
+export function avanzarEstadoSolicitud(id, { nuevoEstado, detalle }) {
+  return request(`/solicitudes-adopcion/${id}/estado`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nuevoEstado, detalle, usuarioId }),
+    body: JSON.stringify({ nuevoEstado, detalle }),
   });
-
-  const body = await response.json();
-  if (!response.ok) {
-    throw new Error(body.message || "Error al actualizar el estado de la solicitud");
-  }
-  return body.data;
 }
