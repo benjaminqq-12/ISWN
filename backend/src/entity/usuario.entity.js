@@ -35,7 +35,7 @@ const UsuarioSchema = new EntitySchema({
             type: "varchar",
             length: 15,
             nullable: false,
-            default: "Usuario", //valores posibles: "Usuario", "Voluntario", "Admin"
+            default: "Usuario", //valores posibles: "Usuario", "Voluntario", "Veterinario", "Admin"
         },
         activo: {
             type: "boolean",

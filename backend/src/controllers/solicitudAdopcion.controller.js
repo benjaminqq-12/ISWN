@@ -4,13 +4,59 @@ import {
   handleErrorServer,
   handleSuccess,
 } from "../handlers/responseHandlers.js";
-import { crearSolicitudAdopcionService } from "../services/solicitudAdopcion.service.js";
+import {
+  crearSolicitudAdopcionService,
+  avanzarEstadoSolicitudService,
+  getSolicitudesService
+ } from "../services/solicitudAdopcion.service.js";
+import {
+  avanzarEstadoBodyValidation,
+  solicitudIdValidation,
+  crearSolicitudBodyValidation
+} from "../validations/solicitudAdopcion.validations.js";
 
 export async function crearSolicitudAdopcionController(req, res) {
   try {
-    const [solicitud, error] = await crearSolicitudAdopcionService(req.body);
+    const { error: errorBody, value: body } = crearSolicitudBodyValidation.validate(req.body ?? {});
+    if (errorBody) return handleErrorClient(res, 400, errorBody.message);
+
+    const [solicitud, error] = await crearSolicitudAdopcionService({
+      mascotaId: body.mascotaId,
+      usuarioAdoptanteId: req.user.usuarioId,
+    });
     if (error) return handleErrorClient(res, 400, error);
+
     handleSuccess(res, 201, "Solicitud de adopción creada", solicitud);
+  } catch (error) {
+    return handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function avanzarEstadoSolicitudController(req, res) {
+  try {
+    const { error: errorParams, value: params } = solicitudIdValidation.validate(req.params);
+    if (errorParams) return handleErrorClient(res, 400, errorParams.message);
+
+    const { error: errorBody, value: body } = avanzarEstadoBodyValidation.validate(req.body ?? {});
+    if (errorBody) return handleErrorClient(res, 400, errorBody.message);
+
+    const [solicitud, error] = await avanzarEstadoSolicitudService(params.id, {
+      ...body,
+      usuarioId: req.user.usuarioId,
+    });
+    if (error) return handleErrorClient(res, 400, error);
+
+    handleSuccess(res, 200, "Estado de la solicitud actualizado", solicitud);
+  } catch (error) {
+    return handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function getSolicitudesController(req, res) {
+  try {
+    const [solicitudes, error] = await getSolicitudesService();
+    if (error) return handleErrorServer(res, 500, error);
+    handleSuccess(res, 200, "Solicitudes encontradas", solicitudes);
   } catch (error) {
     return handleErrorServer(res, 500, error.message);
   }

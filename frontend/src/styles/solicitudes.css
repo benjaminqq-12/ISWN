@@ -1,0 +1,93 @@
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+.solicitudes-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: white;
+}
+
+.solicitudes-tabla th,
+.solicitudes-tabla td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.solicitudes-tabla th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.sol-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.sol-pendiente { background: #fff4d6; color: #8a6100; }
+.sol-en-curso  { background: #e3f0ff; color: #1b5fb4; }
+.sol-adoptada  { background: #e6f7ec; color: #1a7f4b; }
+.sol-cancelada { background: #fdecea; color: #b3261e; }
+
+.btn-primary-sm {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-content.sol-modal {
+  max-width: 460px;
+}
+
+.sol-modal label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sol-modal select,
+.sol-modal textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.sol-modal textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.sol-contador {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.sol-modal .modal-actions button {
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.sol-modal .modal-actions button[type="submit"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}

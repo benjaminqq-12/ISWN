@@ -24,9 +24,18 @@ export async function iniciarSesionController(req, res) {
       where: { usuarioEmail: usuarioEmail.trim() },
     });
 
-    const passwordValida = usuario
-      ? await bcrypt.compare(usuarioPassword, usuario.usuarioPassword)
-      : false;
+    let passwordValida = false;
+    if (usuario) {
+      const tieneHashBcrypt = /^\$2[aby]\$\d{2}\$/.test(usuario.usuarioPassword);
+      if (tieneHashBcrypt) {
+        passwordValida = await bcrypt.compare(usuarioPassword, usuario.usuarioPassword);
+      } else if (usuarioPassword === usuario.usuarioPassword) {
+        // Migrate legacy accounts to bcrypt after their first successful login.
+        usuario.usuarioPassword = await bcrypt.hash(usuarioPassword, 10);
+        await usuarioRepository.save(usuario);
+        passwordValida = true;
+      }
+    }
 
     if (!usuario || !usuario.activo || !passwordValida) {
       return handleErrorClient(res, 401, "Correo o contraseña incorrectos");
