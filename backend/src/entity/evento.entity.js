@@ -33,16 +33,29 @@ const EventoSchema = new EntitySchema({
             length: 5, // "HH:MM", "14:30"
             nullable: false,
         },
+        horaFin: {
+            type: "varchar",
+            length: 5,
+            nullable: true,
+        },
+        capacidadMaxima:{
+            type: "int",
+            nullable: true,
+        },
         lugar: {
             type: "varchar",
             length: 200,
             nullable: false,
         },
+        version: {
+            type: "int",
+            default: 1,
+        },
         estado: {
             type: "varchar",
             length: 20, // "Programado", "Finalizado", "Cancelado"
             nullable: false,
-            default: "Programado"
+            default: "Activo"
         }
     },
     relations: {
