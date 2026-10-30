@@ -21,7 +21,12 @@ const HistorialMascotaSchema = new EntitySchema({
         },
         historialMascota_fecha: {
             type: "date"
-        }
+        },
+        historialMascota_tipoEvento: {
+            type: "varchar",
+            length: 150,
+            nullable: false,
+        },
     },
     relations: {
         historialAdopcion_mascota: {

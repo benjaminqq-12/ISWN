@@ -12,6 +12,7 @@ import {
   actualizarMascotaService,
   eliminarMascotaService,
 } from "../services/mascota.service.js";
+import { ESTADOS_MASCOTA } from "../config/estadosMascota.js";
 
 const CAMPOS_TEXTO = {
   mascota_nombreCompleto: 100,
@@ -26,7 +27,7 @@ const OPCIONES_MASCOTA = {
   mascota_especie: ["Perro", "Gato"],
   mascota_sexo: ["Hembra", "Macho"],
   mascota_viaIngreso: ["Entrega voluntaria", "Decomiso municipal", "Traslado", "Hallazgo en vía pública"],
-  mascota_estado: ["En Tratamiento", "En Cuarentena", "En adopción"],
+  mascota_estado: ESTADOS_MASCOTA,
 };
 
 const CAMPOS_MASCOTA = new Set([
