@@ -77,8 +77,9 @@ export const eventoUsuarioIdValidation = Joi.object({
 
 export const eventoBorradorValidation = eventoBodyValidation.fork(
     ["descripcion", "fechaEvento", "horaInicio", "horaFin", "capacidadMaxima", "lugar", "organizadorId", "categoria"],
-    campo => campo.optional().allow(null)
+    campo => campo.optional().allow(null).empty("").default(null)
 ).keys({ version: Joi.number().integer().min(1).optional() });
+
 export const publicarEventoValidation = eventoBodyValidation.keys({
     version: Joi.number().integer().min(1).required()
 });

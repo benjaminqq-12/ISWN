@@ -4,7 +4,6 @@ import UsuarioSchema from "../entity/usuario.entity.js";
 import InscripcionSchema from "../entity/inscripcion.entity.js";
 import { In, MoreThanOrEqual, Not } from "typeorm";
 import { fechaActual, validarHorarioEvento, eventoTermino } from "../helpers/evento.helper.js";
-import { eventoBodyValidation } from "../validations/evento.validations.js";
 
 export const crearEventoService = async (datosEvento, creadorId) => {
     try {
@@ -24,7 +23,7 @@ export const crearEventoService = async (datosEvento, creadorId) => {
             });
 
             if (!admin) {
-                return [null, "solo los administradores pueden crear eventos."];
+                return [null, "Solo los administradores pueden crear eventos."];
             }
 
             const errorHorario = validarHorarioEvento(datosEvento);
@@ -167,8 +166,8 @@ export const actualizarEventoService = async (eventoId, datosActualizados, usuar
             }
             return [eventoActualizado, null];
         });
-    }catch (error) {
-        console.error("Error en actualizareventoservice:", error);
+    } catch (error) {
+        console.error("Error en actualizarEventoService:", error);
         return [null, "Error interno al actualizar el evento."];
     }
 };
@@ -198,7 +197,7 @@ export const eliminarEventoService = async (eventoId, usuarioId) => {
             return [true, null];
         });
     } catch (error) {
-        console.error("Error en eliminareventoservice:", error);
+        console.error("Error en eliminarEventoService:", error);
         return [null, "Error interno al eliminar el evento."];
     }
 };
@@ -294,7 +293,7 @@ export const obtenerEventoPorIdService = async (eventoId) => {
         const [eventoConCupos] = await agregarCupos([evento]);
         return [eventoConCupos, null];
     } catch (error) {
-        console.error("error en obtenereventoporidservice:", error);
+        console.error("Error en obtenerEventoPorIdService:", error);
         return [null, "Error interno al obtener el evento."];
     }
 };
@@ -313,7 +312,7 @@ export const obtenerMisInscripcionesService = async (usuarioId) => {
 
         return [inscripciones, null];
     } catch (error) {
-        console.error("error en obtenermisinscripcionesservice:", error);
+        console.error("Error en obtenerMisInscripcionesService:", error);
         return [null, "Error interno al obtener tus inscripciones."];
     }
 };
@@ -361,7 +360,7 @@ export const obtenerInscritosPorEventoService = async (eventoId, usuarioSolicita
 
         return [inscritos, null];
     } catch (error) {
-        console.error("error en obtenerinscritosoporeventoservice:", error);
+        console.error("Error en obtenerInscritosPorEventoService:", error);
         return [null, "Error interno al obtener la lista de inscritos."];
     }
 };
@@ -399,7 +398,7 @@ export const marcarAsistenciaService = async (eventoId, usuarioId, usuarioSolici
 
         return [inscripcion, null];
     } catch (error) {
-        console.error("error en marcarasistenciaservice:", error);
+        console.error("Error en marcarAsistenciaService:", error);
         return [null, "Error interno al registrar la asistencia."];
     }
 };
@@ -485,63 +484,111 @@ export const obtenerEventosGestionService = async (usuario) => {
     }
 };
 
-export const guardarBorradorEventoService = async (eventoId, datos, usuarioId, publicar = false) => {
+export const crearBorradorService = async (datos, usuarioId) => {
     try {
         return await AppDataSource.transaction(async manager => {
             await manager.query("SELECT pg_advisory_xact_lock(1001)");
             const eventoRepository = manager.getRepository(EventoSchema);
             const usuarioRepository = manager.getRepository(UsuarioSchema);
 
-            const admin = await usuarioRepository.findOne({ 
-                where: { 
-                    usuarioId, 
-                    rol: "Admin", 
-                    activo: true 
-                } 
-            });
-
-            if (!admin) return [null, "Solo el administrador puede guardar o publicar borradores."];
-
-            let evento = eventoId ? await eventoRepository.findOne({ 
-                where: { eventoId }, 
-                lock: { mode: "pessimistic_write" } 
-            }) : null;
-
-            if (eventoId && (!evento || evento.estado !== "Borrador")) return [null, "El borrador no existe o ya fue publicado."];
-            if (evento && datos.version !== evento.version) return [null, "El borrador cambió. Ábrelo nuevamente antes de guardar."];
+            const admin = await usuarioRepository.findOne({ where: { usuarioId, rol: "Admin", activo: true } });
+            if (!admin) return [null, "Solo el administrador puede guardar borradores."];
 
             const { organizadorId, version, ...campos } = datos;
-            if (publicar) {
-                const { error } = eventoBodyValidation.validate({ 
-                    ...campos, 
-                    organizadorId 
-                });
 
-                if (error) return [null, error.details[0].message];
-                const errorHorario = validarHorarioEvento(campos);
-
-                if (errorHorario) return [null, errorHorario];
-                const conflicto = await validarSuperposicion(eventoRepository, campos, eventoId);
-                if (conflicto) return [null, conflicto];
-            }
             if (organizadorId) {
-                const organizador = await usuarioRepository.findOne({ 
-                    where: { 
-                        usuarioId: organizadorId, 
-                        rol: "Voluntario", activo: true 
-                    } 
-                });
+                const organizador = await usuarioRepository.findOne({ where: { usuarioId: organizadorId, rol: "Voluntario", activo: true } });
                 if (!organizador) return [null, "Selecciona un organizador que sea voluntario activo."];
             }
-            evento = eventoRepository.merge(evento || eventoRepository.create(), campos, {
+
+            const evento = eventoRepository.create({
+                ...campos,
                 organizador: organizadorId ? { usuarioId: organizadorId } : null,
-                estado: publicar ? "Activo" : "Borrador", 
-                version: evento ? evento.version + 1 : 1
+                estado: "Borrador",
+                version: 1
             });
+
             return [await eventoRepository.save(evento), null];
         });
     } catch (error) {
-        console.error("Error en guardarBorradorEventoService:", error);
-        return [null, "No se pudo guardar el borrador."];
+        console.error("Error en crearBorradorService:", error);
+        return [null, "No se pudo crear el borrador."];
+    }
+};
+
+export const actualizarBorradorService = async (eventoId, datos, usuarioId) => {
+    try {
+        return await AppDataSource.transaction(async manager => {
+            await manager.query("SELECT pg_advisory_xact_lock(1001)");
+            const eventoRepository = manager.getRepository(EventoSchema);
+            const usuarioRepository = manager.getRepository(UsuarioSchema);
+
+            const admin = await usuarioRepository.findOne({ where: { usuarioId, rol: "Admin", activo: true } });
+            if (!admin) return [null, "Solo el administrador puede guardar borradores."];
+
+            let evento = await eventoRepository.findOne({ where: { eventoId }, lock: { mode: "pessimistic_write" } });
+            if (!evento || evento.estado !== "Borrador") return [null, "El borrador no existe o ya fue publicado."];
+            if (datos.version !== undefined && datos.version !== evento.version) {
+                return [null, "El borrador cambió. Ábrelo nuevamente antes de guardar."];
+            }
+
+            const { organizadorId, version, ...campos } = datos;
+
+            if (organizadorId) {
+                const organizador = await usuarioRepository.findOne({ where: { usuarioId: organizadorId, rol: "Voluntario", activo: true } });
+                if (!organizador) return [null, "Selecciona un organizador que sea voluntario activo."];
+            }
+
+            evento = eventoRepository.merge(evento, campos, {
+                organizador: organizadorId ? { usuarioId: organizadorId } : null,
+                estado: "Borrador",
+                version: evento.version + 1
+            });
+
+            return [await eventoRepository.save(evento), null];
+        });
+    } catch (error) {
+        console.error("Error en actualizarBorradorService:", error);
+        return [null, "No se pudo actualizar el borrador."];
+    }
+};
+
+export const publicarEventoService = async (eventoId, datos, usuarioId) => {
+    try {
+        return await AppDataSource.transaction(async manager => {
+            await manager.query("SELECT pg_advisory_xact_lock(1001)");
+            const eventoRepository = manager.getRepository(EventoSchema);
+            const usuarioRepository = manager.getRepository(UsuarioSchema);
+
+            const admin = await usuarioRepository.findOne({ where: { usuarioId, rol: "Admin", activo: true } });
+            if (!admin) return [null, "Solo el administrador puede publicar borradores."];
+
+            let evento = await eventoRepository.findOne({ where: { eventoId }, lock: { mode: "pessimistic_write" } });
+            if (!evento || evento.estado !== "Borrador") return [null, "El borrador no existe o ya fue publicado."];
+            if (datos.version !== evento.version) return [null, "El borrador cambió. Ábrelo nuevamente antes de guardar."];
+
+            const { organizadorId, version, ...campos } = datos;
+
+            const errorHorario = validarHorarioEvento(campos);
+            if (errorHorario) return [null, errorHorario];
+            const conflicto = await validarSuperposicion(eventoRepository, campos, eventoId);
+            if (conflicto) return [null, conflicto];
+
+            const organizador = await usuarioRepository.findOne({
+                where: { usuarioId: organizadorId, rol: "Voluntario", activo: true }
+            });
+            if (!organizador) return [null, "Selecciona un organizador que sea voluntario activo."];
+
+            evento = eventoRepository.merge(evento, campos, {
+                organizador: { usuarioId: organizadorId },
+                estado: "Activo",
+                version: evento.version + 1
+            });
+
+            return [await eventoRepository.save(evento), null];
+        });
+    } catch (error) {
+        console.error("Error en publicarEventoService:", error);
+        return [null, "No se pudo publicar el evento."];
     }
 };
