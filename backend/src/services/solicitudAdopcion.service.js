@@ -1,11 +1,14 @@
 "use strict";
+import { IsNull, Not } from "typeorm";
 import { AppDataSource } from "../config/configDb.js";
 import SolicitudAdopcionSchema from "../entity/solicitudAdopcion.entity.js";
 import MascotaSchema from "../entity/mascota.entity.js";
 import UsuarioSchema from "../entity/usuario.entity.js";
 import HistorialMascotaSchema from "../entity/historialMascota.entity.js";
+import SeguimientoAdopcionSchema from "../entity/seguimientoAdopcion.entity.js";
 import {
   ESTADOS_SOLICITUD,
+  PLAZOS_SEGUIMIENTO,
   esTransicionValida,
   puedeAutorizar,
   getSiguientesEstados
@@ -75,10 +78,25 @@ async function obtenerSolicitudParaAvanzar(solicitudId, nuevoEstado) {
   if (!esTransicionValida(estadoActual, nuevoEstado)) {
     return [null, `Transición inválida: una solicitud en estado '${estadoActual}' no puede pasar a '${nuevoEstado}'.`];
   }
+
+  // para pasar a "Adoptada" deben estar registrados todos los seguimientos (con cualquier resultado)
+  if (nuevoEstado === ESTADOS_SOLICITUD.ADOPTADA) {
+    const seguimientoRepository = AppDataSource.getRepository(SeguimientoAdopcionSchema);
+    const registrados = await seguimientoRepository.count({
+      where: {
+        seguimientoAdopcion_solicitud: { solicitudAdopcion_id: solicitudId },
+        seguimientoAdopcion_resultado: Not(IsNull()),
+      },
+    });
+    if (registrados < PLAZOS_SEGUIMIENTO.length) {
+      return [null, `Antes de marcar la solicitud como Adoptada deben registrarse los seguimientos de ${PLAZOS_SEGUIMIENTO.join(" y ")} días.`];
+    }
+  }
+
   return [solicitud, null];
 }
 
-function aplicarAvance(solicitud, nuevoEstado, detalle, fecha) {
+function aplicarAvance(solicitud, nuevoEstado, detalle, fecha, tipoCierre) {
   solicitud.solicitudAadopcion_estado = nuevoEstado;
   solicitud.updatedAt = fecha;
 
@@ -95,18 +113,20 @@ function aplicarAvance(solicitud, nuevoEstado, detalle, fecha) {
       break;
     case ESTADOS_SOLICITUD.CANCELADA:
       solicitud.solicitudAdopcion_motivoCancelación = detalle;
+      solicitud.solicitudAdopcion_tipoCierre = tipoCierre;
       break;
   }
 }
 
-async function guardarAvanceConHistorial(solicitud, usuario, nuevoEstado, detalle, fecha) {
+async function guardarAvanceConHistorial(solicitud, usuario, nuevoEstado, detalle, fecha, tipoCierre) {
   const mascota = solicitud.solicitudAdopcion_mascotaAdoptada;
+  const sufijo = tipoCierre ? ` (${tipoCierre})` : "";
 
   return AppDataSource.transaction(async (manager) => {
     const guardada = await manager.save(SolicitudAdopcionSchema, solicitud);
 
     const evento = manager.create(HistorialMascotaSchema, {
-      historialMascota_tipoEvento: `Solicitud de adopción - ${nuevoEstado}`,
+      historialMascota_tipoEvento: `Solicitud de adopción - ${nuevoEstado}${sufijo}`,
       historialMascota_descripcion: detalle,
       historialMascota_fecha: fecha,
       historialAdopcion_mascota: { mascota_id: mascota.mascota_id },
@@ -115,11 +135,25 @@ async function guardarAvanceConHistorial(solicitud, usuario, nuevoEstado, detall
     });
     await manager.save(HistorialMascotaSchema, evento);
 
+    // al entrar a seguimiento se crean los seguimientos pendientes (15 y 30 días)
+    if (nuevoEstado === ESTADOS_SOLICITUD.SEGUIMIENTO) {
+      const seguimientos = PLAZOS_SEGUIMIENTO.map((plazo) => {
+        const limite = new Date(fecha);
+        limite.setDate(limite.getDate() + plazo);
+        return manager.create(SeguimientoAdopcionSchema, {
+          seguimientoAdopcion_plazoDias: plazo,
+          seguimientoAdopcion_fechaLimite: limite,
+          seguimientoAdopcion_solicitud: { solicitudAdopcion_id: solicitud.solicitudAdopcion_id },
+        });
+      });
+      await manager.save(SeguimientoAdopcionSchema, seguimientos);
+    }
+
     return guardada;
   });
 }
 
-export async function avanzarEstadoSolicitudService(solicitudId, { nuevoEstado, detalle, usuarioId }) {
+export async function avanzarEstadoSolicitudService(solicitudId, { nuevoEstado, detalle, usuarioId, tipoCierre }) {
   try {
     const [usuario, errorUsuario] = await obtenerAutorizador(usuarioId);
     if (errorUsuario) return [null, errorUsuario];
@@ -128,9 +162,9 @@ export async function avanzarEstadoSolicitudService(solicitudId, { nuevoEstado, 
     if (errorSolicitud) return [null, errorSolicitud];
 
     const hoy = new Date();
-    aplicarAvance(solicitud, nuevoEstado, detalle, hoy);
+    aplicarAvance(solicitud, nuevoEstado, detalle, hoy, tipoCierre);
 
-    const solicitudActualizada = await guardarAvanceConHistorial(solicitud, usuario, nuevoEstado, detalle, hoy);
+    const solicitudActualizada = await guardarAvanceConHistorial(solicitud, usuario, nuevoEstado, detalle, hoy, tipoCierre);
     return [solicitudActualizada, null];
   } catch (error) {
     console.error("Error al avanzar el estado de la solicitud:", error);
