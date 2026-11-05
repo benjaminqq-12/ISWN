@@ -11,6 +11,7 @@ import voluntarioRoutes from "./voluntario.routes.js";
 import solicitudAdopcionRoutes from "./solicitudAdopcion.routes.js";
 import usuarioRoutes from "./usuario.routes.js";
 import historialMascotaRoutes from "./historialMascota.routes.js";
+import seguimientoAdopcionRoutes from "./seguimientoAdopcion.routes.js";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router
     .use("/mascotas", historialMascotaRoutes)
     .use("/voluntarios", voluntarioRoutes)
     .use("/solicitudes-adopcion", solicitudAdopcionRoutes)
+    .use("/solicitudes-adopcion", seguimientoAdopcionRoutes)
     .use("/usuarios", usuarioRoutes);
 
 export default router;

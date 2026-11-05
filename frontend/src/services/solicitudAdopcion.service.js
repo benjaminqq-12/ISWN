@@ -46,9 +46,21 @@ export function crearSolicitudAdopcion({ mascotaId }) {
   });
 }
 
-export function avanzarEstadoSolicitud(id, { nuevoEstado, detalle }) {
+export function avanzarEstadoSolicitud(id, { nuevoEstado, detalle, tipoCierre }) {
   return request(`/solicitudes-adopcion/${id}/estado`, {
     method: "PATCH",
-    body: JSON.stringify({ nuevoEstado, detalle }),
+    // el backend rechaza tipoCierre en cualquier paso que no sea cancelar
+    body: JSON.stringify({ nuevoEstado, detalle, ...(tipoCierre ? { tipoCierre } : {}) }),
+  });
+}
+
+export function getSeguimientos(solicitudId) {
+  return request(`/solicitudes-adopcion/${solicitudId}/seguimientos`);
+}
+
+export function registrarSeguimiento(solicitudId, seguimientoId, { tipo, resultado, detalle }) {
+  return request(`/solicitudes-adopcion/${solicitudId}/seguimientos/${seguimientoId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ tipo, resultado, detalle }),
   });
 }

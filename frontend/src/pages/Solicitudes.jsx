@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AvanzarEstadoModal from '../components/AvanzarEstadoModal.jsx';
+import SeguimientosModal from '../components/SeguimientosModal.jsx';
 import { getSolicitudes } from '../services/solicitudAdopcion.service';
 
 import '../styles/home.css';
@@ -22,6 +23,7 @@ const Solicitudes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [seleccionada, setSeleccionada] = useState(null);
+  const [verSeguimientos, setVerSeguimientos] = useState(null);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
@@ -67,13 +69,23 @@ const Solicitudes = () => {
                     <span className={`sol-badge ${CLASE_ESTADO[s.solicitudAadopcion_estado] ?? ""}`}>
                       {s.solicitudAadopcion_estado}
                     </span>
+                    {s.solicitudAdopcion_tipoCierre && (
+                      <span className="sol-tipo-cierre">{s.solicitudAdopcion_tipoCierre}</span>
+                    )}
                   </td>
                   <td>
-                    {s.siguientesEstados.length > 0 && (
-                      <button className="btn-primary-sm" onClick={() => setSeleccionada(s)}>
-                        Avanzar
-                      </button>
-                    )}
+                    <div className="sol-acciones">
+                      {["Seguimiento post-adopción", "Adoptada"].includes(s.solicitudAadopcion_estado) && (
+                        <button className="btn-secondary-sm" onClick={() => setVerSeguimientos(s)}>
+                          Seguimientos
+                        </button>
+                      )}
+                      {s.siguientesEstados.length > 0 && (
+                        <button className="btn-primary-sm" onClick={() => setSeleccionada(s)}>
+                          Avanzar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -90,6 +102,12 @@ const Solicitudes = () => {
             setSeleccionada(null);
             setVersion((v) => v + 1);
           }}
+        />
+      )}
+      {verSeguimientos && (
+        <SeguimientosModal
+          solicitud={verSeguimientos}
+          onClose={() => setVerSeguimientos(null)}
         />
       )}
     </div>

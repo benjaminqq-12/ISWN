@@ -47,3 +47,17 @@ export function esTransicionValida(estadoActual, nuevoEstado) {
 export function puedeAutorizar(rol) {
   return ROLES_AUTORIZADORES.includes(rol);
 }
+
+// Plazos (en días, desde que la solicitud pasa a "Seguimiento post-adopción")
+export const PLAZOS_SEGUIMIENTO = [15, 30];
+
+// Motivos de cierre cuando una solicitud se cancela
+export const TIPOS_CIERRE = [
+  "Desistimiento del adoptante",
+  "Rechazada por el refugio",
+  "Devolución de la mascota",
+];
+
+// Datos de un seguimiento post-adopción
+export const TIPOS_SEGUIMIENTO = ["Llamada", "Visita"];
+export const RESULTADOS_SEGUIMIENTO = ["Favorable", "Con observaciones", "Desfavorable", "Sin respuesta"];
