@@ -16,3 +16,9 @@ export const TIPOS_EVENTO_MANUAL = [
   "Atención médica",
   "Otro",
 ];
+
+// Estados que la solicitud de adopción cambia sola en la mascota
+export const ESTADO_MASCOTA = {
+  EN_REFUGIO: "En Refugio",
+  ADOPTADA: "Adoptada",
+};
