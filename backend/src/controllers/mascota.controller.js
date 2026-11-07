@@ -168,8 +168,8 @@ export async function actualizarMascotaController(req, res) {
 export async function eliminarMascotaController(req, res) {
   const id = obtenerIdMascota(req, res);
   if (id === null) return;
-
   const [mascotaEliminada, error] = await eliminarMascotaService(id);
+  
   if (error) {
     if (error === "Mascota no encontrada") {
       return handleErrorClient(res, 404, error);
