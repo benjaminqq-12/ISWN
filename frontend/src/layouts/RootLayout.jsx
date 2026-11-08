@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { iniciarSesion } from "../services/mascota.service";
+
+import {
+  iniciarSesion,
+} from "../services/mascota.service.js";
+
 import LoginModal from "../components/LoginModal";
+
 import "../styles/navbar.css";
 
 /* =========================================
@@ -56,7 +61,7 @@ function cargarSesion() {
 
 export default function RootLayout() {
   const [session, setSession] = useState(cargarSesion);
-
+  
   const [loginVisible, setLoginVisible] = useState(false);
 
   const [loginError, setLoginError] = useState("");
@@ -164,7 +169,13 @@ export default function RootLayout() {
           ================================= */}
 
           <nav className="nav-links">
-            {NAV.map((item) => {
+            {NAV.filter((item) =>
+              !item.interno ||
+              (
+                session?.user?.activo &&
+                ["Admin", "Voluntario", "Veterinario"].includes(session.user.rol)
+              )
+            ).map((item) => {
 
               /* =============================
                  LINKS NORMALES
