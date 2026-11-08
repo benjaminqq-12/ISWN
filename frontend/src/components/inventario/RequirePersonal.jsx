@@ -1,7 +1,4 @@
-import {
-  Navigate,
-  useOutletContext,
-} from "react-router-dom";
+import { Navigate, useOutletContext } from "react-router-dom";
 
 export default function RequirePersonal({ children }) {
   const { session, comprobandoSesion } = useOutletContext();
@@ -14,15 +11,11 @@ export default function RequirePersonal({ children }) {
     );
   }
 
-  const rolesPermitidos = [
-    "Admin",
-    "Voluntario",
-    "Veterinario",
-  ];
-
   const autorizado =
-    session?.user?.activo &&
-    rolesPermitidos.includes(session.user.rol);
+    session?.user?.activo === true &&
+    ["Admin", "Voluntario", "Veterinario"].includes(
+      session?.user?.rol
+    );
 
   if (!autorizado) {
     return <Navigate to="/" replace />;

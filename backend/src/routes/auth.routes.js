@@ -10,9 +10,26 @@ const router = Router();
 router.post("/login", iniciarSesionController);
 
 // Verifica un token contra la cuenta ACTUAL de la base de datos.
-router.get("/me", passport.authenticate("jwt", { session: false }), (req, res) => {
-  const { usuarioId, usuarioNombre, usuarioEmail, rol } = req.user;
-  return handleSuccess(res, 200, "Sesión válida", { usuarioId, usuarioNombre, usuarioEmail, rol });
-});
+router.get(
+  "/me",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    const {
+      usuarioId,
+      usuarioNombre,
+      usuarioEmail,
+      rol,
+      activo,
+    } = req.user;
+
+    return handleSuccess(res, 200, "Sesión válida", {
+      usuarioId,
+      usuarioNombre,
+      usuarioEmail,
+      rol,
+      activo,
+    });
+  }
+);
 
 export default router;
