@@ -12,7 +12,10 @@ export const Vacuna = new EntitySchema({
             primary: true,
             generated: true
         },
-
+              vacuna_proximaDosis: {
+             type: "date",
+            nullable: true
+        },
         vacuna_nombre: {
             type: "varchar",
             length: 100
@@ -22,10 +25,15 @@ export const Vacuna = new EntitySchema({
             type: "varchar",
             length: 100
         },
-
+      
         vacuna_fechaAplicacion: {
             type: "date"
-        }
+        },
+        vacuna_proximaDosis: {
+        type: "date",
+         nullable: true
+        },
+       
     },
 
     relations: {
