@@ -7,7 +7,8 @@ import {
 import {
   crearSolicitudAdopcionService,
   avanzarEstadoSolicitudService,
-  getSolicitudesService
+  getSolicitudesService,
+  getMisSolicitudesService
  } from "../services/solicitudAdopcion.service.js";
 import {
   avanzarEstadoBodyValidation,
@@ -57,6 +58,16 @@ export async function getSolicitudesController(req, res) {
     const [solicitudes, error] = await getSolicitudesService();
     if (error) return handleErrorServer(res, 500, error);
     handleSuccess(res, 200, "Solicitudes encontradas", solicitudes);
+  } catch (error) {
+    return handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function getMisSolicitudesController(req, res) {
+  try {
+    const [solicitudes, error] = await getMisSolicitudesService(req.user.usuarioId);
+    if (error) return handleErrorServer(res, 500, error);
+    handleSuccess(res, 200, "Tus solicitudes de adopción", solicitudes);
   } catch (error) {
     return handleErrorServer(res, 500, error.message);
   }

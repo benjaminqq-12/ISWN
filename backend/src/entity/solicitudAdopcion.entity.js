@@ -37,6 +37,11 @@ const SolicitudAdopcionSchema = new EntitySchema({
             length: 512,
             nullable: true,
         },
+        solicitudAdopcion_tipoCierre: {
+            type: "varchar",
+            length: 50,
+            nullable: true,
+        },
         createdAt: {
             type: "timestamp with time zone",
             default: () => "CURRENT_TIMESTAMP",
