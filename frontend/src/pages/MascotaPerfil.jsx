@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { getMascota, getMascotaInterna } from '../services/mascota.service';
 import SolicitudAdopcionForm from '../components/SolicitudAdopcionForm';
+import HistorialMascota from '../components/HistorialMascota';
 import '../styles/mascotas.css';
 
 const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
@@ -127,6 +128,15 @@ const MascotaPerfil = () => {
           {errorInterno && <p className="form-message form-error" role="alert">{errorInterno}</p>}
         </div>
       </div>
+      {puedeVerInterno && (
+        <HistorialMascota
+          mascotaId={mascota.mascota_id}
+          estadoActual={mascota.mascota_estado}
+          onEstadoCambiado={(actualizada) =>
+            setMascota((anterior) => ({ ...anterior, mascota_estado: actualizada.mascota_estado }))
+          }
+        />
+      )}
       {mostrarFormulario && (
         <SolicitudAdopcionForm
           mascota={mascota}
