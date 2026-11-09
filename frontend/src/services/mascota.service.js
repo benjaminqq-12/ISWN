@@ -27,24 +27,6 @@ export async function getMascotaInterna(id, token) {
   return leerRespuesta(response, "No se pudieron obtener los datos internos");
 }
 
-export async function iniciarSesion(usuarioEmail, usuarioPassword) {
-  try {
-    const response = await axios.post("/auth/login", { usuarioEmail, usuarioPassword });
-    const sesion = response.data?.data;
-    if (!sesion?.token || !sesion?.user) {
-      throw new Error(response.data?.message || "El servidor devolvió una sesión inválida.");
-    }
-    return sesion;
-  } catch (error) {
-    throw new Error(
-      error.response?.data?.message
-        || error.message
-        || "Error de conexión con el servidor.",
-      { cause: error }
-    );
-  }
-}
-
 export async function crearMascota(mascota, token) {
   const response = await fetch(`${API_URL}/mascotas`, {
     method: "POST",

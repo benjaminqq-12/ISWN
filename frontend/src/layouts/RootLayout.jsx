@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { iniciarSesion } from "../services/mascota.service";
+import { iniciarSesion } from "../services/usuario.service";
 import LoginModal from "../components/LoginModal";
 import cookies from "js-cookie";
 import "../styles/navbar.css";
