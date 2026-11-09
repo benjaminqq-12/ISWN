@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { iniciarSesion } from "../services/mascota.service";
+
+import {
+  iniciarSesion,
+} from "../services/mascota.service.js";
+
 import LoginModal from "../components/LoginModal";
+
 import "../styles/navbar.css";
 
 /* =========================================
@@ -11,8 +16,9 @@ import "../styles/navbar.css";
 const NAV = [
   { label: "Inicio", to: "/" },
   { label: "Mascotas", to: "/mascotas" },
-  { label: "Adopciones"},
+  { label: "Adopciones" },
   { label: "Atención Médica", to: "/atencion-medica" },
+
   {
     label: "Voluntarios",
     submenu: [
@@ -23,8 +29,15 @@ const NAV = [
     ],
   },
 
-  { label: "Donaciones"},
+  { label: "Donaciones" },
   { label: "Eventos", to: "/eventos" },
+
+  // Visible solamente para personal interno
+  {
+    label: "Inventario",
+    to: "/inventario",
+    interno: true,
+  },
 ];
 
 /* =========================================
@@ -56,12 +69,14 @@ function cargarSesion() {
 
 export default function RootLayout() {
   const [session, setSession] = useState(cargarSesion);
-
+  
   const [loginVisible, setLoginVisible] = useState(false);
 
   const [loginError, setLoginError] = useState("");
 
   const [loginLoading, setLoginLoading] = useState(false);
+
+  const [comprobandoSesion] = useState(false);
 
   // Guarda qué menú desplegable está abierto
   const [submenuAbierto, setSubmenuAbierto] = useState(null);
@@ -164,125 +179,123 @@ export default function RootLayout() {
           ================================= */}
 
           <nav className="nav-links">
-            {NAV.map((item) => {
+  {NAV.filter((item) => {
+    if (!item.interno) return true;
 
-              /* =============================
-                 LINKS NORMALES
-                 Inicio / Mascotas
-              ============================= */
+    const usuario = session?.user;
 
-              if (item.to) {
-                return (
-                  <Link
-                    key={item.label}
-                    to={item.to}
-                    className={`nav-link ${
-                      location.pathname === item.to
-                        || (item.to === "/mascotas" && location.pathname.startsWith("/mascotas/"))
-                        ? "active"
-                        : ""
-                    }`}
-                    aria-current={location.pathname === item.to ? "page" : undefined}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              }
+    console.log("Datos de autorización:", {
+    rol: usuario?.rol,
+    activo: usuario?.activo,
+    autorizado:
+      usuario?.activo === true &&
+      ["Admin", "Voluntario", "Veterinario"].includes(usuario?.rol),
+    });
 
-              /* =============================
-                 MENÚ DESPLEGABLE
-                 Voluntarios
-              ============================= */
+    return (
+      usuario?.activo === true &&
+      ["Admin", "Voluntario", "Veterinario"].includes(usuario?.rol)
+    );
+  }).map((item) => {
 
-              if (item.submenu) {
+    /* =============================
+       LINKS NORMALES
+       Inicio / Mascotas / Inventario
+    ============================= */
 
-                const submenuActivo =
-                  item.submenu.some(
-                    (subitem) =>
-                      location.pathname === subitem.to
-                  );
+    if (item.to) {
+      return (
+        <Link
+          key={item.label}
+          to={item.to}
+          className={`nav-link ${
+            location.pathname === item.to ||
+            (
+              item.to === "/mascotas" &&
+              location.pathname.startsWith("/mascotas/")
+            )
+              ? "active"
+              : ""
+          }`}
+          aria-current={
+            location.pathname === item.to
+              ? "page"
+              : undefined
+          }
+        >
+          {item.label}
+        </Link>
+      );
+    }
 
-                return (
-                  <div
-                    className="nav-dropdown"
-                    key={item.label}
-                  >
+    /* =============================
+       MENÚ DESPLEGABLE
+       Voluntarios
+    ============================= */
 
-                    {/* BOTÓN VOLUNTARIOS */}
+    if (item.submenu) {
+      const submenuActivo = item.submenu.some(
+        (subitem) => location.pathname === subitem.to
+      );
 
-                    <button
-                      type="button"
-                      className={`nav-link nav-dropdown-toggle ${
-                        submenuActivo
-                          ? "active"
-                          : ""
-                      }`}
-                      aria-haspopup="true"
-                      aria-expanded={submenuAbierto === item.label}
-                      onClick={() =>
-                        toggleSubmenu(item.label)
-                      }
-                    >
+      return (
+        <div
+          className="nav-dropdown"
+          key={item.label}
+        >
+          <button
+            type="button"
+            className={`nav-link nav-dropdown-toggle ${
+              submenuActivo ? "active" : ""
+            }`}
+            aria-haspopup="true"
+            aria-expanded={submenuAbierto === item.label}
+            onClick={() => toggleSubmenu(item.label)}
+          >
+            {item.label}
 
-                      {item.label}
+            <span
+              className={`dropdown-arrow ${
+                submenuAbierto === item.label ? "open" : ""
+              }`}
+              aria-hidden="true"
+            />
+          </button>
 
-                      <span
-                        className={`dropdown-arrow ${
-                          submenuAbierto === item.label ? "open" : ""
-                        }`}
-                        aria-hidden="true"
-                      />
-
-                    </button>
-
-                    {/* MENÚ QUE APARECE AL HACER CLICK */}
-
-                    {submenuAbierto === item.label && (
-
-                      <div className="nav-dropdown-menu">
-
-                        {item.submenu.map(
-                          (subitem) => (
-
-                            <Link
-                              key={subitem.label}
-                              to={subitem.to}
-                              className="nav-dropdown-item"
-                              onClick={() =>
-                                setSubmenuAbierto(null)
-                              }
-                            >
-                              {subitem.label}
-                            </Link>
-
-                          )
-                        )}
-
-                      </div>
-
-                    )}
-
-                  </div>
-                );
-              }
-
-              /* =============================
-                 OPCIONES AÚN SIN PÁGINA
-              ============================= */
-
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  className="nav-link nav-placeholder"
+          {submenuAbierto === item.label && (
+            <div className="nav-dropdown-menu">
+              {item.submenu.map((subitem) => (
+                <Link
+                  key={subitem.label}
+                  to={subitem.to}
+                  className="nav-dropdown-item"
+                  onClick={() => setSubmenuAbierto(null)}
                 >
-                  {item.label}
-                </button>
-              );
+                  {subitem.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
 
-            })}
+    /* =============================
+       OPCIONES AÚN SIN PÁGINA
+    ============================= */
 
-          </nav>
+    return (
+      <button
+        key={item.label}
+        type="button"
+        className="nav-link nav-placeholder"
+      >
+        {item.label}
+      </button>
+    );
+
+  })}
+</nav>
 
           {/* =================================
               CONTROLES DE SESIÓN
@@ -355,6 +368,7 @@ export default function RootLayout() {
         <Outlet
           context={{
             session,
+            comprobandoSesion,
           }}
         />
 
