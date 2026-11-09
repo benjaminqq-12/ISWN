@@ -15,6 +15,7 @@ import RegistrarVoluntario from "./pages/RegistrarVoluntario";
 import MascotaPerfil from "./pages/MascotaPerfil";
 import Error404 from "./pages/Error404";
 import Solicitudes from "./pages/Solicitudes";
+import MisSolicitudes from "./pages/MisSolicitudes";
 
 export default function App() {
   return (
@@ -29,6 +30,9 @@ export default function App() {
           <Route path="/mascotas/:id" element={<MascotaPerfil />} />
           <Route element={<ProtectedRoute roles={["Admin", "Voluntario"]} />}>
             <Route path="/solicitudes" element={<Solicitudes />} />
+          </Route>
+          <Route element={<ProtectedRoute />}>
+            <Route path="/mis-solicitudes" element={<MisSolicitudes />} />
           </Route>
           <Route path="*" element={<Error404 />} />
 
