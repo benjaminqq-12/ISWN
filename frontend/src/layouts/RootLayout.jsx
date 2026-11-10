@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { iniciarSesion } from "../services/mascota.service";
+
+import {
+  iniciarSesion,
+} from "../services/mascota.service.js";
+
 import LoginModal from "../components/LoginModal";
+
 import cookies from "js-cookie";
 import "../styles/navbar.css";
 
@@ -16,6 +21,7 @@ const NAV = [
   { label: "Mascotas", to: "/mascotas" },
   { label: "Adopciones" },
   { label: "Atención Médica", to: "/atencion-medica" },
+
   {
     label: "Voluntarios",
     submenu: [
@@ -26,7 +32,16 @@ const NAV = [
     ],
   },
   { label: "Donaciones", to: "/donaciones" },
+
+  { label: "Donaciones" },
   { label: "Eventos", to: "/eventos" },
+
+  // Visible solamente para personal interno
+  {
+    label: "Inventario",
+    to: "/inventario",
+    interno: true,
+  },
 ];
 
 function cargarSesion() {
@@ -49,6 +64,7 @@ function cargarSesion() {
 
 export default function RootLayout() {
   const [session, setSession] = useState(cargarSesion);
+  
   const [loginVisible, setLoginVisible] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);

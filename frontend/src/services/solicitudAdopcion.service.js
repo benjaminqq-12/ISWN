@@ -64,3 +64,7 @@ export function registrarSeguimiento(solicitudId, seguimientoId, { tipo, resulta
     body: JSON.stringify({ tipo, resultado, detalle }),
   });
 }
+
+export function getMisSolicitudes() {
+  return request("/solicitudes-adopcion/mias");
+}

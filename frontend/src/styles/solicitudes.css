@@ -164,3 +164,13 @@
   font-size: 0.85rem;
   color: #1a7f4b;
 }
+
+.solicitudes-tabla a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.solicitudes-tabla a:hover {
+  text-decoration: underline;
+}
