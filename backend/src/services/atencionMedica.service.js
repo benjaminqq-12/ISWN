@@ -3,13 +3,11 @@
 import { AppDataSource } from "../config/configDb.js";
 import AtencionMedicaSchema from "../entity/atencionMedica.entity.js";
 import MascotaSchema from "../entity/mascota.entity.js";
-import VeterinarioSchema from "../entity/Veterinario.entity.js";
 
 export async function createAtencionMedicaService(data) {
     try {
         const {
             mascota_id,
-            veterinario_id,
             atencion_tipo,
             atencion_diagnostico,
             atencion_tratamiento,
@@ -26,19 +24,6 @@ export async function createAtencionMedicaService(data) {
 
         if (!mascota) {
             return [null, "La mascota no está registrada en el sistema"];
-        }
-
-        const veterinarioRepository =
-            AppDataSource.getRepository(VeterinarioSchema);
-
-        const veterinario = await veterinarioRepository.findOne({
-            where: {
-                veterinario_id: veterinario_id
-            }
-        });
-
-        if (!veterinario) {
-            return [null, "El veterinario no está registrado en el sistema"];
         }
 
         if (
@@ -70,8 +55,7 @@ export async function createAtencionMedicaService(data) {
             atencion_diagnostico,
             atencion_tratamiento,
             atencion_observaciones,
-            mascota: mascota,
-            veterinario: veterinario
+            mascota: mascota
         });
 
         const atencionGuardada =

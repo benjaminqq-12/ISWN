@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { getMascota, getMascotaInterna } from '../services/mascota.service';
 import SolicitudAdopcionForm from '../components/SolicitudAdopcionForm';
+import HistorialMascota from '../components/HistorialMascota';
 import '../styles/mascotas.css';
 
 const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
@@ -93,13 +94,17 @@ const MascotaPerfil = () => {
             {mascota.mascota_estado}
           </span>
           {mascota.mascota_estado === 'En Refugio' && !solicitudEnviada && (
-            <button
-              className="mascota-adoptar-button mascota-perfil-adoptar"
-              type="button"
-              onClick={() => setMostrarFormulario(true)}
-            >
-              Adoptar
-            </button>
+            session ? (
+              <button
+                className="mascota-adoptar-button mascota-perfil-adoptar"
+                type="button"
+                onClick={() => setMostrarFormulario(true)}
+              >
+                Adoptar
+              </button>
+            ) : (
+              <p className="mascota-card-login-hint">Inicia sesión para solicitar la adopción</p>
+            )
           )}
           {solicitudEnviada && <p className="form-message form-success" role="status">Solicitud enviada ✓</p>}
           <dl className="mascota-perfil-datos">
@@ -123,6 +128,15 @@ const MascotaPerfil = () => {
           {errorInterno && <p className="form-message form-error" role="alert">{errorInterno}</p>}
         </div>
       </div>
+      {puedeVerInterno && (
+        <HistorialMascota
+          mascotaId={mascota.mascota_id}
+          estadoActual={mascota.mascota_estado}
+          onEstadoCambiado={(actualizada) =>
+            setMascota((anterior) => ({ ...anterior, mascota_estado: actualizada.mascota_estado }))
+          }
+        />
+      )}
       {mostrarFormulario && (
         <SolicitudAdopcionForm
           mascota={mascota}
