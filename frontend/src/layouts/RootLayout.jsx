@@ -25,7 +25,7 @@ const NAV = [
       },
     ],
   },
-  { label: "Donaciones" },
+  { label: "Donaciones", to: "/donaciones" },
   { label: "Eventos", to: "/eventos" },
 ];
 
