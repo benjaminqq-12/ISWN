@@ -17,6 +17,8 @@ import Error404 from "./pages/Error404";
 import Inventario from "./pages/Inventario.jsx";
 import RequirePersonal from "./components/inventario/RequirePersonal.jsx";
 import Solicitudes from "./pages/Solicitudes";
+import Donaciones from "./pages/Donaciones.jsx";
+import DonacionResultado from "./pages/DonacionResultado.jsx";
 import MisSolicitudes from "./pages/MisSolicitudes";
 
 export default function App() {
@@ -28,6 +30,8 @@ export default function App() {
           {/* Página de inicio */}
           <Route index element={<Home />} />
           <Route path="/eventos" element={<Eventos />} />
+          <Route path="/donaciones" element={<Donaciones />} />
+          <Route path="/donaciones/resultado" element={<DonacionResultado />} />
           <Route path="/mascotas" element={<NuestrasMascotas />} />
           <Route path="/mascotas/:id" element={<MascotaPerfil />} />
           <Route element={<ProtectedRoute roles={["Admin", "Voluntario"]} />}>

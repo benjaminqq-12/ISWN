@@ -31,6 +31,7 @@ const NAV = [
       },
     ],
   },
+  { label: "Donaciones", to: "/donaciones" },
 
   { label: "Donaciones" },
   { label: "Eventos", to: "/eventos" },
