@@ -1,70 +1,107 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+import axios from "./root.service.js";
 
-function getToken() {
+function authConfig() {
   try {
-    return JSON.parse(localStorage.getItem("sesion") || "null")?.token ?? null;
+    const token = JSON.parse(localStorage.getItem("sesion") || "null")?.token;
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
   } catch {
-    return null;
+    return {};
   }
 }
 
-async function request(path, options = {}) {
-  const token = getToken();
-
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-
-  const body = await response.json().catch(() => ({}));
-
-  if (response.status === 401) {
-    localStorage.removeItem("sesion");
-    throw new Error("Tu sesión expiró o no has iniciado sesión. Inicia sesión nuevamente.");
+export async function getSolicitudes() {
+  try {
+    const response = await axios.get("/solicitudes-adopcion", authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
   }
-  if (response.status === 403) {
-    throw new Error("No tienes permisos para realizar esta acción.");
+}
+
+export async function crearSolicitudAdopcion({ mascotaId }) {
+  try {
+    const response = await axios.post("/solicitudes-adopcion", { mascotaId }, authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
   }
-  if (!response.ok) {
-    throw new Error(body.message || "Ocurrió un error al comunicarse con el servidor.");
+}
+
+export async function avanzarEstadoSolicitud(id, { nuevoEstado, detalle, tipoCierre }) {
+  try {
+    const response = await axios.patch(
+      `/solicitudes-adopcion/${id}/estado`,
+      {
+        nuevoEstado,
+        detalle,
+        // el backend rechaza tipoCierre en cualquier paso que no sea cancelar
+        ...(tipoCierre ? { tipoCierre } : {}),
+      },
+      authConfig()
+    );
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
   }
-
-  return body.data;
 }
 
-export function getSolicitudes() {
-  return request("/solicitudes-adopcion");
+export async function getSeguimientos(solicitudId) {
+  try {
+    const response = await axios.get(`/solicitudes-adopcion/${solicitudId}/seguimientos`, authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
 }
 
-export function crearSolicitudAdopcion({ mascotaId }) {
-  return request("/solicitudes-adopcion", {
-    method: "POST",
-    body: JSON.stringify({ mascotaId }),
-  });
+export async function registrarSeguimiento(solicitudId, seguimientoId, { tipo, resultado, detalle }) {
+  try {
+    const response = await axios.patch(
+      `/solicitudes-adopcion/${solicitudId}/seguimientos/${seguimientoId}`,
+      { tipo, resultado, detalle },
+      authConfig()
+    );
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
 }
 
-export function avanzarEstadoSolicitud(id, { nuevoEstado, detalle, tipoCierre }) {
-  return request(`/solicitudes-adopcion/${id}/estado`, {
-    method: "PATCH",
-    // el backend rechaza tipoCierre en cualquier paso que no sea cancelar
-    body: JSON.stringify({ nuevoEstado, detalle, ...(tipoCierre ? { tipoCierre } : {}) }),
-  });
-}
-
-export function getSeguimientos(solicitudId) {
-  return request(`/solicitudes-adopcion/${solicitudId}/seguimientos`);
-}
-
-export function registrarSeguimiento(solicitudId, seguimientoId, { tipo, resultado, detalle }) {
-  return request(`/solicitudes-adopcion/${solicitudId}/seguimientos/${seguimientoId}`, {
-    method: "PATCH",
-    body: JSON.stringify({ tipo, resultado, detalle }),
-  });
-}
-
-export function getMisSolicitudes() {
-  return request("/solicitudes-adopcion/mias");
+export async function getMisSolicitudes() {
+  try {
+    const response = await axios.get("/solicitudes-adopcion/mias", authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
 }

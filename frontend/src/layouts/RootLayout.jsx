@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-
-import {
-  iniciarSesion,
-} from "../services/mascota.service.js";
-
+import { iniciarSesion } from "../services/usuario.service";
 import LoginModal from "../components/LoginModal";
 
 import cookies from "js-cookie";
