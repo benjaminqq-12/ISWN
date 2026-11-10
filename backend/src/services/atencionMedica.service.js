@@ -11,7 +11,9 @@ import { Procedimiento } from "../entity/procedimiento.entity.js";
 const estadosSanitariosPermitidos = [
     "",
     "En Observación",
-    "En Cuarentena"
+    "En Cuarentena",
+    "En Refugio"
+
 ];
 
 // Convierte una fecha YYYY-MM-DD a una fecha local al mediodía.

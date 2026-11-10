@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
@@ -17,7 +18,7 @@ const formularioInicial = {
   atencion_diagnostico: "",
   atencion_tratamiento: "",
   atencion_observaciones: "",
-  mascota_estado: "",
+  atencion_estado_sanitario: "",
   atencion_fecha: "",
 };
 
@@ -227,7 +228,7 @@ export default function AtencionMedica() {
       atencion_diagnostico: atencion.atencion_diagnostico || "",
       atencion_tratamiento: atencion.atencion_tratamiento || "",
       atencion_observaciones: atencion.atencion_observaciones || "",
-      mascota_estado: "",
+      atencion_estado_sanitario: "",
       atencion_fecha: atencion?.atencion_fecha
         ? String(atencion.atencion_fecha).slice(0, 10)
         : obtenerFechaActual(),
@@ -335,7 +336,8 @@ export default function AtencionMedica() {
           formulario.atencion_tratamiento.trim(),
         atencion_observaciones:
           formulario.atencion_observaciones.trim(),
-        mascota_estado: formulario.mascota_estado || undefined,
+        atencion_estado_sanitario:
+          formulario.atencion_estado_sanitario || undefined,
         atencion_fecha: formulario.atencion_fecha,
       };
 
@@ -351,7 +353,6 @@ export default function AtencionMedica() {
           "La atención médica se actualizó correctamente."
         );
       } else {
-        // Las vacunas ya no se envían desde este formulario.
         await registrarAtencionMedica(datosAtencion);
 
         setMensaje(
@@ -670,14 +671,14 @@ export default function AtencionMedica() {
                 <h3>Estado de la mascota</h3>
 
                 <div className="vet-field">
-                  <label htmlFor="mascota_estado">
+                  <label htmlFor="atencion_estado_sanitario">
                     Actualizar estado sanitario
                   </label>
 
                   <select
-                    id="mascota_estado"
-                    name="mascota_estado"
-                    value={formulario.mascota_estado}
+                    id="atencion_estado_sanitario"
+                    name="atencion_estado_sanitario"
+                    value={formulario.atencion_estado_sanitario}
                     onChange={handleChange}
                     disabled={!mascotaSeleccionada}
                   >

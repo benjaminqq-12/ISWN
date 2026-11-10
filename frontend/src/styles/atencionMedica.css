@@ -419,6 +419,36 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  /* Altura máxima del historial */
+  max-height: 430px;
+
+  /* Barra de desplazamiento vertical */
+  overflow-y: auto;
+
+  /* Espacio para que la barra no tape el contenido */
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #c98455 #f5eee7;
+}
+
+/* Personalización de la barra */
+.vet-history-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.vet-history-list::-webkit-scrollbar-track {
+  background: #f5eee7;
+  border-radius: 10px;
+}
+
+.vet-history-list::-webkit-scrollbar-thumb {
+  background: #c98455;
+  border-radius: 10px;
+}
+
+.vet-history-list::-webkit-scrollbar-thumb:hover {
+  background: #bd7547;
 }
 
 .vet-history-item {

@@ -152,7 +152,7 @@ export const obtenerCalendarioSanitario = async (mascotaId) => {
 export const obtenerDatosPanelAtencionMedica = async () => {
   try {
     // Obtener las mascotas registradas.
-    const respuestaMascotas = await instance.get("/mascotas");
+    const respuestaMascotas = await instance.get("/mascotas/internas");
     const mascotas = respuestaMascotas.data.data || [];
 
     // Consultar historial, vacunas y calendario de cada mascota.

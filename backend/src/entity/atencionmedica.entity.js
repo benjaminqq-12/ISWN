@@ -48,7 +48,7 @@ const AtencionMedicaSchema = new EntitySchema({
             joinColumn: {
                 name: "veterinario_id"
             },
-            nullable: false
+            nullable: true
         }
     }
 });

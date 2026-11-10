@@ -1,5 +1,6 @@
-
 "use strict";
+
+
 
 import {
   handleErrorClient,
@@ -13,6 +14,7 @@ import {
   getMascotaService,
   getMascotaPublicaService,
   actualizarMascotaService,
+  getMascotasInternasService,
   eliminarMascotaService,
 } from "../services/mascota.service.js";
 
