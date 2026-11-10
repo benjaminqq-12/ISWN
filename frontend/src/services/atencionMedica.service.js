@@ -21,6 +21,70 @@ export const registrarAtencionMedica = async (datosAtencion) => {
     throw error;
   }
 };
+/**
+ * Registra una vacuna independiente para una mascota.
+ */
+export const registrarVacuna = async (datosVacuna) => {
+  try {
+    const respuesta = await instance.post(
+      "/vacunas",
+      datosVacuna
+    );
+
+    return respuesta.data;
+  } catch (error) {
+    console.error(
+      "Error al registrar la vacuna:",
+      error.response?.data || error.message
+    );
+
+    throw error;
+  }
+};
+
+/**
+ * Actualiza una atención médica existente.
+ */
+export const actualizarAtencionMedica = async (
+  atencionId,
+  datosAtencion
+) => {
+  try {
+    const respuesta = await instance.put(
+      `/atenciones-medicas/${atencionId}`,
+      datosAtencion
+    );
+
+    return respuesta.data;
+  } catch (error) {
+    console.error(
+      "Error al actualizar la atención médica:",
+      error.response?.data || error.message
+    );
+
+    throw error;
+  }
+};
+
+/**
+ * Elimina una atención médica y sus registros relacionados.
+ */
+export const eliminarAtencionMedica = async (atencionId) => {
+  try {
+    const respuesta = await instance.delete(
+      `/atenciones-medicas/${atencionId}`
+    );
+
+    return respuesta.data;
+  } catch (error) {
+    console.error(
+      "Error al eliminar la atención médica:",
+      error.response?.data || error.message
+    );
+
+    throw error;
+  }
+};
 
 /**
  * Obtiene el historial clínico de una mascota.
@@ -35,6 +99,26 @@ export const obtenerHistorialClinico = async (mascotaId) => {
   } catch (error) {
     console.error(
       "Error al obtener el historial clínico:",
+      error.response?.data || error.message
+    );
+
+    throw error;
+  }
+};
+
+/**
+ * Obtiene las vacunas registradas de una mascota.
+ */
+export const obtenerVacunasMascota = async (mascotaId) => {
+  try {
+    const respuesta = await instance.get(
+      `/vacunas/mascota/${mascotaId}`
+    );
+
+    return respuesta.data.data || [];
+  } catch (error) {
+    console.error(
+      "Error al obtener las vacunas de la mascota:",
       error.response?.data || error.message
     );
 
@@ -69,16 +153,16 @@ export const obtenerDatosPanelAtencionMedica = async () => {
   try {
     // Obtener las mascotas registradas.
     const respuestaMascotas = await instance.get("/mascotas");
-
     const mascotas = respuestaMascotas.data.data || [];
 
-    // Consultar historial y calendario de cada mascota.
+    // Consultar historial, vacunas y calendario de cada mascota.
     const resultados = await Promise.allSettled(
       mascotas.map(async (mascota) => {
         const mascotaId = mascota.mascota_id;
 
-        const [historial, calendario] = await Promise.all([
+        const [historial, vacunas, calendario] = await Promise.all([
           obtenerHistorialClinico(mascotaId),
+          obtenerVacunasMascota(mascotaId),
           obtenerCalendarioSanitario(mascotaId),
         ]);
 
@@ -86,6 +170,7 @@ export const obtenerDatosPanelAtencionMedica = async () => {
           mascota,
           mascotaId,
           historial,
+          vacunas,
           calendario,
         };
       })
@@ -97,7 +182,7 @@ export const obtenerDatosPanelAtencionMedica = async () => {
     resultados.forEach((resultado) => {
       if (resultado.status !== "fulfilled") {
         console.error(
-          "No se pudieron cargar datos de una mascota:",
+          "No se pudieron cargar los datos de una mascota:",
           resultado.reason
         );
 
@@ -106,10 +191,23 @@ export const obtenerDatosPanelAtencionMedica = async () => {
 
       const datos = resultado.value;
 
-      // Agregar la mascota a cada registro del historial.
+      // Agregar las atenciones médicas al historial.
       historiales.push(
         ...datos.historial.map((registro) => ({
           ...registro,
+          tipoRegistro: "ATENCION",
+          fechaRegistro:
+            registro.historialClinico_atencionMedica?.atencion_fecha,
+          mascota: datos.mascota,
+        }))
+      );
+
+      // Agregar las vacunas independientes al historial.
+      historiales.push(
+        ...datos.vacunas.map((vacuna) => ({
+          tipoRegistro: "VACUNACION",
+          fechaRegistro: vacuna.vacuna_fechaAplicacion,
+          vacuna,
           mascota: datos.mascota,
         }))
       );
@@ -124,15 +222,10 @@ export const obtenerDatosPanelAtencionMedica = async () => {
       );
     });
 
-    // Ordenar historial: más reciente primero.
+    // Ordenar historial: registros más recientes primero.
     historiales.sort((a, b) => {
-      const fechaA = new Date(
-        a.historialClinico_atencionMedica?.atencion_fecha || 0
-      );
-
-      const fechaB = new Date(
-        b.historialClinico_atencionMedica?.atencion_fecha || 0
-      );
+      const fechaA = new Date(a.fechaRegistro || 0);
+      const fechaB = new Date(b.fechaRegistro || 0);
 
       return fechaB - fechaA;
     });

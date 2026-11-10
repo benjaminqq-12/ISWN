@@ -127,7 +127,7 @@ const NuestrasMascotas = () => {
   if (error) return <p>{error}</p>;
 
   return (
-    <div className="mascotas-page">
+    <div className="container">
       <div className="mascotas-heading">
         <div>
           <h1>Nuestras Mascotas</h1>

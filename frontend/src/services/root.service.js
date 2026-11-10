@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:3000/api";
@@ -14,7 +13,7 @@ instance.interceptors.request.use(
 
     if (sesionGuardada) {
       const sesion = JSON.parse(sesionGuardada);
-      
+
       if (sesion.token) {
         config.headers.Authorization = `Bearer ${sesion.token}`;
       }

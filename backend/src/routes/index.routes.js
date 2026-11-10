@@ -1,3 +1,4 @@
+
 "use strict";
 
 import { Router } from "express";
@@ -13,11 +14,14 @@ import usuarioRoutes from "./usuario.routes.js";
 import solicitudEstadoRoutes from "./solicitudEstado.routes.js";
 import historialClinicoRoutes from "./historialClinico.routes.js";
 import calendarioSanidadRoutes from "./calendarioSanidad.routes.js";
+import vacunaRoutes from "./vacuna.routes.js";
+
 const router = Router();
 
 router
     .use("/donacion", donacionRoutes)
     .use("/atenciones-medicas", atencionMedicaRoutes)
+    .use("/vacunas", vacunaRoutes)
     .use("/eventos", eventoRoutes)
     .use("/auth", authRoutes)
     .use("/mascotas", mascotasRoutes)
@@ -27,4 +31,5 @@ router
     .use("/solicitudes-estado", solicitudEstadoRoutes)
     .use("/historial-clinico", historialClinicoRoutes)
     .use("/calendario-sanidad", calendarioSanidadRoutes);
+
 export default router;
