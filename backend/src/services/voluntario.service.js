@@ -3,75 +3,27 @@
 import { AppDataSource } from "../config/configDb.js";
 import VoluntarioSchema from "../entity/voluntario.entity.js";
 
-const voluntarioRepository =
-    AppDataSource.getRepository(VoluntarioSchema);
-
-/*
-=========================================
-CREAR VOLUNTARIO
-=========================================
-*/
+const voluntarioRepository = AppDataSource.getRepository(VoluntarioSchema);
 
 export async function crearVoluntario(datos) {
-    try {
-        const voluntario = voluntarioRepository.create(datos);
-
-        return await voluntarioRepository.save(voluntario);
-    } catch (error) {
-        throw error;
-    }
+    return await voluntarioRepository.save(voluntarioRepository.create(datos));
 }
-
-/*
-=========================================
-OBTENER TODOS LOS VOLUNTARIOS
-=========================================
-*/
 
 export async function obtenerVoluntarios() {
-    try {
-        return await voluntarioRepository.find({
-            order: {
-                fechaRegistro: "DESC",
-            },
-        });
-    } catch (error) {
-        throw error;
-    }
+    return await voluntarioRepository.find({ order: { fechaRegistro: "DESC" } });
 }
-
-/*
-=========================================
-BUSCAR VOLUNTARIO POR ID
-=========================================
-*/
 
 export async function obtenerVoluntarioPorId(id) {
-    try {
-        return await voluntarioRepository.findOne({
-            where: {
-                voluntarioId: Number(id),
-            },
-        });
-    } catch (error) {
-        throw error;
-    }
+    return await voluntarioRepository.findOne({ where: { voluntarioId: Number(id) } });
 }
 
-/*
-=========================================
-BUSCAR VOLUNTARIO POR RUT
-=========================================
-*/
-
 export async function obtenerVoluntarioPorRut(rut) {
-    try {
-        return await voluntarioRepository.findOne({
-            where: {
-                rut,
-            },
-        });
-    } catch (error) {
-        throw error;
-    }
+    return await voluntarioRepository.findOne({ where: { rut } });
+}
+
+export async function obtenerVoluntarioPorEmail(email) {
+    const correoNormalizado = email.trim().toLowerCase();
+    return await voluntarioRepository.createQueryBuilder("voluntario")
+        .where("LOWER(TRIM(voluntario.email)) = :email", { email: correoNormalizado })
+        .getOne();
 }

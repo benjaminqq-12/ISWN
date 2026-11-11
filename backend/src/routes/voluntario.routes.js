@@ -1,28 +1,15 @@
 "use strict";
-
 import { Router } from "express";
-
 import {
     crearVoluntarioController,
     obtenerVoluntariosController,
     obtenerVoluntarioPorIdController,
+    verificarCorreoController,
 } from "../controllers/voluntario.controller.js";
 
 const router = Router();
-
-/*
-=========================================
-RUTAS DE VOLUNTARIOS
-=========================================
-*/
-
-// Registrar una postulación
 router.post("/", crearVoluntarioController);
-
-// Obtener todos los voluntarios
 router.get("/", obtenerVoluntariosController);
-
-// Obtener un voluntario por ID
+router.post("/verificar-correo", verificarCorreoController);
 router.get("/:id", obtenerVoluntarioPorIdController);
-
 export default router;
