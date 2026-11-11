@@ -5,7 +5,7 @@ import '../../styles/calendario.css';
 
 const DIAS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-const eventoCalendario = ({ eventos, onDetalles, ocupado, loading, error }) => {
+const EventCalendar = ({ eventos, onDetalles, ocupado, loading, error }) => {
     const [mes, setMes] = useState(new Date());
     const anio = mes.getFullYear();
     const numeroMes = mes.getMonth();
@@ -95,4 +95,4 @@ const eventoCalendario = ({ eventos, onDetalles, ocupado, loading, error }) => {
     );
 };
 
-export default eventoCalendario;
+export default EventCalendar;

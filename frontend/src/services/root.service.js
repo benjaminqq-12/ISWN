@@ -9,14 +9,9 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (config) => {
-    const sesionGuardada = localStorage.getItem("sesion");
-
-    if (sesionGuardada) {
-      const sesion = JSON.parse(sesionGuardada);
-
-      if (sesion.token) {
-        config.headers.Authorization = `Bearer ${sesion.token}`;
-      }
+    const token = cookies.get('jwt-auth');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;

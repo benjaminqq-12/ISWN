@@ -50,6 +50,7 @@ export async function iniciarSesionController(req, res) {
         usuarioNombre: usuario.usuarioNombre,
         usuarioEmail: usuario.usuarioEmail,
         rol: usuario.rol,
+        activo: usuario.activo,
       },
     });
   } catch (error) {
