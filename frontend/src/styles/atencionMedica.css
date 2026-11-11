@@ -1,67 +1,1215 @@
-.atencion-container {
+/* =========================================
+   PÁGINA PRINCIPAL
+========================================= */
+
+.vet-page {
   min-height: calc(100vh - 80px);
-  padding: 40px 20px;
-  display: flex;
-  justify-content: center;
-  background: #f5f7f6;
-}
-
-.atencion-card {
-  width: 100%;
-  max-width: 700px;
-  background: white;
-  padding: 35px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-}
-
-.atencion-card h1 {
-  margin-bottom: 8px;
-  font-size: 28px;
-}
-
-.atencion-descripcion {
-  margin-bottom: 30px;
-  color: #666;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  margin-bottom: 7px;
-  font-weight: 600;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 11px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 15px;
+  padding: 28px 24px 45px;
+  background: #fbf8f3;
+  color: #343b37;
   font-family: inherit;
 }
 
-.form-group textarea {
-  resize: vertical;
+.vet-wrapper {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
 }
 
-.btn-registrar {
+/* =========================================
+   MIGAS DE PAN
+========================================= */
+
+.vet-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #929892;
+}
+
+.vet-breadcrumb strong {
+  color: #bd7547;
+  font-weight: 600;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.vet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.vet-eyebrow,
+.vet-section-kicker {
+  display: block;
+  margin-bottom: 6px;
+  color: #bd7547;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.vet-header h1 {
+  margin: 0;
+  color: #343b37;
+  font-size: clamp(26px, 3vw, 32px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+}
+
+.vet-header > div:first-child > p {
+  margin: 7px 0 0;
+  color: #818982;
+  font-size: 13px;
+}
+
+/* La barra de usuario pertenece a la navegación general. */
+
+.vet-user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  background: #fff;
+  border: 1px solid #eeeae3;
+  border-radius: 10px;
+}
+
+.vet-user-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f5e5d9;
+  color: #b86d3e;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.vet-user-card div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vet-user-card strong {
+  color: #424a44;
+  font-size: 12px;
+}
+
+.vet-user-card span {
+  color: #929892;
+  font-size: 10px;
+}
+
+/* =========================================
+   TARJETAS INFORMATIVAS
+========================================= */
+
+.vet-info-grid {
+  display: none;
+}
+
+/* =========================================
+   DISTRIBUCIÓN PRINCIPAL
+========================================= */
+
+.vet-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  align-items: stretch;
+  gap: 18px;
+}
+
+.vet-form-card,
+.vet-side-card {
+  background: #fff;
+  border: 1px solid #eeeae3;
+  border-radius: 13px;
+  box-shadow: 0 3px 12px rgba(50, 55, 45, 0.035);
+}
+
+.vet-form-card {
+  padding: 22px;
+}
+
+/* =========================================
+   ENCABEZADOS DE SECCIÓN
+========================================= */
+
+.vet-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 17px;
+  border-bottom: 1px solid #f0eee9;
+}
+
+.vet-section-heading h2 {
+  margin: 0;
+  color: #343b37;
+  font-size: 19px;
+  font-weight: 750;
+}
+
+.vet-section-heading p {
+  margin: 6px 0 0;
+  color: #929892;
+  font-size: 12px;
+}
+
+.vet-heading-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: #faeee4;
+  color: #c47b4a;
+  font-size: 21px;
+}
+
+/* =========================================
+   FORMULARIO
+========================================= */
+
+.vet-form-section {
+  padding: 19px 0;
+  border-bottom: 1px solid #f0eee9;
+}
+
+.vet-form-section h3 {
+  margin: 0 0 16px;
+  color: #4a554c;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.vet-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.vet-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 15px;
+}
+
+.vet-field:last-child {
+  margin-bottom: 0;
+}
+
+.vet-field label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #4a524c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vet-field label > span:first-child {
+  color: #c87945;
+}
+
+.vet-field .optional-label {
+  margin-left: auto;
+  color: #a0a49f;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+}
+
+.vet-field input,
+.vet-field select,
+.vet-field textarea {
   width: 100%;
-  padding: 13px;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #e5e5df;
+  border-radius: 8px;
+  outline: none;
+  background: #fdfdfc;
+  color: #3e4841;
+  font-family: inherit;
+  font-size: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.vet-field input,
+.vet-field select {
+  min-height: 41px;
+}
+
+.vet-field textarea {
+  resize: vertical;
+  min-height: 85px;
+  line-height: 1.5;
+}
+
+.vet-field input::placeholder,
+.vet-field textarea::placeholder {
+  color: #b2b6b0;
+}
+
+.vet-field input:focus,
+.vet-field select:focus,
+.vet-field textarea:focus {
+  border-color: #c98455;
+  box-shadow: 0 0 0 3px rgba(201, 132, 85, 0.11);
+  background: #fff;
+}
+
+.vet-field small {
+  color: #9a9f99;
+  font-size: 10px;
+}
+
+/* =========================================
+   MENSAJES
+========================================= */
+
+.vet-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 15px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.vet-message.success {
+  background: #edf6ef;
+  border: 1px solid #d5e9d9;
+  color: #39734a;
+}
+
+.vet-message.error {
+  background: #fff0ed;
+  border: 1px solid #f3d6d0;
+  color: #a54f43;
+}
+
+.vet-message > span {
+  font-weight: 800;
+}
+
+/* =========================================
+   PIE DEL FORMULARIO
+========================================= */
+
+.vet-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 18px;
+}
+
+.vet-form-footer p {
+  margin: 0;
+  color: #929892;
+  font-size: 10px;
+}
+
+.vet-form-footer p span {
+  color: #c87945;
+}
+
+.vet-submit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 19px;
   border: none;
-  border-radius: 6px;
-  background: #2f7d5a;
-  color: white;
+  border-radius: 8px;
+  background: #c94f0b;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.vet-submit-button:hover:not(:disabled) {
+  background: #ad4308;
+  transform: translateY(-1px);
+}
+
+.vet-submit-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.vet-submit-button span {
+  font-size: 18px;
+}
+
+/* =========================================
+   COLUMNA LATERAL
+========================================= */
+
+.vet-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.vet-side-column > .vet-side-card:not(:first-child) {
+  display: none;
+}
+
+.vet-side-card {
+  padding: 19px;
+}
+
+.vet-side-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.vet-side-title h3 {
+  margin: 0;
+  color: #434c45;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.vet-side-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: #faeee4;
+  color: #bd7547;
+  font-size: 17px;
+}
+
+.vet-side-card > p {
+  margin: 0;
+  color: #858d86;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   HISTORIAL RECIENTE
+========================================= */
+
+.vet-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* Altura máxima del historial */
+  max-height: 430px;
+
+  /* Barra de desplazamiento vertical */
+  overflow-y: auto;
+
+  /* Espacio para que la barra no tape el contenido */
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #c98455 #f5eee7;
+}
+
+/* Personalización de la barra */
+.vet-history-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.vet-history-list::-webkit-scrollbar-track {
+  background: #f5eee7;
+  border-radius: 10px;
+}
+
+.vet-history-list::-webkit-scrollbar-thumb {
+  background: #c98455;
+  border-radius: 10px;
+}
+
+.vet-history-list::-webkit-scrollbar-thumb:hover {
+  background: #bd7547;
+}
+
+.vet-history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid #eeeae3;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.vet-history-item:hover {
+  border-color: #e6c5ad;
+  box-shadow: 0 3px 10px rgba(50, 55, 45, 0.04);
+}
+
+.vet-history-indicator {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #faeee4;
+  color: #bd7547;
   font-size: 16px;
+}
+
+.vet-history-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+}
+
+.vet-history-content > strong {
+  color: #414941;
+  font-size: 12px;
+}
+
+.vet-history-content > span {
+  color: #bd7547;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.vet-history-content > p {
+  margin: 2px 0;
+  color: #858d86;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.vet-history-content > small {
+  color: #a0a49e;
+  font-size: 10px;
+}
+
+/* =========================================
+   PRÓXIMOS TRATAMIENTOS
+========================================= */
+
+.vet-treatments-section {
+  margin-top: 18px;
+  padding: 20px;
+}
+
+.vet-treatments-section .vet-side-title {
+  margin-bottom: 15px;
+}
+
+.vet-treatments-section .vet-side-title > div > p {
+  margin: 5px 0 0;
+  color: #929892;
+  font-size: 11px;
+}
+
+.vet-treatment-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.vet-treatment-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.vet-treatment-table thead {
+  background: #fcfaf7;
+}
+
+.vet-treatment-table th {
+  padding: 11px 12px;
+  border-bottom: 1px solid #e9e5de;
+  color: #697169;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.vet-treatment-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eeeae3;
+  color: #687168;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.vet-treatment-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.vet-treatment-table tbody tr:hover {
+  background: #fdfaf6;
+}
+
+.vet-treatment-table td strong {
+  display: block;
+  color: #414941;
+  font-size: 11px;
+}
+
+.vet-treatment-table td small {
+  display: block;
+  margin-top: 4px;
+  color: #929892;
+  font-size: 10px;
+}
+
+.vet-treatment-table td p {
+  margin: 4px 0 0;
+  color: #858d86;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.vet-treatment-status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #fff2e5;
+  color: #b66b38;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.vet-footer {
+  padding-top: 22px;
+  color: #a0a49e;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 850px) {
+  .vet-content-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vet-side-column {
+    display: flex;
+  }
+}
+
+@media (max-width: 600px) {
+  .vet-page {
+    padding: 20px 12px 30px;
+  }
+
+  .vet-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vet-form-card {
+    padding: 18px 15px;
+  }
+
+  .vet-form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .vet-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .vet-submit-button {
+    width: 100%;
+  }
+
+  .vet-section-heading h2 {
+    font-size: 17px;
+  }
+
+  .vet-user-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .vet-treatment-table {
+    min-width: 600px;
+  }
+}
+
+/* =========================================
+   NUEVOS ELEMENTOS DEL FORMULARIO
+========================================= */
+
+.vet-section-heading h2 span {
+  margin-right: 7px;
+  color: #bd7547;
+}
+
+.vet-pet-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  border: 1px solid #e5e5df;
+  border-radius: 9px;
+  background: #fdfdfc;
+}
+
+.vet-pet-selector select {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #414941;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.vet-pet-selector select:focus {
+  box-shadow: none;
+}
+
+.vet-pet-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.vet-pet-placeholder {
+  display: grid;
+  place-items: center;
+  background: #f5e5d9;
+  color: #bd7547;
+  font-weight: 800;
+}
+
+/* =========================================
+   SELECTOR DE TIPO DE ATENCIÓN
+========================================= */
+
+.vet-type-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.vet-type-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid #e8e5df;
+  border-radius: 8px;
+  background: #fff;
+  color: #687168;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vet-type-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vet-radio-circle {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid #b6b6ad;
+  border-radius: 50%;
+}
+
+.vet-type-option.selected {
+  border-color: #d69a72;
+  background: #fcf2ea;
+  color: #a95e32;
+}
+
+.vet-type-option.selected .vet-radio-circle {
+  border: 3px solid #c65a20;
+  background: #fff;
+}
+
+/* =========================================
+   ACCIONES DEL FORMULARIO
+========================================= */
+
+.vet-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.vet-cancel-button {
+  min-height: 40px;
+  padding: 0 17px;
+  border: 1px solid #dedbd4;
+  border-radius: 8px;
+  background: #fff;
+  color: #697169;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.btn-registrar:hover {
-  background: #256447;
+.vet-cancel-button:hover {
+  background: #f8f6f2;
+}
+
+.vet-cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   FOTOGRAFÍAS DEL HISTORIAL
+========================================= */
+
+.vet-history-photo {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f5e5d9;
+  color: #bd7547;
+  font-weight: 800;
+}
+
+.vet-history-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vet-history-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.vet-history-badge {
+  padding: 5px 8px;
+  border-radius: 15px;
+  background: #faeee4;
+  color: #b76e43;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vet-history-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vet-history-bottom span,
+.vet-history-bottom small {
+  color: #929892;
+  font-size: 9px;
+}
+
+/* =========================================
+   ESTADOS VACÍOS
+========================================= */
+
+.vet-empty-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 10px;
+  color: #929892;
+}
+
+.vet-empty-state > span {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #f7f1e9;
+  color: #bd7547;
+}
+
+.vet-empty-state p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =========================================
+   FECHA DE TRATAMIENTOS
+========================================= */
+
+.vet-treatment-date {
+  color: #b66b43 !important;
+  font-weight: 700;
+}
+
+/* =========================================
+   RESPONSIVE ADICIONAL
+========================================= */
+
+@media (max-width: 600px) {
+  .vet-form-actions {
+    width: 100%;
+  }
+
+  .vet-form-actions button {
+    flex: 1;
+  }
+
+  .vet-type-selector {
+    flex-direction: column;
+  }
+
+  .vet-type-option {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .vet-history-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* =========================================
+   ACCIONES DEL HISTORIAL CLÍNICO
+========================================= */
+
+.vet-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.vet-history-actions button {
+  padding: 6px 11px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.vet-history-edit {
+  border: 1px solid #e5c4aa;
+  background: #fff8f2;
+  color: #ad683d;
+}
+
+.vet-history-edit:hover:not(:disabled) {
+  border-color: #c98455;
+  background: #faeee4;
+}
+
+.vet-history-delete {
+  border: 1px solid #efd0ca;
+  background: #fff7f5;
+  color: #a54f43;
+}
+
+.vet-history-delete:hover:not(:disabled) {
+  border-color: #d99b90;
+  background: #fff0ed;
+}
+
+.vet-history-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .vet-history-actions button {
+    flex: 1;
+  }
+}
+
+
+/* =========================================
+   CONFIRMACIÓN DE ELIMINACIÓN
+========================================= */
+
+.vet-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(35, 39, 36, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.vet-confirm-modal {
+  width: min(100%, 440px);
+  padding: 30px;
+  border: 1px solid #eee5dc;
+  border-radius: 18px;
+  background: #fffdfa;
+  color: #343b37;
+  box-shadow: 0 20px 60px rgba(36, 31, 26, 0.22);
+  text-align: center;
+}
+
+.vet-confirm-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff0e8;
+  color: #bd7547;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.vet-confirm-modal h2 {
+  margin: 0 0 10px;
+  color: #343b37;
+  font-size: 21px;
+}
+
+.vet-confirm-modal p {
+  margin: 0;
+  color: #68716b;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.vet-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.vet-confirm-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vet-confirm-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.vet-confirm-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.vet-confirm-cancel {
+  background: #f0eee9;
+  color: #4b554e;
+}
+
+.vet-confirm-delete {
+  background: #bd604b;
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .vet-confirm-modal {
+    padding: 24px 18px;
+  }
+
+  .vet-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .vet-confirm-actions button {
+    width: 100%;
+  }
+}
+/* =========================================
+   REGISTRO DE VACUNAS
+========================================= */
+
+.vet-vaccine-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.vet-vaccine-heading h3 {
+  margin-bottom: 5px;
+}
+
+.vet-vaccine-heading p {
+  margin: 0;
+  color: #77716b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.vet-vaccine-add {
+  flex-shrink: 0;
+  padding: 10px 15px;
+  border: 1px solid #bd7547;
+  border-radius: 9px;
+  background: #fff8f2;
+  color: #a85e35;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.vet-vaccine-add:hover {
+  background: #f7e8dc;
+}
+
+.vet-vaccine-add:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vet-vaccine-empty {
+  padding: 25px 15px;
+  border: 1px dashed #ddcfc3;
+  border-radius: 12px;
+  background: #fcfaf7;
+  text-align: center;
+}
+
+.vet-vaccine-empty > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #bd7547;
+  font-size: 25px;
+}
+
+.vet-vaccine-empty p {
+  margin: 0 0 5px;
+  color: #514940;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vet-vaccine-empty small {
+  color: #898078;
+  font-size: 12px;
+}
+
+.vet-vaccine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vet-vaccine-card {
+  padding: 18px;
+  border: 1px solid #e8ddd3;
+  border-radius: 12px;
+  background: #fdfbf8;
+}
+
+.vet-vaccine-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.vet-vaccine-card-heading strong {
+  color: #59483c;
+  font-size: 14px;
+}
+
+.vet-vaccine-remove {
+  padding: 6px 11px;
+  border: 1px solid #e5c7bb;
+  border-radius: 7px;
+  background: #fff7f4;
+  color: #a94d3c;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vet-vaccine-remove:hover {
+  background: #fbe8e2;
+}
+
+.vet-vaccine-remove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vet-vaccine-notice {
+  padding: 13px 15px;
+  border: 1px solid #ead9bd;
+  border-radius: 9px;
+  background: #fffaf0;
+  color: #77613e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .vet-vaccine-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vet-vaccine-add {
+    width: 100%;
+  }
 }
