@@ -41,18 +41,15 @@ const AtencionMedicaSchema = new EntitySchema({
                 name: "mascota_id"
             },
             nullable: false
+        },
+        veterinario: {
+            type: "many-to-one",
+            target: "Veterinario",
+            joinColumn: {
+                name: "veterinario_id"
+            },
+            nullable: true
         }
     }
 });
-
 export default AtencionMedicaSchema;
-
-// veterinario: {
-           // type: "many-to-one",
-           // target: "Veterinario",
-           // joinColumn: {
-           //     name: "veterinario_id"
-           // },
-         //   nullable: false
-       // }
-    //}

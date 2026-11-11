@@ -1,17 +1,11 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-} from "react-router-dom";
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/Home";
 import AtencionMedica from "./pages/AtencionMedica";
-import Eventos from "./pages/Eventos.jsx";
+import Eventos from './pages/Eventos.jsx';
 import NuestrasMascotas from "./pages/NuestrasMascotas";
-import RegistrarVoluntario from "./pages/RegistrarVoluntario";
 import MascotaPerfil from "./pages/MascotaPerfil";
 import Error404 from "./pages/Error404";
 import Inventario from "./pages/Inventario.jsx";
@@ -27,8 +21,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<RootLayout />}>
 
-          {/* Página de inicio */}
           <Route index element={<Home />} />
+
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/donaciones" element={<Donaciones />} />
           <Route path="/donaciones/resultado" element={<DonacionResultado />} />
@@ -49,12 +43,10 @@ export default function App() {
             path="atencion-medica"
             element={<AtencionMedica />}
           />
-          {/* Voluntarios - ramaIgnacio */}
-          <Route
-            path="voluntarios/registrar"
-            element={<RegistrarVoluntario />}
-          />
 
+          <Route path="eventos" element={<Eventos />} />
+          <Route path="/mascotas" element={<NuestrasMascotas />} />
+          <Route path="/mascotas/:id" element={<MascotaPerfil />} />
         </Route>
       </Routes>
     </Router>
