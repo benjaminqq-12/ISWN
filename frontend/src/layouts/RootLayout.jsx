@@ -64,6 +64,13 @@ export default function RootLayout() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [submenuAbierto, setSubmenuAbierto] = useState(null);
   const location = useLocation();
+    // "Adopciones" lleva al panel del personal o a las solicitudes propias, según el rol
+  const esPersonal = ["Admin", "Voluntario"].includes(session?.user?.rol);
+  const navItems = NAV.map((item) =>
+    item.label === "Adopciones"
+      ? { ...item, to: esPersonal ? "/solicitudes" : "/mis-solicitudes" }
+      : item
+  );
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -122,7 +129,7 @@ export default function RootLayout() {
           </div>
 
           <nav className="nav-links">
-            {NAV.map((item) => {
+            {navItems.map((item) => {
               if (item.to) {
                 return (
                   <Link

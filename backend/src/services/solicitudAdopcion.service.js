@@ -228,6 +228,8 @@ export async function avanzarEstadoSolicitudService(solicitudId, { nuevoEstado, 
 export async function getSolicitudesService() {
   try {
     const solicitudRepository = AppDataSource.getRepository(SolicitudAdopcionSchema);
+    const seguimientoRepository = AppDataSource.getRepository(SeguimientoAdopcionSchema);
+
     const solicitudes = await solicitudRepository.find({
       relations: {
         solicitudAdopcion_mascotaAdoptada: true,
@@ -236,6 +238,31 @@ export async function getSolicitudesService() {
       order: { solicitudAdopcion_id: "DESC" },
     });
 
+    const seguimientos = await seguimientoRepository.find({
+      relations: { seguimientoAdopcion_solicitud: true },
+      order: { seguimientoAdopcion_fechaLimite: "ASC" },
+    });
+
+    // resumen de seguimientos por solicitud: total, pendientes y el próximo a vencer
+    const resumen = new Map();
+    for (const g of seguimientos) {
+      const id = g.seguimientoAdopcion_solicitud?.solicitudAdopcion_id;
+      if (!id) continue;
+
+      const r = resumen.get(id) ?? { total: 0, pendientes: 0, proximo: null };
+      r.total += 1;
+      if (!g.seguimientoAdopcion_resultado) {
+        r.pendientes += 1;
+        if (!r.proximo) {
+          r.proximo = {
+            plazoDias: g.seguimientoAdopcion_plazoDias,
+            fechaLimite: g.seguimientoAdopcion_fechaLimite,
+          };
+        }
+      }
+      resumen.set(id, r);
+    }
+
     const data = solicitudes.map((s) => {
       // nunca devolver el password del adoptante
       let adoptante = null;
@@ -243,11 +270,19 @@ export async function getSolicitudesService() {
         const { usuarioPassword, ...resto } = s.solicitudAdopcion_usuarioAdoptante;
         adoptante = resto;
       }
+
+      // los seguimientos solo importan mientras la solicitud está en seguimiento
+      const enSeguimiento = s.solicitudAadopcion_estado === ESTADOS_SOLICITUD.SEGUIMIENTO;
+      const r = resumen.get(s.solicitudAdopcion_id);
+
       return {
         ...s,
         solicitudAdopcion_usuarioAdoptante: adoptante,
         // el frontend muestra solo los pasos que el backend permite
         siguientesEstados: getSiguientesEstados(s.solicitudAadopcion_estado),
+        proximoSeguimiento: enSeguimiento ? (r?.proximo ?? null) : null,
+        listaParaCerrar:
+          enSeguimiento && !!r && r.total >= PLAZOS_SEGUIMIENTO.length && r.pendientes === 0,
       };
     });
 
