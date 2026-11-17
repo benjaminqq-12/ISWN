@@ -174,3 +174,44 @@
 .solicitudes-tabla a:hover {
   text-decoration: underline;
 }
+
+.sol-resumen {
+  margin: 1rem 0 0;
+  font-size: 0.95rem;
+}
+
+.sol-filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.sol-filtro {
+  padding: 5px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: white;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sol-filtro.activo {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.sol-alerta {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.sol-alerta-nueva,
+.sol-alerta-porvencer { color: #8a6100; }
+.sol-alerta-vencido { color: #b3261e; }
+.sol-alerta-lista { color: #1a7f4b; }
