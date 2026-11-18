@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { iniciarSesion } from "../services/usuario.service";
+import { iniciarSesion, registrarUsuario } from "../services/usuario.service";
 import LoginModal from "../components/LoginModal";
+import RegistroModal from "../components/RegistroModal";
 
 import cookies from "js-cookie";
 import "../styles/navbar.css";
@@ -17,7 +18,6 @@ const NAV = [
   { label: "Mascotas", to: "/mascotas" },
   { label: "Adopciones" },
   { label: "Atención Médica", to: "/atencion-medica" },
-
   {
     label: "Voluntarios",
     submenu: [
@@ -29,13 +29,14 @@ const NAV = [
   },
   { label: "Donaciones", to: "/donaciones" },
   { label: "Eventos", to: "/eventos" },
-
   // Visible solamente para personal interno
   {
     label: "Inventario",
     to: "/inventario",
     interno: true,
   },
+    // Visible solamente para administradores
+  { label: "Usuarios", to: "/usuarios", soloAdmin: true },
 ];
 
 function cargarSesion() {
@@ -62,15 +63,21 @@ export default function RootLayout() {
   const [loginVisible, setLoginVisible] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [registroVisible, setRegistroVisible] = useState(false);
+  const [registroError, setRegistroError] = useState("");
+  const [registroLoading, setRegistroLoading] = useState(false);
   const [submenuAbierto, setSubmenuAbierto] = useState(null);
   const location = useLocation();
     // "Adopciones" lleva al panel del personal o a las solicitudes propias, según el rol
   const esPersonal = ["Admin", "Voluntario"].includes(session?.user?.rol);
-  const navItems = NAV.map((item) =>
-    item.label === "Adopciones"
-      ? { ...item, to: esPersonal ? "/solicitudes" : "/mis-solicitudes" }
-      : item
-  );
+  const esAdmin = session?.user?.rol === "Admin";
+  const navItems = NAV
+    .filter((item) => !item.soloAdmin || esAdmin)
+    .map((item) =>
+      item.label === "Adopciones"
+        ? { ...item, to: esPersonal ? "/solicitudes" : "/mis-solicitudes" }
+        : item
+    );
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -102,6 +109,61 @@ export default function RootLayout() {
       setLoginError(error.message);
     } finally {
       setLoginLoading(false);
+    }
+  }
+
+  async function handleRegistro(event) {
+    event.preventDefault();
+
+    setRegistroError("");
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const usuarioEmail = formData.get("usuarioEmail");
+    const usuarioPassword = formData.get("usuarioPassword");
+
+    if (usuarioPassword !== formData.get("repetirPassword")) {
+      setRegistroError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    setRegistroLoading(true);
+
+    try {
+      await registrarUsuario({
+        rut: formData.get("rut"),
+        usuarioNombre: formData.get("usuarioNombre"),
+        usuarioEmail,
+        usuarioPassword,
+      });
+    } catch (error) {
+      setRegistroError(error.message);
+      setRegistroLoading(false);
+      return;
+    }
+
+    // la cuenta ya existe: se inicia sesión automáticamente
+    try {
+      const sesion = await iniciarSesion(usuarioEmail, usuarioPassword);
+
+      const vencimiento = new Date(Date.now() + 8 * 60 * 60 * 1000);
+      const opciones = {
+        ...opcionesCookies,
+        expires: vencimiento,
+      };
+
+      cookies.set("jwt-auth", sesion.token, opciones);
+      cookies.set("usuario-sesion", JSON.stringify(sesion.user), opciones);
+
+      setSession(sesion);
+      setRegistroVisible(false);
+      form.reset();
+    } catch {
+      // la cuenta se creó pero el inicio automático falló: se lleva al usuario al login
+      setRegistroVisible(false);
+      setLoginError("Tu cuenta se creó, pero no pudimos iniciar sesión automáticamente. Ingresa con tu correo y contraseña.");
+      setLoginVisible(true);
+    } finally {
+      setRegistroLoading(false);
     }
   }
 
@@ -254,8 +316,27 @@ export default function RootLayout() {
         <LoginModal
           onClose={() => setLoginVisible(false)}
           onSubmit={handleLogin}
+          onRegistro={() => {
+            setLoginVisible(false);
+            setRegistroError("");
+            setRegistroVisible(true);
+          }}
           error={loginError}
           loading={loginLoading}
+        />
+      )}
+
+      {!session && registroVisible && (
+        <RegistroModal
+          onClose={() => setRegistroVisible(false)}
+          onSubmit={handleRegistro}
+          onLogin={() => {
+            setRegistroVisible(false);
+            setLoginError("");
+            setLoginVisible(true);
+          }}
+          error={registroError}
+          loading={registroLoading}
         />
       )}
 

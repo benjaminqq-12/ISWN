@@ -1,0 +1,64 @@
+.usr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.usr-mensaje {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #1a7f4b;
+}
+
+.usr-rol-admin { background: #ede7f6; color: #5e35b1; }
+.usr-rol-voluntario { background: #e3f0ff; color: #1b5fb4; }
+.usr-rol-usuario { background: #eeeeee; color: #555555; }
+
+.modal-content.usuario-modal {
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.usuario-modal label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.usuario-modal input,
+.usuario-modal select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.usuario-ayuda {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.usuario-aviso {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #b3261e;
+}
+
+.usuario-modal .modal-actions button {
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.usuario-modal .modal-actions button[type="submit"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
