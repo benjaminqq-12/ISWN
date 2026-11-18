@@ -23,9 +23,13 @@ export async function getSolicitudes() {
   }
 }
 
-export async function crearSolicitudAdopcion({ mascotaId }) {
+export async function crearSolicitudAdopcion({ mascotaId, telefono, correo, direccion, mascotasActuales, motivoAdopcion }) {
   try {
-    const response = await axios.post("/solicitudes-adopcion", { mascotaId }, authConfig());
+    const response = await axios.post(
+      "/solicitudes-adopcion",
+      { mascotaId, telefono, correo, direccion, mascotasActuales, motivoAdopcion },
+      authConfig()
+    );
     return response.data?.data;
   } catch (error) {
     throw new Error(
