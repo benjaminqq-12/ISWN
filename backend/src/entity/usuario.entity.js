@@ -24,6 +24,7 @@ const UsuarioSchema = new EntitySchema({
         usuarioEmail: {
             type: "varchar",
             length: 100,
+            unique: true,
         },
         usuarioPassword: {
             type: "varchar",

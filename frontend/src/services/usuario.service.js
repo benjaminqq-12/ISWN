@@ -1,12 +1,41 @@
 import axios from "./root.service.js";
+import cookies from "js-cookie";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+function authConfig() {
+  const token = cookies.get("jwt-auth");
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+}
 
 export async function getUsuarios() {
-  const response = await fetch(`${API_URL}/usuarios`);
-  if (!response.ok) throw new Error("Error al obtener los usuarios");
-  const { data } = await response.json();
-  return data;
+  try {
+    const response = await axios.get("/usuarios", authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function crearUsuario({ rut, usuarioNombre, usuarioEmail, usuarioPassword, rol }) {
+  try {
+    const response = await axios.post(
+      "/usuarios",
+      { rut, usuarioNombre, usuarioEmail, usuarioPassword, rol },
+      authConfig()
+    );
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
 }
 
 export async function iniciarSesion(usuarioEmail, usuarioPassword) {
@@ -17,6 +46,25 @@ export async function iniciarSesion(usuarioEmail, usuarioPassword) {
       throw new Error(response.data?.message || "El servidor devolvió una sesión inválida.");
     }
     return sesion;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function registrarUsuario({ rut, usuarioNombre, usuarioEmail, usuarioPassword }) {
+  try {
+    const response = await axios.post("/auth/register", {
+      rut,
+      usuarioNombre,
+      usuarioEmail,
+      usuarioPassword,
+    });
+    return response.data?.data;
   } catch (error) {
     throw new Error(
       error.response?.data?.message

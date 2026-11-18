@@ -20,6 +20,7 @@ import Solicitudes from "./pages/Solicitudes";
 import Donaciones from "./pages/Donaciones.jsx";
 import DonacionResultado from "./pages/DonacionResultado.jsx";
 import MisSolicitudes from "./pages/MisSolicitudes";
+import Usuarios from "./pages/Usuarios";
 
 export default function App() {
   return (
@@ -39,6 +40,9 @@ export default function App() {
           </Route>
           <Route element={<ProtectedRoute />}>
             <Route path="/mis-solicitudes" element={<MisSolicitudes />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={["Admin"]} />}>
+            <Route path="/usuarios" element={<Usuarios />} />
           </Route>
           <Route path="*" element={<Error404 />} />
 
