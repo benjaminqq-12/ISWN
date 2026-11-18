@@ -215,3 +215,49 @@
 .sol-alerta-porvencer { color: #8a6100; }
 .sol-alerta-vencido { color: #b3261e; }
 .sol-alerta-lista { color: #1a7f4b; }
+
+.sol-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sol-link:hover {
+  text-decoration: underline;
+}
+
+.sol-contacto {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sol-datos {
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.sol-datos dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.sol-datos dd {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.sol-datos a {
+  color: var(--primary);
+  font-weight: 600;
+}

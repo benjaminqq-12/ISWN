@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AvanzarEstadoModal from '../components/AvanzarEstadoModal.jsx';
 import SeguimientosModal from '../components/SeguimientosModal.jsx';
+import DatosAdoptanteModal from '../components/DatosAdoptanteModal.jsx';
 import { getSolicitudes } from '../services/solicitudAdopcion.service';
 
 import '../styles/home.css';
@@ -72,6 +73,7 @@ const Solicitudes = () => {
   const [error, setError] = useState(null);
   const [seleccionada, setSeleccionada] = useState(null);
   const [verSeguimientos, setVerSeguimientos] = useState(null);
+  const [verDatos, setVerDatos] = useState(null);
   const [filtro, setFiltro] = useState("todas");
   const [version, setVersion] = useState(0);
 
@@ -160,7 +162,14 @@ const Solicitudes = () => {
                       </Link>
                     ) : "—"}
                   </td>
-                  <td>{s.solicitudAdopcion_usuarioAdoptante?.usuarioNombre ?? "—"}</td>
+                  <td>
+                    <button type="button" className="sol-link" onClick={() => setVerDatos(s)}>
+                      {s.solicitudAdopcion_usuarioAdoptante?.usuarioNombre ?? "—"}
+                    </button>
+                    {s.solicitudAdopcion_telefono && (
+                      <span className="sol-contacto">{s.solicitudAdopcion_telefono}</span>
+                    )}
+                  </td>
                   <td>{formatearFecha(s.solicitudAadopcion_fechaSolicitud)}</td>
                   <td>
                     <span className={`sol-badge ${CLASE_ESTADO[s.solicitudAadopcion_estado] ?? ""}`}>
@@ -216,6 +225,10 @@ const Solicitudes = () => {
           }}
         />
       )}
+      {verDatos && (
+        <DatosAdoptanteModal solicitud={verDatos} onClose={() => setVerDatos(null)} />
+      )}
+
     </div>
   );
 };

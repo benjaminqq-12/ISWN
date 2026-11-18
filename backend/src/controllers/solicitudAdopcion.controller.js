@@ -22,7 +22,7 @@ export async function crearSolicitudAdopcionController(req, res) {
     if (errorBody) return handleErrorClient(res, 400, errorBody.message);
 
     const [solicitud, error] = await crearSolicitudAdopcionService({
-      mascotaId: body.mascotaId,
+      ...body,
       usuarioAdoptanteId: req.user.usuarioId,
     });
     if (error) return handleErrorClient(res, 400, error);

@@ -17,7 +17,7 @@ import { ESTADO_MASCOTA } from "../config/estadosMascota.js";
 
 export async function crearSolicitudAdopcionService(datos) {
   try {
-    const { mascotaId, usuarioAdoptanteId } = datos;
+    const { mascotaId, usuarioAdoptanteId, telefono, correo, direccion, mascotasActuales, motivoAdopcion } = datos;
 
     if (!mascotaId || !usuarioAdoptanteId) {
       return [null, "Debe especificar la mascota y el usuario adoptante."];
@@ -51,6 +51,11 @@ export async function crearSolicitudAdopcionService(datos) {
     const nuevaSolicitud = solicitudRepository.create({
       solicitudAadopcion_estado: ESTADOS_SOLICITUD.PENDIENTE,
       solicitudAadopcion_fechaSolicitud: new Date(),
+      solicitudAdopcion_telefono: telefono,
+      solicitudAdopcion_correo: correo,
+      solicitudAdopcion_direccion: direccion,
+      solicitudAdopcion_mascotasActuales: mascotasActuales,
+      solicitudAdopcion_motivoAdopcion: motivoAdopcion,
       solicitudAdopcion_mascotaAdoptada: { mascota_id: mascotaId },
       solicitudAdopcion_usuarioAdoptante: { usuarioId: usuarioAdoptanteId },
     });

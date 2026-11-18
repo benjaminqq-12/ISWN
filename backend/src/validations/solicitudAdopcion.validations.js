@@ -31,6 +31,32 @@ export const crearSolicitudBodyValidation = Joi.object({
         "number.positive": "El id de la mascota debe ser positivo.",
         "any.required": "Debes indicar la mascota que quieres adoptar."
     }),
+    telefono: Joi.string().trim().pattern(/^\+?[0-9\s-]{8,15}$/).required().messages({
+        "string.empty": "El teléfono no puede estar vacío.",
+        "string.pattern.base": "Ingresa un teléfono válido (ej: +56 9 1234 5678).",
+        "any.required": "El teléfono de contacto es obligatorio."
+    }),
+    correo: Joi.string().trim().email({ tlds: { allow: false } }).max(100).required().messages({
+        "string.empty": "El correo no puede estar vacío.",
+        "string.email": "Ingresa un correo electrónico válido.",
+        "string.max": "El correo no debe exceder los 100 caracteres.",
+        "any.required": "El correo de contacto es obligatorio."
+    }),
+    direccion: Joi.string().trim().max(200).required().messages({
+        "string.empty": "La dirección no puede estar vacía.",
+        "string.max": "La dirección no debe exceder los 200 caracteres.",
+        "any.required": "La dirección de la vivienda es obligatoria."
+    }),
+    mascotasActuales: Joi.string().trim().max(512).required().messages({
+        "string.empty": "Cuéntanos qué mascotas tienes (si no tienes, escribe 'Ninguna').",
+        "string.max": "La descripción de tus mascotas no debe exceder los 512 caracteres.",
+        "any.required": "Debes describir las mascotas que tienes."
+    }),
+    motivoAdopcion: Joi.string().trim().max(512).required().messages({
+        "string.empty": "Cuéntanos por qué quieres adoptar.",
+        "string.max": "El motivo no debe exceder los 512 caracteres.",
+        "any.required": "Debes indicar por qué quieres adoptar."
+    }),
 });
 
 export const solicitudIdValidation = Joi.object({
