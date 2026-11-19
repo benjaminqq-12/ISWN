@@ -109,3 +109,17 @@ export async function getMisSolicitudes() {
     );
   }
 }
+
+export async function puedeSolicitarAdopcion() {
+  try {
+    const response = await axios.get("/solicitudes-adopcion/puede-solicitar", authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}

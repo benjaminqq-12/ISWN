@@ -17,6 +17,18 @@ const CLASE_ESTADO = {
   "Cancelada": "sol-cancelada",
 };
 
+const ESTADOS_CERRADOS = ["Adoptada", "Cancelada"];
+const ESTADOS_ABIERTOS = [
+  { nombre: "Pendiente", color: "#d9a514" },
+  { nombre: "Reunión inicial", color: "#3978c5" },
+  { nombre: "Visita/entrevista", color: "#2596be" },
+  { nombre: "Seguimiento post-adopción", color: "#7856a8" },
+];
+const COLORES_ESTADOS = {
+  Adoptada: "#2b9a62",
+  Cancelada: "#d04b42",
+};
+
 const DIAS_POR_VENCER = 3;
 
 const formatearFecha = (fecha) =>
@@ -51,7 +63,79 @@ const FILTROS = [
   { id: "vencido", label: "Seguimiento vencido" },
   { id: "porVencer", label: "Seguimiento por vencer" },
   { id: "lista", label: "Listas para cerrar" },
+  { id: "reunionInicial", label: "Reunión inicial", estado: "Reunión inicial" },
+  { id: "visitaEntrevista", label: "Visita/entrevista", estado: "Visita/entrevista" },
+  { id: "seguimiento", label: "Seguimiento post-adopción", estado: "Seguimiento post-adopción" },
+  { id: "adoptada", label: "Adoptada", estado: "Adoptada" },
+  { id: "cancelada", label: "Cancelada", estado: "Cancelada" },
 ];
+
+function distribucionPorEstado(solicitudes, estadosIniciales) {
+  const distribucion = estadosIniciales.map(({ nombre, color }) => ({
+    nombre,
+    color,
+    cantidad: 0,
+  }));
+
+  solicitudes.forEach((solicitud) => {
+    const nombre = solicitud.solicitudAadopcion_estado || "Sin estado";
+    let estado = distribucion.find((item) => item.nombre === nombre);
+    if (!estado) {
+      estado = { nombre, color: "#9ca3af", cantidad: 0 };
+      distribucion.push(estado);
+    }
+    estado.cantidad += 1;
+  });
+
+  return distribucion;
+}
+
+function GraficoPastel({ titulo, distribucion }) {
+  const total = distribucion.reduce((suma, estado) => suma + estado.cantidad, 0);
+  let porcentajeAcumulado = 0;
+  const segmentos = distribucion
+    .filter((estado) => estado.cantidad > 0)
+    .map((estado) => {
+      const inicio = porcentajeAcumulado;
+      porcentajeAcumulado += (estado.cantidad / total) * 100;
+      return `${estado.color} ${inicio}% ${porcentajeAcumulado}%`;
+    });
+
+  return (
+    <article className="sol-grafico">
+      <h3>{titulo}</h3>
+      <div className="sol-grafico-contenido">
+        <div
+          className="sol-grafico-pastel"
+          role="img"
+          aria-label={`${titulo}. ${distribucion
+            .filter((estado) => estado.cantidad > 0)
+            .map((estado) => `${estado.nombre}: ${estado.cantidad}`)
+            .join(", ") || "Sin solicitudes"}`}
+          style={{ background: total ? `conic-gradient(${segmentos.join(", ")})` : undefined }}
+        />
+        <ul className="sol-grafico-leyenda">
+          {distribucion.map((estado) => (
+            <li key={estado.nombre}>
+              <span className="sol-grafico-color" style={{ backgroundColor: estado.color }} />
+              <span>{estado.nombre}</span>
+              <strong>
+                {estado.cantidad}
+                {total > 0 && (
+                  <small> ({((estado.cantidad / total) * 100).toFixed(1)}%)</small>
+                )}
+              </strong>
+            </li>
+          ))}
+          <li className="sol-grafico-total">
+            <span>Total</span>
+            <strong>{total}</strong>
+          </li>
+        </ul>
+      </div>
+    </article>
+  );
+}
 
 // qué necesita atención en una solicitud (null = nada por ahora)
 function atencionDe(s) {
@@ -75,6 +159,7 @@ const Solicitudes = () => {
   const [verSeguimientos, setVerSeguimientos] = useState(null);
   const [verDatos, setVerDatos] = useState(null);
   const [filtro, setFiltro] = useState("todas");
+  const [pestana, setPestana] = useState("solicitudes");
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
@@ -96,113 +181,171 @@ const Solicitudes = () => {
   conAtencion.forEach(({ atencion }) => {
     if (atencion) conteo[atencion] += 1;
   });
+  FILTROS.forEach(({ id, estado }) => {
+    if (estado) {
+      conteo[id] = solicitudes.filter(
+        (solicitud) => solicitud.solicitudAadopcion_estado === estado
+      ).length;
+    }
+  });
   const requierenAtencion = conteo.nueva + conteo.vencido + conteo.porVencer + conteo.lista;
 
+  const estadoFiltro = FILTROS.find(({ id }) => id === filtro)?.estado;
   const visibles = filtro === "todas"
     ? conAtencion
-    : conAtencion.filter(({ atencion }) => atencion === filtro);
+    : conAtencion.filter(({ s, atencion }) =>
+      estadoFiltro
+        ? s.solicitudAadopcion_estado === estadoFiltro
+        : atencion === filtro
+    );
+
+  const cerradas = solicitudes.filter((solicitud) =>
+    ESTADOS_CERRADOS.includes(solicitud.solicitudAadopcion_estado)
+  );
+  const noCerradas = solicitudes.filter((solicitud) =>
+    !ESTADOS_CERRADOS.includes(solicitud.solicitudAadopcion_estado)
+  );
+  const distribucionCerradas = distribucionPorEstado(cerradas, [
+    { nombre: "Adoptada", color: COLORES_ESTADOS.Adoptada },
+    { nombre: "Cancelada", color: COLORES_ESTADOS.Cancelada },
+  ]);
+  const distribucionNoCerradas = distribucionPorEstado(noCerradas, ESTADOS_ABIERTOS);
 
   return (
     <div className="container">
       <h1>Solicitudes de adopción</h1>
 
-      {solicitudes.length > 0 && (
+      <div className="sol-pestanas" role="group" aria-label="Secciones de solicitudes">
+        <button
+          type="button"
+          className={`sol-pestana ${pestana === "solicitudes" ? "activa" : ""}`}
+          aria-pressed={pestana === "solicitudes"}
+          onClick={() => setPestana("solicitudes")}
+        >
+          Solicitudes
+        </button>
+        <button
+          type="button"
+          className={`sol-pestana ${pestana === "estadisticas" ? "activa" : ""}`}
+          aria-pressed={pestana === "estadisticas"}
+          onClick={() => setPestana("estadisticas")}
+        >
+          Estadísticas
+        </button>
+      </div>
+
+      {pestana === "solicitudes" ? (
         <>
-          <p className="sol-resumen">
-            {requierenAtencion > 0 ? (
-              <>
-                <strong>{requierenAtencion}</strong>{" "}
-                {requierenAtencion === 1 ? "solicitud requiere" : "solicitudes requieren"} atención
-              </>
-            ) : (
-              "Todo al día ✓"
-            )}
-          </p>
+          {solicitudes.length > 0 && (
+            <>
+              <p className="sol-resumen">
+                {requierenAtencion > 0 ? (
+                  <>
+                    <strong>{requierenAtencion}</strong>{" "}
+                    {requierenAtencion === 1 ? "solicitud requiere" : "solicitudes requieren"} atención
+                  </>
+                ) : (
+                  "Todo al día ✓"
+                )}
+              </p>
 
-          <div className="sol-filtros" role="group" aria-label="Filtrar solicitudes">
-            {FILTROS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={`sol-filtro ${filtro === f.id ? "activo" : ""}`}
-                onClick={() => setFiltro(f.id)}
-              >
-                {f.label} ({conteo[f.id]})
-              </button>
-            ))}
-          </div>
+              <div className="sol-filtros" role="group" aria-label="Filtrar solicitudes">
+                {FILTROS.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    className={`sol-filtro ${filtro === f.id ? "activo" : ""}`}
+                    onClick={() => setFiltro(f.id)}
+                  >
+                    {f.label} ({conteo[f.id]})
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {solicitudes.length === 0 ? (
+            <p>No hay solicitudes de adopción por ahora.</p>
+          ) : visibles.length === 0 ? (
+            <p>No hay solicitudes en este filtro.</p>
+          ) : (
+            <div className="tabla-scroll">
+              <table className="solicitudes-tabla">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Mascota</th>
+                    <th>Adoptante</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibles.map(({ s, atencion }) => (
+                    <tr key={s.solicitudAdopcion_id}>
+                      <td>{s.solicitudAdopcion_id}</td>
+                      <td>
+                        {s.solicitudAdopcion_mascotaAdoptada ? (
+                          <Link to={`/mascotas/${s.solicitudAdopcion_mascotaAdoptada.mascota_id}`}>
+                            {s.solicitudAdopcion_mascotaAdoptada.mascota_nombreCompleto}
+                          </Link>
+                        ) : "—"}
+                      </td>
+                      <td>
+                        <button type="button" className="sol-link" onClick={() => setVerDatos(s)}>
+                          {s.solicitudAdopcion_usuarioAdoptante?.usuarioNombre ?? "—"}
+                        </button>
+                        {s.solicitudAdopcion_telefono && (
+                          <span className="sol-contacto">{s.solicitudAdopcion_telefono}</span>
+                        )}
+                      </td>
+                      <td>{formatearFecha(s.solicitudAadopcion_fechaSolicitud)}</td>
+                      <td>
+                        <span className={`sol-badge ${CLASE_ESTADO[s.solicitudAadopcion_estado] ?? ""}`}>
+                          {s.solicitudAadopcion_estado}
+                        </span>
+                        {s.solicitudAdopcion_tipoCierre && (
+                          <span className="sol-tipo-cierre">{s.solicitudAdopcion_tipoCierre}</span>
+                        )}
+                        {atencion && (
+                          <span className={`sol-alerta ${ATENCION[atencion].clase}`}>
+                            {ATENCION[atencion].texto(s)}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="sol-acciones">
+                          {["Seguimiento post-adopción", "Adoptada"].includes(s.solicitudAadopcion_estado) && (
+                            <button className="btn-secondary-sm" onClick={() => setVerSeguimientos(s)}>
+                              Seguimientos
+                            </button>
+                          )}
+                          {s.siguientesEstados.length > 0 && (
+                            <button className="btn-primary-sm" onClick={() => setSeleccionada(s)}>
+                              Avanzar
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </>
-      )}
-
-      {solicitudes.length === 0 ? (
-        <p>No hay solicitudes de adopción por ahora.</p>
-      ) : visibles.length === 0 ? (
-        <p>No hay solicitudes en este filtro.</p>
       ) : (
-        <div className="tabla-scroll">
-          <table className="solicitudes-tabla">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Mascota</th>
-                <th>Adoptante</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibles.map(({ s, atencion }) => (
-                <tr key={s.solicitudAdopcion_id}>
-                  <td>{s.solicitudAdopcion_id}</td>
-                  <td>
-                    {s.solicitudAdopcion_mascotaAdoptada ? (
-                      <Link to={`/mascotas/${s.solicitudAdopcion_mascotaAdoptada.mascota_id}`}>
-                        {s.solicitudAdopcion_mascotaAdoptada.mascota_nombreCompleto}
-                      </Link>
-                    ) : "—"}
-                  </td>
-                  <td>
-                    <button type="button" className="sol-link" onClick={() => setVerDatos(s)}>
-                      {s.solicitudAdopcion_usuarioAdoptante?.usuarioNombre ?? "—"}
-                    </button>
-                    {s.solicitudAdopcion_telefono && (
-                      <span className="sol-contacto">{s.solicitudAdopcion_telefono}</span>
-                    )}
-                  </td>
-                  <td>{formatearFecha(s.solicitudAadopcion_fechaSolicitud)}</td>
-                  <td>
-                    <span className={`sol-badge ${CLASE_ESTADO[s.solicitudAadopcion_estado] ?? ""}`}>
-                      {s.solicitudAadopcion_estado}
-                    </span>
-                    {s.solicitudAdopcion_tipoCierre && (
-                      <span className="sol-tipo-cierre">{s.solicitudAdopcion_tipoCierre}</span>
-                    )}
-                    {atencion && (
-                      <span className={`sol-alerta ${ATENCION[atencion].clase}`}>
-                        {ATENCION[atencion].texto(s)}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <div className="sol-acciones">
-                      {["Seguimiento post-adopción", "Adoptada"].includes(s.solicitudAadopcion_estado) && (
-                        <button className="btn-secondary-sm" onClick={() => setVerSeguimientos(s)}>
-                          Seguimientos
-                        </button>
-                      )}
-                      {s.siguientesEstados.length > 0 && (
-                        <button className="btn-primary-sm" onClick={() => setSeleccionada(s)}>
-                          Avanzar
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <section className="sol-estadisticas" aria-label="Estadísticas de solicitudes">
+          <GraficoPastel
+            titulo="Solicitudes cerradas"
+            distribucion={distribucionCerradas}
+          />
+          <GraficoPastel
+            titulo="Solicitudes no cerradas"
+            distribucion={distribucionNoCerradas}
+          />
+        </section>
       )}
 
       {seleccionada && (

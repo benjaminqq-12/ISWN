@@ -431,3 +431,12 @@
   border-color: var(--primary);
   color: white;
 }
+
+.adopcion-modal .modal-actions a.adopcion-link-primario {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+}
