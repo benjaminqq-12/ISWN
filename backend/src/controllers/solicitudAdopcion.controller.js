@@ -16,6 +16,7 @@ import {
   solicitudIdValidation,
   crearSolicitudBodyValidation
 } from "../validations/solicitudAdopcion.validations.js";
+import { generarComprobanteService } from "../services/comprobanteAdopcion.service.js";
 
 export async function crearSolicitudAdopcionController(req, res) {
   try {
@@ -79,6 +80,28 @@ export async function puedeSolicitarController(req, res) {
     const [resultado, error] = await puedeSolicitarService(req.user.usuarioId);
     if (error) return handleErrorServer(res, 500, error);
     handleSuccess(res, 200, "Verificación realizada", resultado);
+  } catch (error) {
+    return handleErrorServer(res, 500, error.message);
+  }
+}
+
+function responderErrorComprobante(res, error) {
+  if (error === "La solicitud de adopción no existe.") return handleErrorClient(res, 404, error);
+  if (error === "Error interno del servidor") return handleErrorServer(res, 500, error);
+  return handleErrorClient(res, 400, error);
+}
+
+export async function descargarComprobanteController(req, res) {
+  try {
+    const { error: errorParams, value: params } = solicitudIdValidation.validate(req.params);
+    if (errorParams) return handleErrorClient(res, 400, errorParams.message);
+
+    const [pdf, error] = await generarComprobanteService(params.id, req.user);
+    if (error) return responderErrorComprobante(res, error);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="comprobante-adopcion-${params.id}.pdf"`);
+    return res.send(pdf);
   } catch (error) {
     return handleErrorServer(res, 500, error.message);
   }
