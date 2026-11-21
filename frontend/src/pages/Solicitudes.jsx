@@ -288,7 +288,7 @@ const Solicitudes = () => {
               <table className="solicitudes-tabla">
                 <thead>
                   <tr>
-                    <th>#</th>
+                    
                     <th>Mascota</th>
                     <th>Adoptante</th>
                     <th>Fecha</th>
@@ -299,7 +299,7 @@ const Solicitudes = () => {
                 <tbody>
                   {visibles.map(({ s, atencion }) => (
                     <tr key={s.solicitudAdopcion_id}>
-                      <td>{s.solicitudAdopcion_id}</td>
+                      
                       <td>
                         {s.solicitudAdopcion_mascotaAdoptada ? (
                           <Link to={`/mascotas/${s.solicitudAdopcion_mascotaAdoptada.mascota_id}`}>
