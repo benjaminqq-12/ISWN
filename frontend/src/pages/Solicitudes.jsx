@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import AvanzarEstadoModal from '../components/AvanzarEstadoModal.jsx';
 import SeguimientosModal from '../components/SeguimientosModal.jsx';
 import DatosAdoptanteModal from '../components/DatosAdoptanteModal.jsx';
-import { getSolicitudes } from '../services/solicitudAdopcion.service';
+import { getSolicitudes, descargarComprobante } from '../services/solicitudAdopcion.service';
 
 import '../styles/home.css';
 import '../styles/solicitudes.css';
@@ -157,6 +157,8 @@ const Solicitudes = () => {
   const [error, setError] = useState(null);
   const [seleccionada, setSeleccionada] = useState(null);
   const [verSeguimientos, setVerSeguimientos] = useState(null);
+  const [descargandoId, setDescargandoId] = useState(null);
+  const [errorDescarga, setErrorDescarga] = useState(null);
   const [verDatos, setVerDatos] = useState(null);
   const [filtro, setFiltro] = useState("todas");
   const [pestana, setPestana] = useState("solicitudes");
@@ -171,6 +173,19 @@ const Solicitudes = () => {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [version]);
+
+  const handleDescargar = async (solicitud) => {
+    setDescargandoId(solicitud.solicitudAdopcion_id);
+    setErrorDescarga(null);
+
+    try {
+      await descargarComprobante(solicitud.solicitudAdopcion_id);
+    } catch (err) {
+      setErrorDescarga(err.message);
+    } finally {
+      setDescargandoId(null);
+    }
+  };
 
   if (loading) return <p>Cargando solicitudes...</p>;
   if (error) return <p className="container" role="alert">{error}</p>;
@@ -214,7 +229,7 @@ const Solicitudes = () => {
   return (
     <div className="container">
       <h1>Solicitudes de adopción</h1>
-
+      {errorDescarga && <p className="form-error" role="alert">{errorDescarga}</p>}
       <div className="sol-pestanas" role="group" aria-label="Secciones de solicitudes">
         <button
           type="button"
@@ -319,6 +334,15 @@ const Solicitudes = () => {
                           {["Seguimiento post-adopción", "Adoptada"].includes(s.solicitudAadopcion_estado) && (
                             <button className="btn-secondary-sm" onClick={() => setVerSeguimientos(s)}>
                               Seguimientos
+                            </button>
+                          )}
+                          {s.solicitudAadopcion_estado === "Adoptada" && (
+                            <button
+                              className="btn-secondary-sm"
+                              onClick={() => handleDescargar(s)}
+                              disabled={descargandoId === s.solicitudAdopcion_id}
+                            >
+                              {descargandoId === s.solicitudAdopcion_id ? "Generando..." : "Informe PDF"}
                             </button>
                           )}
                           {s.siguientesEstados.length > 0 && (

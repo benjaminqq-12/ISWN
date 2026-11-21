@@ -6,6 +6,7 @@ import {
   getSolicitudesController,
   getMisSolicitudesController,
   puedeSolicitarController,
+  descargarComprobanteController
 } from "../controllers/solicitudAdopcion.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 import { authorizeRoles } from "../middlewares/authorization.middleware.js";
@@ -18,6 +19,7 @@ router.use(authenticateJwt);
 router
   .get("/mias", getMisSolicitudesController)
   .get("/puede-solicitar", puedeSolicitarController)
+  .get("/:id/comprobante", descargarComprobanteController)
   .get("/", authorizeRoles(...ROLES_AUTORIZADORES), getSolicitudesController)
   .post("/", crearSolicitudAdopcionController)
   .patch("/:id/estado", authorizeRoles(...ROLES_AUTORIZADORES), avanzarEstadoSolicitudController);
