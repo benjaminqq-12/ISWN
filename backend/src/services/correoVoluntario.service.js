@@ -3,7 +3,11 @@
 
 import nodemailer from "nodemailer";
 
-export async function enviarCorreoDecisionVoluntario(voluntario, estado) {
+export async function enviarCorreoDecisionVoluntario(
+  voluntario,
+  estado,
+  enlaceActivacion = null
+) {
   if (!["Aprobado", "Rechazado"].includes(estado)) {
     throw new Error("Estado no válido para notificación.");
   }
@@ -16,6 +20,13 @@ export async function enviarCorreoDecisionVoluntario(voluntario, estado) {
     throw new Error("Falta configurar el correo SMTP.");
   }
 
+  const aprobado = estado === "Aprobado";
+
+  // Si fue aprobado, debe existir un enlace de activación.
+  if (aprobado && !enlaceActivacion) {
+    throw new Error("Falta el enlace de activación del voluntario.");
+  }
+
   const transportador = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 465),
@@ -25,8 +36,6 @@ export async function enviarCorreoDecisionVoluntario(voluntario, estado) {
       pass: process.env.SMTP_PASSWORD,
     },
   });
-
-  const aprobado = estado === "Aprobado";
 
   const asunto = aprobado
     ? "¡Tu solicitud de voluntariado fue aprobada!"
@@ -40,8 +49,14 @@ export async function enviarCorreoDecisionVoluntario(voluntario, estado) {
 Tu solicitud para formar parte de Hogar de Mascotas
 ha sido APROBADA.
 
-Próximamente recibirás las instrucciones para
-crear tu cuenta de voluntario.
+Para crear tu cuenta de voluntario, ingresa al siguiente enlace:
+
+${enlaceActivacion}
+
+Este enlace es personal y tiene una duración de 24 horas.
+
+Una vez que crees tu cuenta, podrás iniciar sesión
+utilizando tu correo electrónico y contraseña.
 
 Muchas gracias por querer formar parte de nuestro equipo.
 

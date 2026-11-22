@@ -19,6 +19,7 @@ import vacunaRoutes from "./vacuna.routes.js";
 import inventarioRoutes from "./inventario.routes.js";
 import historialMascotaRoutes from "./historialMascota.routes.js";
 import seguimientoAdopcionRoutes from "./seguimientoAdopcion.routes.js";
+import activacionVoluntarioRoutes from "./activacionVoluntario.routes.js";
 
 const router = Router();
 
@@ -39,6 +40,7 @@ router
     .use("/calendario-sanidad", calendarioSanidadRoutes)
     .use("/inventario", inventarioRoutes)
     .use("/solicitudes-adopcion", seguimientoAdopcionRoutes)
-    .use("/usuarios", usuarioRoutes);
+    .use("/usuarios", usuarioRoutes)
+    .use("/activacion-voluntario", activacionVoluntarioRoutes);
 
 export default router;
