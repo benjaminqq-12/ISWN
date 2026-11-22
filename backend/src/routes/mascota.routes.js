@@ -1,8 +1,6 @@
-
 "use strict";
 
 import { Router } from "express";
-import passport from "passport";
 
 import {
   crearMascotaController,
@@ -17,7 +15,6 @@ import {
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 import { authorizeRoles } from "../middlewares/authorization.middleware.js";
 
-
 const router = Router();
 
 // Middleware compartido para personal interno.
@@ -29,14 +26,16 @@ const soloPersonal = [
 // Consultar mascotas públicas.
 router.get("/", getMascotasController);
 
-// Consultar todas las mascotas (personal interno).
+// Consultar todas las mascotas para personal interno.
+console.log("Ruta /mascotas/internas registrada");
+
 router.get(
-  "/interno",
+  "/internas",
   soloPersonal,
   getMascotasInternasController
 );
 
-// Consultar información interna de una mascota.
+// Consultar información interna de una mascota específica.
 router.get(
   "/:id/interno",
   soloPersonal,
