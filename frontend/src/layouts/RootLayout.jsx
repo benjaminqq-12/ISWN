@@ -1,11 +1,9 @@
+
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-
-import {
-  iniciarSesion,
-} from "../services/mascota.service.js";
-
+import { iniciarSesion, registrarUsuario } from "../services/usuario.service";
 import LoginModal from "../components/LoginModal";
+import RegistroModal from "../components/RegistroModal";
 
 import cookies from "js-cookie";
 import "../styles/navbar.css";
@@ -21,7 +19,6 @@ const NAV = [
   { label: "Mascotas", to: "/mascotas" },
   { label: "Adopciones" },
   { label: "Atención Médica", to: "/atencion-medica" },
-
   {
     label: "Voluntarios",
     submenu: [
@@ -29,17 +26,24 @@ const NAV = [
         label: "Registrar voluntario",
         to: "/voluntarios/registrar",
       },
+      {
+        label: "Solicitudes",
+        to: "/voluntarios/solicitudes",
+        soloAdmin: true,
+      },
     ],
   },
+
   { label: "Donaciones", to: "/donaciones" },
   { label: "Eventos", to: "/eventos" },
-
   // Visible solamente para personal interno
   {
     label: "Inventario",
     to: "/inventario",
     interno: true,
   },
+    // Visible solamente para administradores
+  { label: "Usuarios", to: "/usuarios", soloAdmin: true },
 ];
 
 function cargarSesion() {
@@ -62,18 +66,33 @@ function cargarSesion() {
 
 export default function RootLayout() {
   const [session, setSession] = useState(cargarSesion);
-  
+
   const [loginVisible, setLoginVisible] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [registroVisible, setRegistroVisible] = useState(false);
+  const [registroError, setRegistroError] = useState("");
+  const [registroLoading, setRegistroLoading] = useState(false);
   const [submenuAbierto, setSubmenuAbierto] = useState(null);
+
   const location = useLocation();
+    // "Adopciones" lleva al panel del personal o a las solicitudes propias, según el rol
+  const esPersonal = ["Admin", "Voluntario"].includes(session?.user?.rol);
+  const esAdmin = session?.user?.rol === "Admin";
+  const navItems = NAV
+    .filter((item) => !item.soloAdmin || esAdmin)
+    .map((item) =>
+      item.label === "Adopciones"
+        ? { ...item, to: esPersonal ? "/solicitudes" : "/mis-solicitudes" }
+        : item
+    );
 
   async function handleLogin(event) {
     event.preventDefault();
 
     setLoginError("");
     setLoginLoading(true);
+
     const form = event.currentTarget;
     const formData = new FormData(form);
 
@@ -83,14 +102,21 @@ export default function RootLayout() {
         formData.get("usuarioPassword")
       );
 
-      const vencimiento = new Date(Date.now() + 8 * 60 * 60 * 1000);
+      const vencimiento = new Date(
+        Date.now() + 8 * 60 * 60 * 1000
+      );
+
       const opciones = {
         ...opcionesCookies,
         expires: vencimiento,
       };
 
       cookies.set("jwt-auth", sesion.token, opciones);
-      cookies.set("usuario-sesion", JSON.stringify(sesion.user), opciones);
+      cookies.set(
+        "usuario-sesion",
+        JSON.stringify(sesion.user),
+        opciones
+      );
 
       setSession(sesion);
       setLoginVisible(false);
@@ -102,15 +128,73 @@ export default function RootLayout() {
     }
   }
 
+  async function handleRegistro(event) {
+    event.preventDefault();
+
+    setRegistroError("");
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const usuarioEmail = formData.get("usuarioEmail");
+    const usuarioPassword = formData.get("usuarioPassword");
+
+    if (usuarioPassword !== formData.get("repetirPassword")) {
+      setRegistroError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    setRegistroLoading(true);
+
+    try {
+      await registrarUsuario({
+        rut: formData.get("rut"),
+        usuarioNombre: formData.get("usuarioNombre"),
+        usuarioEmail,
+        usuarioPassword,
+      });
+    } catch (error) {
+      setRegistroError(error.message);
+      setRegistroLoading(false);
+      return;
+    }
+
+    // la cuenta ya existe: se inicia sesión automáticamente
+    try {
+      const sesion = await iniciarSesion(usuarioEmail, usuarioPassword);
+
+      const vencimiento = new Date(Date.now() + 8 * 60 * 60 * 1000);
+      const opciones = {
+        ...opcionesCookies,
+        expires: vencimiento,
+      };
+
+      cookies.set("jwt-auth", sesion.token, opciones);
+      cookies.set("usuario-sesion", JSON.stringify(sesion.user), opciones);
+
+      setSession(sesion);
+      setRegistroVisible(false);
+      form.reset();
+    } catch {
+      // la cuenta se creó pero el inicio automático falló: se lleva al usuario al login
+      setRegistroVisible(false);
+      setLoginError("Tu cuenta se creó, pero no pudimos iniciar sesión automáticamente. Ingresa con tu correo y contraseña.");
+      setLoginVisible(true);
+    } finally {
+      setRegistroLoading(false);
+    }
+  }
+
   function handleLogout() {
     cookies.remove("jwt-auth", opcionesCookies);
     cookies.remove("usuario-sesion", opcionesCookies);
 
     setSession(null);
+    setSubmenuAbierto(null);
   }
 
   function toggleSubmenu(label) {
-    setSubmenuAbierto((actual) => (actual === label ? null : label));
+    setSubmenuAbierto((actual) =>
+      actual === label ? null : label
+    );
   }
 
   return (
@@ -119,15 +203,32 @@ export default function RootLayout() {
         <div className="container navbar-content">
           <div className="nav-brand">
             <div className="nav-logo">H</div>
+
             <div>
-              <div className="nav-title">Hogar de Mascotas</div>
-              <div className="nav-subtitle">Cuidado y adopción responsable</div>
+              <div className="nav-title">
+                Hogar de Mascotas
+              </div>
+
+              <div className="nav-subtitle">
+                Cuidado y adopción responsable
+              </div>
             </div>
           </div>
 
           <nav className="nav-links">
             {NAV.map((item) => {
+                 // Atención médica: visible solo para Veterinarios y Administradores
+               if (
+               item.to === "/atencion-medica" &&
+                 !["Veterinario", "Admin"].includes(session?.user?.rol)
+                               ) {
+                       return null;
+                               }
+            {navItems.map((item) => {
               if (item.to) {
+              
+                                            
+
                 return (
                   <Link
                     key={item.label}
@@ -135,12 +236,16 @@ export default function RootLayout() {
                     className={`nav-link ${
                       location.pathname === item.to ||
                       (item.to === "/mascotas" &&
-                        location.pathname.startsWith("/mascotas/"))
+                        location.pathname.startsWith(
+                          "/mascotas/"
+                        ))
                         ? "active"
                         : ""
                     }`}
                     aria-current={
-                      location.pathname === item.to ? "page" : undefined
+                      location.pathname === item.to
+                        ? "page"
+                        : undefined
                     }
                   >
                     {item.label}
@@ -148,28 +253,49 @@ export default function RootLayout() {
                 );
               }
 
+              // Menú desplegable de Voluntarios.
               if (item.submenu) {
-                const submenuActivo = item.submenu.some(
-                  (subitem) => location.pathname === subitem.to
+                // Oculta las opciones exclusivas de Admin
+                // cuando no existe una sesión administrativa.
+                const opcionesVisibles = item.submenu.filter(
+                  (subitem) =>
+                    !subitem.soloAdmin || esAdmin
                 );
 
+                const submenuActivo =
+                  opcionesVisibles.some(
+                    (subitem) =>
+                      location.pathname === subitem.to
+                  );
+
                 return (
-                  <div className="nav-dropdown" key={item.label}>
+                  <div
+                    className="nav-dropdown"
+                    key={item.label}
+                  >
                     <button
                       type="button"
                       className={`nav-link nav-dropdown-toggle ${
-                        submenuActivo || submenuAbierto === item.label
+                        submenuActivo ||
+                        submenuAbierto === item.label
                           ? "active"
                           : ""
                       }`}
                       aria-haspopup="true"
-                      aria-expanded={submenuAbierto === item.label}
-                      onClick={() => toggleSubmenu(item.label)}
+                      aria-expanded={
+                        submenuAbierto === item.label
+                      }
+                      onClick={() =>
+                        toggleSubmenu(item.label)
+                      }
                     >
                       {item.label}
+
                       <span
                         className={`dropdown-arrow ${
-                          submenuAbierto === item.label ? "open" : ""
+                          submenuAbierto === item.label
+                            ? "open"
+                            : ""
                         }`}
                         aria-hidden="true"
                       />
@@ -177,12 +303,14 @@ export default function RootLayout() {
 
                     {submenuAbierto === item.label && (
                       <div className="nav-dropdown-menu">
-                        {item.submenu.map((subitem) => (
+                        {opcionesVisibles.map((subitem) => (
                           <Link
                             key={subitem.label}
                             to={subitem.to}
                             className="nav-dropdown-item"
-                            onClick={() => setSubmenuAbierto(null)}
+                            onClick={() =>
+                              setSubmenuAbierto(null)
+                            }
                           >
                             {subitem.label}
                           </Link>
@@ -193,6 +321,7 @@ export default function RootLayout() {
                 );
               }
 
+              // Opciones que todavía no tienen ruta.
               return (
                 <button
                   key={item.label}
@@ -212,14 +341,23 @@ export default function RootLayout() {
                   className="nav-user"
                   title={`${session.user.usuarioNombre} · ${session.user.rol}`}
                 >
-                  <span className="nav-user-avatar" aria-hidden="true">
-                    {session.user.usuarioNombre?.charAt(0)?.toUpperCase() || "U"}
+                  <span
+                    className="nav-user-avatar"
+                    aria-hidden="true"
+                  >
+                    {session.user.usuarioNombre
+                      ?.charAt(0)
+                      ?.toUpperCase() || "U"}
                   </span>
+
                   <span className="nav-user-details">
                     <span className="nav-user-name">
                       {session.user.usuarioNombre}
                     </span>
-                    <span className="nav-user-role">{session.user.rol}</span>
+
+                    <span className="nav-user-role">
+                      {session.user.rol}
+                    </span>
                   </span>
                 </div>
 
@@ -236,7 +374,9 @@ export default function RootLayout() {
                 className="auth-toggle"
                 type="button"
                 onClick={() => {
-                  setLoginVisible((visible) => !visible);
+                  setLoginVisible(
+                    (visible) => !visible
+                  );
                   setLoginError("");
                 }}
               >
@@ -251,8 +391,27 @@ export default function RootLayout() {
         <LoginModal
           onClose={() => setLoginVisible(false)}
           onSubmit={handleLogin}
+          onRegistro={() => {
+            setLoginVisible(false);
+            setRegistroError("");
+            setRegistroVisible(true);
+          }}
           error={loginError}
           loading={loginLoading}
+        />
+      )}
+
+      {!session && registroVisible && (
+        <RegistroModal
+          onClose={() => setRegistroVisible(false)}
+          onSubmit={handleRegistro}
+          onLogin={() => {
+            setRegistroVisible(false);
+            setLoginError("");
+            setLoginVisible(true);
+          }}
+          error={registroError}
+          loading={registroLoading}
         />
       )}
 
@@ -270,4 +429,3 @@ export default function RootLayout() {
     </div>
   );
 }
-

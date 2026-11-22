@@ -42,6 +42,31 @@ const SolicitudAdopcionSchema = new EntitySchema({
             length: 50,
             nullable: true,
         },
+        solicitudAdopcion_telefono: {
+            type: "varchar",
+            length: 20,
+            nullable: true,
+        },
+        solicitudAdopcion_correo: {
+            type: "varchar",
+            length: 100,
+            nullable: true,
+        },
+        solicitudAdopcion_direccion: {
+            type: "varchar",
+            length: 200,
+            nullable: true,
+        },
+        solicitudAdopcion_mascotasActuales: {
+            type: "varchar",
+            length: 512,
+            nullable: true,
+        },
+        solicitudAdopcion_motivoAdopcion: {
+            type: "varchar",
+            length: 512,
+            nullable: true,
+        },
         createdAt: {
             type: "timestamp with time zone",
             default: () => "CURRENT_TIMESTAMP",

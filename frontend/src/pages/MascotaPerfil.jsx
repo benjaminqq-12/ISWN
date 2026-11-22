@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { getMascota, getMascotaInterna } from '../services/mascota.service';
@@ -10,7 +11,11 @@ const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
 const MascotaPerfil = () => {
   const { id } = useParams();
   const { session } = useOutletContext();
-  const puedeVerInterno = ['Voluntario', 'Admin'].includes(session?.user?.rol);
+
+  // Veterinario y Admin pueden consultar información interna.
+  const puedeVerInterno = ['Voluntario','Veterinario', 'Admin'].includes(session?.user?.rol);
+
+  const puedeAdoptar = session?.user?.rol === 'Usuario';
   const [mascota, setMascota] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -25,18 +30,19 @@ const MascotaPerfil = () => {
       setLoading(true);
       setError('');
       setErrorInterno('');
-      try {
-        const datosPublicos = await getMascota(id);
-        if (!vigente) return;
-        setMascota(datosPublicos);
 
+      try {
+        // Veterinario y Admin consultan primero el perfil interno.
+        // Así pueden ver mascotas en cuarentena u observación.
         if (puedeVerInterno && session?.token) {
-          try {
-            const datosInternos = await getMascotaInterna(id, session.token);
-            if (vigente) setMascota(datosInternos);
-          } catch (errorInterno) {
-            if (vigente) setErrorInterno(errorInterno.message);
-          }
+          const datosInternos = await getMascotaInterna(id, session.token);
+
+          if (vigente) setMascota(datosInternos);
+        } else {
+          // Los demás usuarios solamente consultan el perfil público.
+          const datosPublicos = await getMascota(id);
+
+          if (vigente) setMascota(datosPublicos);
         }
       } catch (errorCarga) {
         if (vigente) setError(errorCarga.message);
@@ -46,12 +52,16 @@ const MascotaPerfil = () => {
     }
 
     cargarMascota();
+
     return () => {
       vigente = false;
     };
   }, [id, puedeVerInterno, session?.token]);
 
-  if (loading) return <p className="container mascota-feedback">Cargando perfil...</p>;
+  if (loading) {
+    return <p className="container mascota-feedback">Cargando perfil...</p>;
+  }
+
   if (error) {
     return (
       <section className="container mascota-feedback">
@@ -62,6 +72,7 @@ const MascotaPerfil = () => {
       </section>
     );
   }
+
   if (!mascota) return null;
 
   const estadoClass = `estado-${mascota.mascota_estado
@@ -75,26 +86,33 @@ const MascotaPerfil = () => {
       <Link className="mascota-perfil-back" to="/mascotas">
         <span aria-hidden="true">←</span> Volver a las mascotas
       </Link>
+
       <div className="mascota-perfil-main">
         <div className="mascota-perfil-image">
           <img
             src={mascota.mascota_fotoURL || DEFAULT_PLACEHOLDER}
             alt={mascota.mascota_nombreCompleto}
             onError={(e) => {
-              if (e.currentTarget.src !== window.location.origin + DEFAULT_PLACEHOLDER) {
+              if (
+                e.currentTarget.src !==
+                window.location.origin + DEFAULT_PLACEHOLDER
+              ) {
                 e.currentTarget.src = DEFAULT_PLACEHOLDER;
               }
             }}
           />
         </div>
+
         <div className="mascota-perfil-info">
           <p className="mascota-perfil-eyebrow">Perfil de mascota</p>
+
           <h1>{mascota.mascota_nombreCompleto}</h1>
+
           <span className={`mascota-card-estado ${estadoClass}`}>
             {mascota.mascota_estado}
           </span>
           {mascota.mascota_estado === 'En Refugio' && !solicitudEnviada && (
-            session ? (
+            puedeAdoptar ? (
               <button
                 className="mascota-adoptar-button mascota-perfil-adoptar"
                 type="button"
@@ -102,41 +120,78 @@ const MascotaPerfil = () => {
               >
                 Adoptar
               </button>
-            ) : (
+            ) : !session ? (
               <p className="mascota-card-login-hint">Inicia sesión para solicitar la adopción</p>
-            )
+            ) : null
           )}
-          {solicitudEnviada && <p className="form-message form-success" role="status">Solicitud enviada ✓</p>}
+
           <dl className="mascota-perfil-datos">
-            <div><dt>Especie</dt><dd>{mascota.mascota_especie}</dd></div>
-            <div><dt>Edad</dt><dd>{mascota.mascota_edad} {mascota.mascota_edad === 1 ? 'año' : 'años'}</dd></div>
-            <div><dt>Peso</dt><dd>{mascota.mascota_peso} kg</dd></div>
-            <div><dt>Sexo</dt><dd>{mascota.mascota_sexo}</dd></div>
+            <div>
+              <dt>Especie</dt>
+              <dd>{mascota.mascota_especie}</dd>
+            </div>
+
+            <div>
+              <dt>Edad</dt>
+              <dd>
+                {mascota.mascota_edad}{' '}
+                {mascota.mascota_edad === 1 ? 'año' : 'años'}
+              </dd>
+            </div>
+
+            <div>
+              <dt>Peso</dt>
+              <dd>{mascota.mascota_peso} kg</dd>
+            </div>
+
+            <div>
+              <dt>Sexo</dt>
+              <dd>{mascota.mascota_sexo}</dd>
+            </div>
           </dl>
+
           {puedeVerInterno && mascota.mascota_viaIngreso && (
             <div className="mascota-perfil-interno">
               <h2>Información interna</h2>
+
               <dl className="mascota-perfil-datos">
-                <div><dt>Vía de ingreso</dt><dd>{mascota.mascota_viaIngreso}</dd></div>
+                <div>
+                  <dt>Vía de ingreso</dt>
+                  <dd>{mascota.mascota_viaIngreso}</dd>
+                </div>
+
                 <div className="mascota-perfil-wide">
                   <dt>Antecedentes previos</dt>
-                  <dd>{mascota.mascota_antecedentesPrevios || 'Sin antecedentes registrados.'}</dd>
+                  <dd>
+                    {mascota.mascota_antecedentesPrevios ||
+                      'Sin antecedentes registrados.'}
+                  </dd>
                 </div>
               </dl>
             </div>
           )}
-          {errorInterno && <p className="form-message form-error" role="alert">{errorInterno}</p>}
+
+          {errorInterno && (
+            <p className="form-message form-error" role="alert">
+              {errorInterno}
+            </p>
+          )}
         </div>
       </div>
+
       {puedeVerInterno && (
         <HistorialMascota
           mascotaId={mascota.mascota_id}
           estadoActual={mascota.mascota_estado}
           onEstadoCambiado={(actualizada) =>
-            setMascota((anterior) => ({ ...anterior, mascota_estado: actualizada.mascota_estado }))
+            setMascota((anterior) => ({
+              ...anterior,
+              mascota_estado: actualizada.mascota_estado,
+            }))
           }
         />
       )}
+
       {mostrarFormulario && (
         <SolicitudAdopcionForm
           mascota={mascota}

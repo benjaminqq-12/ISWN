@@ -7,8 +7,8 @@ import {
   eliminarMascota,
   getMascotaInterna,
   getMascotas,
+  getMascotasInternas,
 } from '../services/mascota.service';
-
 import '../styles/home.css';
 import '../styles/mascotas.css';
 
@@ -26,14 +26,38 @@ const NuestrasMascotas = () => {
   const [actionError, setActionError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const formRef = useRef(null);
+  const puedeVerInternas = ["Veterinario", "Admin"].includes(session?.user?.rol);
   const puedeGestionar = ["Voluntario", "Admin"].includes(session?.user?.rol);
 
   useEffect(() => {
-    getMascotas()
-      .then(setMascotas)
-      .catch(() => setError("No se pudieron cargar las mascotas."))
-      .finally(() => setLoading(false));
-  }, []);
+  let vigente = true;
+
+  async function cargarMascotas() {
+    try {
+      const datos = puedeVerInternas && session?.token
+        ? await getMascotasInternas(session.token)
+        : await getMascotas();
+
+      if (vigente) {
+        setMascotas(datos);
+      }
+    } catch (error) {
+      if (vigente) {
+        setError("No se pudieron cargar las mascotas.");
+      }
+    } finally {
+      if (vigente) {
+        setLoading(false);
+      }
+    }
+  }
+
+  cargarMascotas();
+
+  return () => {
+    vigente = false;
+  };
+}, [puedeVerInternas, session?.token]);
 
   useEffect(() => {
     if (formVisible) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
