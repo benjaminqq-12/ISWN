@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
@@ -25,9 +24,61 @@ const formularioInicial = {
 const formularioVacunaInicial = {
   mascota_id: "",
   vacuna_nombre: "",
+  vacuna_nombreOtra: "",
   vacuna_dosis: "",
+  vacuna_dosisOtra: "",
   vacuna_fechaAplicacion: "",
   vacuna_proximaDosis: "",
+};
+
+// MEDICAMENTOS DISPONIBLES
+const medicamentosDisponibles = [
+  "Amoxicilina",
+  "Cefalexina",
+  "Enrofloxacino",
+  "Metronidazol",
+  "Meloxicam",
+  "Carprofeno",
+  "Fenbendazol",
+  "Praziquantel",
+  "Ivermectina",
+];
+
+// VACUNAS DISPONIBLES SEGÚN LA ESPECIE
+const vacunasPerros = [
+  "Séxtuple canina",
+  "Óctuple canina",
+  "Antirrábica",
+  "Bordetella (tos de las perreras)",
+  "Parainfluenza canina",
+  "Influenza canina",
+  "Leptospirosis",
+  "Enfermedad de Lyme",
+];
+
+const vacunasGatos = [
+  "Triple felina (FVRCP)",
+  "Antirrábica",
+  "Leucemia felina (FeLV)",
+  "Clamidiosis felina",
+  "Bordetella felina",
+];
+
+// OBTENER VACUNAS SEGÚN LA ESPECIE
+const obtenerVacunas = (especie) => {
+  const especieNormalizada = String(especie || "")
+    .trim()
+    .toLowerCase();
+
+  if (especieNormalizada.includes("perro")) {
+    return vacunasPerros;
+  }
+
+  if (especieNormalizada.includes("gato")) {
+    return vacunasGatos;
+  }
+
+  return [];
 };
 
 const obtenerFechaActual = () => {
@@ -66,6 +117,38 @@ const obtenerInicial = (nombre) => {
   return nombre?.trim()?.charAt(0)?.toUpperCase() || "M";
 };
 
+// FUNCIONES PARA EL CALENDARIO SANITARIO
+const obtenerFechaISO = (fecha) => {
+  if (!fecha) return "";
+
+  const texto = String(fecha).slice(0, 10);
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) {
+    return texto;
+  }
+
+  const fechaValida = new Date(fecha);
+
+  if (Number.isNaN(fechaValida.getTime())) {
+    return "";
+  }
+
+  const anio = fechaValida.getFullYear();
+  const mes = String(fechaValida.getMonth() + 1).padStart(2, "0");
+  const dia = String(fechaValida.getDate()).padStart(2, "0");
+
+  return `${anio}-${mes}-${dia}`;
+};
+
+const obtenerClaveFecha = (anio, mes, dia) =>
+  `${anio}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+
+const obtenerNombreMes = (fecha) =>
+  fecha.toLocaleDateString("es-CL", {
+    month: "long",
+    year: "numeric",
+  });
+
 export default function AtencionMedica() {
   const outletContext = useOutletContext();
   const session = outletContext?.session;
@@ -102,6 +185,26 @@ export default function AtencionMedica() {
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [errorDatos, setErrorDatos] = useState("");
 
+  // ESTADOS DE MEDICAMENTOS
+  const [medicamentosSeleccionados, setMedicamentosSeleccionados] =
+    useState([]);
+
+  const [medicamentoSeleccionado, setMedicamentoSeleccionado] =
+    useState("");
+
+  const [medicamentoOtro, setMedicamentoOtro] = useState("");
+
+  // ESTADOS DEL CALENDARIO
+  const [calendarioAbierto, setCalendarioAbierto] = useState(false);
+
+  const [mesCalendario, setMesCalendario] = useState(() => {
+    const fecha = new Date();
+    return new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+  });
+
+  const [fechaCalendarioSeleccionada, setFechaCalendarioSeleccionada] =
+    useState(obtenerFechaActual());
+
   const usuario = session?.user;
 
   const nombreVeterinario =
@@ -110,6 +213,105 @@ export default function AtencionMedica() {
     "Veterinario";
 
   const fechaActual = obtenerFechaActual();
+
+  // UNIFICAR EVENTOS REALIZADOS Y PENDIENTES PARA EL CALENDARIO
+  const eventosCalendario = [
+    ...tratamientosPendientes.map((evento) => ({
+      id: `pendiente-${evento.calendarioSanidad_id}`,
+      fecha: obtenerFechaISO(evento.calendarioSanidad_fecha),
+      tipo: evento.calendarioSanidad_tipo || "TRATAMIENTO",
+      descripcion:
+        evento.calendarioSanidad_descripcion || "Tratamiento pendiente",
+      mascota: evento.mascota?.mascota_nombreCompleto || "Mascota",
+      estado: "PENDIENTE",
+    })),
+
+    ...historial.map((registro, indice) => {
+      const esVacunacion = registro.tipoRegistro === "VACUNACION";
+      const vacuna = registro.vacuna;
+      const atencion = registro.historialClinico_atencionMedica;
+
+      return {
+        id: esVacunacion
+          ? `vacuna-${vacuna?.vacuna_id || indice}`
+          : `atencion-${registro.historialClinico_id || indice}`,
+
+        fecha: obtenerFechaISO(
+          esVacunacion
+            ? vacuna?.vacuna_fechaAplicacion
+            : atencion?.atencion_fecha
+        ),
+
+        tipo: esVacunacion ? "VACUNACION" : "ATENCION_MEDICA",
+
+        descripcion: esVacunacion
+          ? `Vacuna aplicada: ${vacuna?.vacuna_nombre || "Vacuna"}`
+          : atencion?.atencion_diagnostico || "Atención médica",
+
+        mascota:
+          registro.mascota?.mascota_nombreCompleto || "Mascota",
+
+        estado: "REALIZADO",
+      };
+    }),
+  ].filter((evento) => evento.fecha);
+
+  // AVISOS DE VACUNAS PENDIENTES EN LOS PRÓXIMOS 7 DÍAS
+  const alertasVacunacion = tratamientosPendientes
+    .filter((evento) =>
+      String(evento.calendarioSanidad_tipo || "")
+        .toUpperCase()
+        .includes("VACUN")
+    )
+    .map((evento) => ({
+      ...evento,
+      fechaISO: obtenerFechaISO(evento.calendarioSanidad_fecha),
+    }))
+    .filter((evento) => {
+      if (!evento.fechaISO) return false;
+
+      const hoy = new Date(`${fechaActual}T00:00:00`);
+      const fechaEvento = new Date(`${evento.fechaISO}T00:00:00`);
+
+      const dias = Math.round((fechaEvento - hoy) / 86400000);
+
+      return dias >= 0 && dias <= 7;
+    })
+    .sort((a, b) => a.fechaISO.localeCompare(b.fechaISO));
+
+  // DÍAS QUE SE MUESTRAN EN EL MES SELECCIONADO (SEMANA DESDE LUNES)
+  const primerDiaMes = new Date(
+    mesCalendario.getFullYear(),
+    mesCalendario.getMonth(),
+    1
+  );
+
+  const desplazamientoInicio = (primerDiaMes.getDay() + 6) % 7;
+
+  const diasEnMes = new Date(
+    mesCalendario.getFullYear(),
+    mesCalendario.getMonth() + 1,
+    0
+  ).getDate();
+
+  const diasCalendario = [
+    ...Array(desplazamientoInicio).fill(null),
+    ...Array.from({ length: diasEnMes }, (_, indice) => indice + 1),
+  ];
+
+  const eventosFechaSeleccionada = eventosCalendario.filter(
+    (evento) => evento.fecha === fechaCalendarioSeleccionada
+  );
+
+  const cambiarMesCalendario = (cantidad) => {
+    setMesCalendario((actual) =>
+      new Date(
+        actual.getFullYear(),
+        actual.getMonth() + cantidad,
+        1
+      )
+    );
+  };
 
   // CARGAR DATOS DEL PANEL
   const cargarDatos = async () => {
@@ -121,6 +323,7 @@ export default function AtencionMedica() {
 
       setMascotas(datos.mascotas || []);
       setHistorial(datos.historial || []);
+
       setTratamientosPendientes(
         datos.tratamientosPendientes || []
       );
@@ -141,6 +344,23 @@ export default function AtencionMedica() {
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  // CERRAR EL CALENDARIO CON LA TECLA ESCAPE
+  useEffect(() => {
+    if (!calendarioAbierto) return;
+
+    const cerrarConEscape = (e) => {
+      if (e.key === "Escape") {
+        setCalendarioAbierto(false);
+      }
+    };
+
+    window.addEventListener("keydown", cerrarConEscape);
+
+    return () => {
+      window.removeEventListener("keydown", cerrarConEscape);
+    };
+  }, [calendarioAbierto]);
 
   const mascotaSeleccionada = mascotas.find(
     (mascota) =>
@@ -167,6 +387,47 @@ export default function AtencionMedica() {
     setMensajeTipo("");
   };
 
+  // AGREGAR MEDICAMENTO A LA LISTA
+  const agregarMedicamento = () => {
+    const nombre =
+      medicamentoSeleccionado === "Otro"
+        ? medicamentoOtro.trim()
+        : medicamentoSeleccionado;
+
+    if (!nombre) {
+      setMensaje("Debes seleccionar o escribir un medicamento.");
+      setMensajeTipo("error");
+      return;
+    }
+
+    const yaExiste = medicamentosSeleccionados.some(
+      (item) => item.toLowerCase() === nombre.toLowerCase()
+    );
+
+    if (yaExiste) {
+      setMensaje("Este medicamento ya está agregado.");
+      setMensajeTipo("error");
+      return;
+    }
+
+    setMedicamentosSeleccionados((actuales) => [
+      ...actuales,
+      nombre,
+    ]);
+
+    setMedicamentoSeleccionado("");
+    setMedicamentoOtro("");
+    setMensaje("");
+    setMensajeTipo("");
+  };
+
+  // ELIMINAR MEDICAMENTO DE LA LISTA
+  const eliminarMedicamento = (indice) => {
+    setMedicamentosSeleccionados((actuales) =>
+      actuales.filter((_, i) => i !== indice)
+    );
+  };
+
   // CAMBIOS EN EL FORMULARIO DE VACUNACIÓN
   const handleVacunaChange = (e) => {
     const { name, value } = e.target;
@@ -174,18 +435,37 @@ export default function AtencionMedica() {
     setFormularioVacuna((actual) => ({
       ...actual,
       [name]: value,
+
+      ...(name === "mascota_id"
+        ? {
+            vacuna_nombre: "",
+            vacuna_nombreOtra: "",
+          }
+        : {}),
+
+      ...(name === "vacuna_nombre" && value !== "Otra"
+        ? { vacuna_nombreOtra: "" }
+        : {}),
+
+      ...(name === "vacuna_dosis" && value !== "Otra"
+        ? { vacuna_dosisOtra: "" }
+        : {}),
     }));
 
     setMensajeVacuna("");
     setMensajeVacunaTipo("");
   };
 
-  // CANCELAR FORMULARIO DE ATENCIÓN
+    // CANCELAR FORMULARIO DE ATENCIÓN
   const handleCancelar = () => {
     setFormulario({
       ...formularioInicial,
       atencion_fecha: obtenerFechaActual(),
     });
+
+    setMedicamentosSeleccionados([]);
+    setMedicamentoSeleccionado("");
+    setMedicamentoOtro("");
 
     setAtencionEditandoId(null);
     setMensaje("");
@@ -234,6 +514,19 @@ export default function AtencionMedica() {
         : obtenerFechaActual(),
     });
 
+    // RECUPERAR LOS MEDICAMENTOS GUARDADOS
+    setMedicamentosSeleccionados(
+      atencion.atencion_tratamiento
+        ? atencion.atencion_tratamiento
+            .split(",")
+            .map((medicamento) => medicamento.trim())
+            .filter(Boolean)
+        : []
+    );
+
+    setMedicamentoSeleccionado("");
+    setMedicamentoOtro("");
+
     setMensaje(
       "Editando atención médica. Modifica los campos y guarda los cambios."
     );
@@ -261,6 +554,10 @@ export default function AtencionMedica() {
           ...formularioInicial,
           atencion_fecha: obtenerFechaActual(),
         });
+
+        setMedicamentosSeleccionados([]);
+        setMedicamentoSeleccionado("");
+        setMedicamentoOtro("");
 
         setAtencionEditandoId(null);
       }
@@ -313,13 +610,14 @@ export default function AtencionMedica() {
       return;
     }
 
-    if (
-      !formulario.atencion_diagnostico.trim() ||
-      !formulario.atencion_tratamiento.trim()
-    ) {
-      setMensaje(
-        "El diagnóstico y el tratamiento son obligatorios."
-      );
+    if (!formulario.atencion_diagnostico.trim()) {
+      setMensaje("El diagnóstico es obligatorio.");
+      setMensajeTipo("error");
+      return;
+    }
+
+    if (medicamentosSeleccionados.length === 0) {
+      setMensaje("Debes agregar al menos un medicamento.");
       setMensajeTipo("error");
       return;
     }
@@ -330,14 +628,20 @@ export default function AtencionMedica() {
       const datosAtencion = {
         mascota_id: Number(formulario.mascota_id),
         atencion_tipo: formulario.atencion_tipo,
+
         atencion_diagnostico:
           formulario.atencion_diagnostico.trim(),
+
+        // EL BACKEND RECIBE EL TRATAMIENTO COMO TEXTO
         atencion_tratamiento:
-          formulario.atencion_tratamiento.trim(),
+          medicamentosSeleccionados.join(", "),
+
         atencion_observaciones:
           formulario.atencion_observaciones.trim(),
+
         atencion_estado_sanitario:
           formulario.atencion_estado_sanitario || undefined,
+
         atencion_fecha: formulario.atencion_fecha,
       };
 
@@ -366,6 +670,10 @@ export default function AtencionMedica() {
         ...formularioInicial,
         atencion_fecha: obtenerFechaActual(),
       });
+
+      setMedicamentosSeleccionados([]);
+      setMedicamentoSeleccionado("");
+      setMedicamentoOtro("");
 
       setAtencionEditandoId(null);
 
@@ -401,8 +709,12 @@ export default function AtencionMedica() {
     }
 
     if (
-      !formularioVacuna.vacuna_nombre.trim() ||
-      !formularioVacuna.vacuna_dosis.trim() ||
+      !formularioVacuna.vacuna_nombre ||
+      (formularioVacuna.vacuna_nombre === "Otra" &&
+        !formularioVacuna.vacuna_nombreOtra.trim()) ||
+      !formularioVacuna.vacuna_dosis ||
+      (formularioVacuna.vacuna_dosis === "Otra" &&
+        !formularioVacuna.vacuna_dosisOtra.trim()) ||
       !formularioVacuna.vacuna_fechaAplicacion
     ) {
       setMensajeVacuna(
@@ -429,10 +741,20 @@ export default function AtencionMedica() {
     try {
       const datosVacuna = {
         mascota_id: Number(formularioVacuna.mascota_id),
-        vacuna_nombre: formularioVacuna.vacuna_nombre.trim(),
-        vacuna_dosis: formularioVacuna.vacuna_dosis.trim(),
+
+        vacuna_nombre:
+          formularioVacuna.vacuna_nombre === "Otra"
+            ? formularioVacuna.vacuna_nombreOtra.trim()
+            : formularioVacuna.vacuna_nombre,
+
+        vacuna_dosis:
+          formularioVacuna.vacuna_dosis === "Otra"
+            ? formularioVacuna.vacuna_dosisOtra.trim()
+            : formularioVacuna.vacuna_dosis,
+
         vacuna_fechaAplicacion:
           formularioVacuna.vacuna_fechaAplicacion,
+
         vacuna_proximaDosis:
           formularioVacuna.vacuna_proximaDosis || null,
       };
@@ -464,8 +786,7 @@ export default function AtencionMedica() {
       setGuardandoVacuna(false);
     }
   };
-
-  return (
+    return (
     <div className="vet-page">
       <div className="vet-wrapper">
 
@@ -655,6 +976,7 @@ export default function AtencionMedica() {
                     <input
                       type="text"
                       id="veterinario"
+                      className="vet-input-readonly"
                       value={nombreVeterinario}
                       readOnly
                     />
@@ -741,21 +1063,114 @@ export default function AtencionMedica() {
                   />
                 </div>
 
+                {/* SELECTOR DE MEDICAMENTOS */}
                 <div className="vet-field">
-                  <label htmlFor="atencion_tratamiento">
+                  <label htmlFor="medicamento_seleccionado">
                     Medicamentos / tratamiento indicado
                     <span>*</span>
                   </label>
 
-                  <textarea
-                    id="atencion_tratamiento"
-                    name="atencion_tratamiento"
-                    value={formulario.atencion_tratamiento}
-                    onChange={handleChange}
-                    placeholder="Describe los medicamentos o el tratamiento indicado..."
-                    rows="3"
-                    required
-                  />
+                  <div className="vet-medication-selector">
+
+                    <div className="vet-field">
+                      <label htmlFor="medicamento_seleccionado">
+                        Seleccionar medicamento
+                      </label>
+
+                      <select
+                        id="medicamento_seleccionado"
+                        value={medicamentoSeleccionado}
+                        onChange={(e) => {
+                          setMedicamentoSeleccionado(e.target.value);
+                          setMedicamentoOtro("");
+                        }}
+                      >
+                        <option value="">
+                          Selecciona un medicamento
+                        </option>
+
+                        {medicamentosDisponibles.map((medicamento) => (
+                          <option
+                            key={medicamento}
+                            value={medicamento}
+                          >
+                            {medicamento}
+                          </option>
+                        ))}
+
+                        <option value="Otro">Otro</option>
+                      </select>
+                    </div>
+
+                    {medicamentoSeleccionado === "Otro" && (
+                      <div className="vet-field">
+                        <label htmlFor="medicamento_otro">
+                          Nombre del medicamento
+                        </label>
+
+                        <input
+                          type="text"
+                          id="medicamento_otro"
+                          value={medicamentoOtro}
+                          onChange={(e) =>
+                            setMedicamentoOtro(e.target.value)
+                          }
+                          placeholder="Escribe el nombre del medicamento..."
+                          maxLength={100}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              agregarMedicamento();
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      className="vet-submit-button vet-medication-add"
+                      onClick={agregarMedicamento}
+                    >
+                      ＋ Agregar medicamento
+                    </button>
+
+                    <div className="vet-medication-list">
+                      {medicamentosSeleccionados.length === 0 ? (
+                        <p className="vet-medication-empty">
+                          Todavía no has agregado medicamentos.
+                        </p>
+                      ) : (
+                        medicamentosSeleccionados.map(
+                          (medicamento, indice) => (
+                            <div
+                              className="vet-medication-item"
+                              key={`${medicamento}-${indice}`}
+                            >
+                              <span>{medicamento}</span>
+
+                              <button
+                                type="button"
+                                className="vet-medication-remove"
+                                onClick={() =>
+                                  eliminarMedicamento(indice)
+                                }
+                                aria-label={`Eliminar ${medicamento}`}
+                                title="Eliminar medicamento"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )
+                        )
+                      )}
+                    </div>
+
+                    <small>
+                      Puedes agregar varios medicamentos. Los nombres
+                      deben corresponder a lo indicado por el veterinario.
+                    </small>
+                  </div>
                 </div>
 
                 <div className="vet-field">
@@ -836,8 +1251,7 @@ export default function AtencionMedica() {
               </div>
             </form>
           </section>
-
-          {/* HISTORIAL CLÍNICO */}
+                    {/* HISTORIAL CLÍNICO */}
           <aside className="vet-side-column">
             <section className="vet-side-card vet-history-card">
 
@@ -1080,34 +1494,78 @@ export default function AtencionMedica() {
                     <span>*</span>
                   </label>
 
-                  <input
-                    type="text"
+                  <select
                     id="vacuna_nombre"
                     name="vacuna_nombre"
                     value={formularioVacuna.vacuna_nombre}
                     onChange={handleVacunaChange}
-                    placeholder="Ej. Vacuna antirrábica"
-                    maxLength={100}
                     required
-                  />
+                    disabled={!mascotaVacunaSeleccionada}
+                  >
+                    <option value="">
+                      {mascotaVacunaSeleccionada
+                        ? "Selecciona una vacuna"
+                        : "Primero selecciona una mascota"}
+                    </option>
+
+                    {obtenerVacunas(
+                      mascotaVacunaSeleccionada?.mascota_especie
+                    ).map((vacuna) => (
+                      <option key={vacuna} value={vacuna}>
+                        {vacuna}
+                      </option>
+                    ))}
+
+                    <option value="Otra">Otra vacuna</option>
+                  </select>
+
+                  {formularioVacuna.vacuna_nombre === "Otra" && (
+                    <input
+                      type="text"
+                      name="vacuna_nombreOtra"
+                      value={formularioVacuna.vacuna_nombreOtra}
+                      onChange={handleVacunaChange}
+                      placeholder="Escribe el nombre de la vacuna"
+                      maxLength={100}
+                      required
+                    />
+                  )}
                 </div>
 
                 <div className="vet-field">
                   <label htmlFor="vacuna_dosis">
-                    Dosis
+                    Número de dosis
                     <span>*</span>
                   </label>
 
-                  <input
-                    type="text"
+                  <select
                     id="vacuna_dosis"
                     name="vacuna_dosis"
                     value={formularioVacuna.vacuna_dosis}
                     onChange={handleVacunaChange}
-                    placeholder="Ej. 1 dosis"
-                    maxLength={100}
                     required
-                  />
+                  >
+                    <option value="">Selecciona una dosis</option>
+                    <option value="Primera dosis">Primera dosis</option>
+                    <option value="Segunda dosis">Segunda dosis</option>
+                    <option value="Tercera dosis">Tercera dosis</option>
+                    <option value="Cuarta dosis">Cuarta dosis</option>
+                    <option value="Refuerzo">Refuerzo</option>
+                    <option value="Dosis única">Dosis única</option>
+                    <option value="Otra">Otra</option>
+                  </select>
+
+                  {formularioVacuna.vacuna_dosis === "Otra" && (
+                    <input
+                      type="text"
+                      name="vacuna_dosisOtra"
+                      value={formularioVacuna.vacuna_dosisOtra}
+                      onChange={handleVacunaChange}
+                      placeholder="Especifica la dosis"
+                      maxLength={100}
+                      required
+                    />
+                  )}
                 </div>
               </div>
 
@@ -1195,6 +1653,224 @@ export default function AtencionMedica() {
               </div>
             </div>
           </form>
+        </section>
+                {/* CALENDARIO SANITARIO */}
+        <section className="vet-calendar-section">
+
+          <button
+            type="button"
+            className="vet-calendar-trigger"
+            onClick={() => setCalendarioAbierto(true)}
+            aria-label="Abrir calendario sanitario"
+          >
+            <span
+              className="vet-calendar-trigger-icon"
+              aria-hidden="true"
+            >
+              ▦
+            </span>
+
+            <span className="vet-calendar-trigger-text">
+              <strong>Calendario sanitario</strong>
+              <small>
+                Ver atenciones, vacunas y tratamientos
+              </small>
+            </span>
+          </button>
+
+          {calendarioAbierto && (
+            <div
+              className="vet-calendar-modal-overlay"
+              onClick={() => setCalendarioAbierto(false)}
+            >
+              <section
+                className="vet-calendar-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="vet-calendar-modal-title"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="vet-calendar-modal-header">
+                  <div>
+                    <h2 id="vet-calendar-modal-title">
+                      Calendario sanitario
+                    </h2>
+
+                    <p>
+                      Consulta las atenciones y fechas de vacunación registradas.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="vet-calendar-modal-close"
+                    onClick={() => setCalendarioAbierto(false)}
+                    aria-label="Cerrar calendario"
+                    title="Cerrar calendario"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {alertasVacunacion.length > 0 && (
+                  <div className="vet-calendar-alerts" role="status">
+                    <h4>Próximas vacunaciones</h4>
+
+                    {alertasVacunacion.map((evento) => (
+                      <div
+                        className="vet-calendar-alert"
+                        key={`alerta-${evento.calendarioSanidad_id}`}
+                      >
+                        <strong>
+                          {evento.mascota?.mascota_nombreCompleto || "Mascota"}
+                        </strong>
+
+                        <span>
+                          {evento.calendarioSanidad_descripcion}
+                        </span>
+
+                        <small>
+                          Fecha: {formatearFecha(evento.fechaISO)}
+                        </small>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="vet-calendar">
+                  <div className="vet-calendar-header">
+                    <button
+                      type="button"
+                      className="vet-calendar-nav"
+                      onClick={() => cambiarMesCalendario(-1)}
+                      aria-label="Mes anterior"
+                    >
+                      ‹
+                    </button>
+
+                    <h4>{obtenerNombreMes(mesCalendario)}</h4>
+
+                    <button
+                      type="button"
+                      className="vet-calendar-nav"
+                      onClick={() => cambiarMesCalendario(1)}
+                      aria-label="Mes siguiente"
+                    >
+                      ›
+                    </button>
+                  </div>
+
+                  <div className="vet-calendar-weekdays">
+                    {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map(
+                      (dia) => (
+                        <span key={dia}>{dia}</span>
+                      )
+                    )}
+                  </div>
+
+                  <div className="vet-calendar-grid">
+                    {diasCalendario.map((dia, indice) => {
+                      if (!dia) {
+                        return (
+                          <span
+                            className="vet-calendar-empty"
+                            key={`vacio-${indice}`}
+                          />
+                        );
+                      }
+
+                      const claveFecha = obtenerClaveFecha(
+                        mesCalendario.getFullYear(),
+                        mesCalendario.getMonth(),
+                        dia
+                      );
+
+                      const tieneEventos = eventosCalendario.some(
+                        (evento) => evento.fecha === claveFecha
+                      );
+
+                      const seleccionado =
+                        fechaCalendarioSeleccionada === claveFecha;
+
+                      const esHoy = fechaActual === claveFecha;
+
+                      return (
+                        <button
+                          type="button"
+                          key={claveFecha}
+                          className={[
+                            "vet-calendar-day",
+                            tieneEventos ? "has-events" : "",
+                            seleccionado ? "selected" : "",
+                            esHoy ? "today" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          onClick={() =>
+                            setFechaCalendarioSeleccionada(claveFecha)
+                          }
+                        >
+                          {dia}
+
+                          {tieneEventos && (
+                            <span className="vet-calendar-dot" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="vet-calendar-legend">
+                    <span>
+                      <i className="event-pending" /> Fecha con eventos
+                    </span>
+
+                    <span>
+                      <i className="event-done" /> Día seleccionado
+                    </span>
+                  </div>
+
+                  <div className="vet-calendar-details">
+                    <h4>
+                      Eventos del{" "}
+                      {formatearFecha(fechaCalendarioSeleccionada)}
+                    </h4>
+
+                    {eventosFechaSeleccionada.length === 0 ? (
+                      <p>No hay eventos registrados para este día.</p>
+                    ) : (
+                      <div className="vet-calendar-event-list">
+                        {eventosFechaSeleccionada.map((evento) => (
+                          <article
+                            className={`vet-calendar-event ${
+                              evento.estado === "PENDIENTE"
+                                ? "event-pending"
+                                : "event-done"
+                            }`}
+                            key={evento.id}
+                          >
+                            <strong>{evento.mascota}</strong>
+
+                            <span>
+                              {evento.tipo.replaceAll("_", " ")}
+                            </span>
+
+                            <p>{evento.descripcion}</p>
+
+                            <small>
+                              {evento.estado === "PENDIENTE"
+                                ? "Pendiente"
+                                : "Realizado"}
+                            </small>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
         </section>
 
         {/* PRÓXIMOS TRATAMIENTOS */}

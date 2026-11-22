@@ -50,9 +50,16 @@ export default function App() {
           <Route path="inventario" element={<RequirePersonal><Inventario /></RequirePersonal>} />
 
           {/* Atención médica - Desarrollo */}
+         <Route element={<ProtectedRoute roles={["Veterinario", "Admin"]} />}>
+            <Route
+             path="atencion-medica"
+                 element={<AtencionMedica />}
+                   />
+                       </Route>
+          {/* Voluntarios - ramaIgnacio */}
           <Route
-            path="atencion-medica"
-            element={<AtencionMedica />}
+            path="voluntarios/registrar"
+            element={<RegistrarVoluntario />}
           />
           {/* Voluntarios - ramaIgnacio */}
           <Route
