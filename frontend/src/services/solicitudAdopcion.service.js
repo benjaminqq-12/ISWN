@@ -23,9 +23,13 @@ export async function getSolicitudes() {
   }
 }
 
-export async function crearSolicitudAdopcion({ mascotaId }) {
+export async function crearSolicitudAdopcion({ mascotaId, telefono, correo, direccion, mascotasActuales, motivoAdopcion }) {
   try {
-    const response = await axios.post("/solicitudes-adopcion", { mascotaId }, authConfig());
+    const response = await axios.post(
+      "/solicitudes-adopcion",
+      { mascotaId, telefono, correo, direccion, mascotasActuales, motivoAdopcion },
+      authConfig()
+    );
     return response.data?.data;
   } catch (error) {
     throw new Error(
@@ -99,6 +103,56 @@ export async function getMisSolicitudes() {
   } catch (error) {
     throw new Error(
       error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function puedeSolicitarAdopcion() {
+  try {
+    const response = await axios.get("/solicitudes-adopcion/puede-solicitar", authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function descargarComprobante(solicitudId) {
+  try {
+    const response = await axios.get(`/solicitudes-adopcion/${solicitudId}/comprobante`, {
+      ...authConfig(),
+      responseType: "blob",
+    });
+
+    // un enlace común no puede enviar el token, así que el archivo se baja por axios y se guarda desde aquí
+    const url = window.URL.createObjectURL(response.data);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = `comprobante-adopcion-${solicitudId}.pdf`;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    // con responseType "blob", el cuerpo del error también llega como Blob: hay que leerlo para sacar el mensaje
+    let mensaje = null;
+    const cuerpo = error.response?.data;
+    if (cuerpo instanceof Blob) {
+      try {
+        mensaje = JSON.parse(await cuerpo.text()).message;
+      } catch {
+        mensaje = null;
+      }
+    }
+    throw new Error(
+      mensaje
         || error.message
         || "Error de conexión con el servidor.",
       { cause: error }

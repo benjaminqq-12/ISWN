@@ -10,6 +10,7 @@ const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, oc
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
   const { session } = useOutletContext() ?? {};
+  const puedeAdoptar = session?.user?.rol === "Usuario";
 
   const {
     mascota_nombreCompleto,
@@ -51,13 +52,13 @@ const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, oc
         </Link>
 
         {mascota_estado === "En Refugio" && !solicitudEnviada && (
-          session ? (
+          puedeAdoptar ? (
             <button className="mascota-adoptar-button" type="button" onClick={() => setMostrarFormulario(true)}>
               Adoptar
             </button>
-          ) : (
+          ) : !session ? (
             <p className="mascota-card-login-hint">Inicia sesión para solicitar la adopción</p>
-          )
+          ) : null
         )}
         {solicitudEnviada && <p>Solicitud enviada ✓</p>}
       </div>

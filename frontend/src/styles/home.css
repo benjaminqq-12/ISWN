@@ -14,6 +14,16 @@
   .inicio .btn-secondary { @apply border border-line bg-white text-ink hover:bg-canvas; }
   .inicio .hero-image { @apply h-80 overflow-hidden rounded-2xl shadow-lg; }
   .inicio .hero-image img { @apply h-full w-full object-cover; }
+  .inicio .hero-illustration { @apply flex flex-col items-center justify-center gap-4 bg-linear-to-br from-peach via-white to-sage text-forest; }
+  .inicio .hero-illustration svg { @apply size-24 text-brand; }
+  .inicio .hero-illustration span { @apply text-sm font-semibold; }
+  .inicio .home-destinos { @apply grid grid-cols-1 gap-4 pb-14 md:grid-cols-2; }
+  .inicio .home-destino { @apply flex items-center gap-4 rounded-xl border border-line bg-white p-5 text-ink no-underline transition hover:-translate-y-0.5 hover:shadow-card; }
+  .inicio .home-destino > svg:first-child { @apply size-7 shrink-0 text-brand; }
+  .inicio .home-destino > svg:last-child { @apply ml-auto size-5 shrink-0 text-muted; }
+  .inicio .home-destino span { @apply flex flex-col gap-1; }
+  .inicio .home-destino strong { @apply text-sm font-bold; }
+  .inicio .home-destino small { @apply text-xs leading-5 text-muted; }
   .inicio .stats-grid { @apply grid grid-cols-2 gap-4 pb-14 lg:grid-cols-4; }
   .inicio .stat-card { @apply rounded-xl border border-line bg-white p-5; }
   .inicio .stat-icon { @apply mb-3 text-brand; }

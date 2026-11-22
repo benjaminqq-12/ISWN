@@ -20,6 +20,8 @@ import Solicitudes from "./pages/Solicitudes";
 import Donaciones from "./pages/Donaciones.jsx";
 import DonacionResultado from "./pages/DonacionResultado.jsx";
 import MisSolicitudes from "./pages/MisSolicitudes";
+import Usuarios from "./pages/Usuarios";
+import SolicitudesVoluntarios from "./pages/SolicitudesVoluntarios";
 
 export default function App() {
   return (
@@ -40,6 +42,9 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/mis-solicitudes" element={<MisSolicitudes />} />
           </Route>
+          <Route element={<ProtectedRoute roles={["Admin"]} />}>
+            <Route path="/usuarios" element={<Usuarios />} />
+          </Route>
           <Route path="*" element={<Error404 />} />
 
           <Route path="inventario" element={<RequirePersonal><Inventario /></RequirePersonal>} />
@@ -56,6 +61,18 @@ export default function App() {
             path="voluntarios/registrar"
             element={<RegistrarVoluntario />}
           />
+          {/* Voluntarios - ramaIgnacio */}
+          <Route
+            path="voluntarios/registrar"
+            element={<RegistrarVoluntario />}
+          />
+          {/* RF2 - Gestión de solicitudes de voluntariado */}
+          <Route element={<ProtectedRoute roles={["Admin"]} />}>
+            <Route
+              path="voluntarios/solicitudes"
+              element={<SolicitudesVoluntarios />}
+            />
+          </Route>
 
         </Route>
       </Routes>

@@ -1,7 +1,7 @@
 "use strict";
 
 import { AppDataSource } from "../config/configDb.js";
-import AtencionMedicaSchema from "../entity/atencionmedica.entity.js";
+import AtencionMedicaSchema from "../entity/atencionMedica.entity.js";
 import MascotaSchema from "../entity/mascota.entity.js";
 import HistorialClinicoSchema from "../entity/historialClinico.entity.js";
 import CalendarioSanidadSchema from "../entity/calendarioSanidad.entity.js";

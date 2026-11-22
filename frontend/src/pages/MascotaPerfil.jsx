@@ -15,6 +15,7 @@ const MascotaPerfil = () => {
   // Veterinario y Admin pueden consultar información interna.
   const puedeVerInterno = ['Voluntario','Veterinario', 'Admin'].includes(session?.user?.rol);
 
+  const puedeAdoptar = session?.user?.rol === 'Usuario';
   const [mascota, setMascota] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -110,28 +111,18 @@ const MascotaPerfil = () => {
           <span className={`mascota-card-estado ${estadoClass}`}>
             {mascota.mascota_estado}
           </span>
-
-          {mascota.mascota_estado === 'En Refugio' &&
-            !solicitudEnviada && (
-              session ? (
-                <button
-                  className="mascota-adoptar-button mascota-perfil-adoptar"
-                  type="button"
-                  onClick={() => setMostrarFormulario(true)}
-                >
-                  Adoptar
-                </button>
-              ) : (
-                <p className="mascota-card-login-hint">
-                  Inicia sesión para solicitar la adopción
-                </p>
-              )
-            )}
-
-          {solicitudEnviada && (
-            <p className="form-message form-success" role="status">
-              Solicitud enviada ✓
-            </p>
+          {mascota.mascota_estado === 'En Refugio' && !solicitudEnviada && (
+            puedeAdoptar ? (
+              <button
+                className="mascota-adoptar-button mascota-perfil-adoptar"
+                type="button"
+                onClick={() => setMostrarFormulario(true)}
+              >
+                Adoptar
+              </button>
+            ) : !session ? (
+              <p className="mascota-card-login-hint">Inicia sesión para solicitar la adopción</p>
+            ) : null
           )}
 
           <dl className="mascota-perfil-datos">

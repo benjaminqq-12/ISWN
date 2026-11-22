@@ -1,0 +1,492 @@
+/* =========================================================
+   PÁGINA
+========================================================= */
+
+.voluntario-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 38px 24px 70px;
+}
+
+
+/* =========================================================
+   ENCABEZADO
+========================================================= */
+
+.voluntario-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 30px;
+
+  margin-bottom: 26px;
+}
+
+.voluntario-heading h1 {
+  margin: 0 0 7px;
+
+  font-size: 32px;
+  font-weight: 700;
+
+  color: #1e1e1e;
+}
+
+.voluntario-heading p {
+  margin: 0;
+
+  font-size: 15px;
+  color: #716961;
+}
+
+.voluntario-mode {
+  flex-shrink: 0;
+
+  padding: 10px 20px;
+
+  border: 1px solid #dfc5af;
+  border-radius: 20px;
+
+  background: #fffaf6;
+
+  color: #c96b24;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   FORMULARIO GENERAL
+========================================================= */
+
+.voluntario-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+
+/* =========================================================
+   SECCIONES
+========================================================= */
+
+.voluntario-section {
+  box-sizing: border-box;
+
+  width: 100%;
+
+  padding: 26px 28px 28px;
+
+  background: #ffffff;
+
+  border: 1px solid #ded7d0;
+  border-radius: 12px;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.025);
+}
+
+.voluntario-section h2 {
+  margin: 0 0 22px;
+
+  padding-bottom: 13px;
+
+  border-bottom: 1px solid #eee8e2;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  color: #292521;
+}
+
+.section-description {
+  margin: -10px 0 22px;
+
+  color: #746c64;
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   CAMPOS GENERALES
+========================================================= */
+
+.voluntario-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  column-gap: 28px;
+  row-gap: 20px;
+}
+
+.voluntario-grid label,
+.transporte-grid label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  min-width: 0;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #554e48;
+}
+
+.voluntario-wide {
+  grid-column: 1 / -1;
+}
+
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+.voluntario-form input,
+.voluntario-form select,
+.voluntario-form textarea {
+  box-sizing: border-box;
+
+  width: 100%;
+  min-height: 42px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #d8d1ca;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #302c29;
+
+  font-family: inherit;
+  font-size: 14px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.voluntario-form textarea {
+  min-height: 100px;
+
+  resize: vertical;
+}
+
+.voluntario-form input:focus,
+.voluntario-form select:focus,
+.voluntario-form textarea:focus {
+  outline: none;
+
+  border-color: #c96b24;
+
+  box-shadow:
+    0 0 0 3px rgba(201, 107, 36, 0.10);
+}
+
+.voluntario-form input::placeholder,
+.voluntario-form textarea::placeholder {
+  color: #aaa29b;
+}
+
+
+/* =========================================================
+   ÁREAS DE INTERÉS
+========================================================= */
+
+.intereses-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.check-option {
+  box-sizing: border-box;
+
+  display: flex !important;
+  flex-direction: row !important;
+
+  align-items: center;
+
+  min-height: 44px;
+
+  gap: 10px !important;
+
+  padding: 10px 13px;
+
+  border: 1px solid #ddd5ce;
+  border-radius: 7px;
+
+  background: #fff;
+
+  font-size: 14px;
+  font-weight: 500 !important;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.check-option:hover {
+  border-color: #d3a47f;
+
+  background: #fffaf6;
+}
+
+.check-option input[type="checkbox"] {
+  flex-shrink: 0;
+
+  width: 17px;
+  height: 17px;
+  min-height: auto;
+
+  margin: 0;
+
+  accent-color: #c96b24;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   DISPONIBILIDAD
+========================================================= */
+
+.disponibilidad-table {
+  overflow: hidden;
+
+  width: 100%;
+
+  border: 1px solid #e4ddd7;
+  border-radius: 8px;
+}
+
+.disponibilidad-header,
+.disponibilidad-row {
+  display: grid;
+
+  grid-template-columns:
+    1.3fr
+    0.8fr
+    1fr
+    1fr;
+
+  align-items: center;
+
+  column-gap: 24px;
+}
+
+.disponibilidad-header {
+  padding: 12px 18px;
+
+  background: #faf8f6;
+
+  border-bottom: 1px solid #e4ddd7;
+
+  color: #625a53;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.disponibilidad-row {
+  min-height: 58px;
+
+  padding: 8px 18px;
+
+  border-bottom: 1px solid #eee9e5;
+}
+
+.disponibilidad-row:last-child {
+  border-bottom: none;
+}
+
+.disponibilidad-row strong {
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #403a35;
+}
+
+.disponibilidad-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: auto;
+
+  margin: 0;
+
+  accent-color: #c96b24;
+
+  cursor: pointer;
+}
+
+.disponibilidad-row input[type="time"] {
+  height: 38px;
+  min-height: 38px;
+
+  padding: 7px 10px;
+}
+
+.disponibilidad-row input:disabled {
+  background: #f3f1ef;
+
+  color: #a59f99;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   TRANSPORTE
+========================================================= */
+
+.transporte-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px 28px;
+}
+
+.transporte-grid > label:last-child {
+  grid-column: 1 / -1;
+}
+
+
+/* =========================================================
+   SECCIÓN ADMINISTRADOR
+========================================================= */
+
+.admin-section {
+  background: #fffbf7;
+
+  border-color: #e2c1a5;
+}
+
+.admin-section h2 {
+  color: #a9561d;
+
+  border-bottom-color: #ead8c9;
+}
+
+
+/* =========================================================
+   MENSAJE POSTULACIÓN
+========================================================= */
+
+.postulacion-info {
+  box-sizing: border-box;
+
+  width: 100%;
+
+  padding: 15px 18px;
+
+  background: #fff8f1;
+
+  border: 1px solid #ead5c2;
+  border-radius: 8px;
+
+  color: #66584d;
+
+  font-size: 14px;
+}
+
+.postulacion-info strong {
+  color: #b45d20;
+}
+
+
+/* =========================================================
+   BOTÓN FINAL
+========================================================= */
+
+.voluntario-form > .btn-primary {
+  align-self: flex-end;
+
+  min-width: 190px;
+
+  padding: 12px 24px;
+
+  border: none;
+  border-radius: 22px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .voluntario-page {
+    padding:
+      28px 18px
+      50px;
+  }
+
+  .intereses-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .voluntario-heading {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .voluntario-grid,
+  .intereses-grid,
+  .transporte-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .voluntario-wide,
+  .transporte-grid > label:last-child {
+    grid-column: auto;
+  }
+
+  .voluntario-section {
+    padding: 20px;
+  }
+
+  .disponibilidad-header {
+    display: none;
+  }
+
+  .disponibilidad-row {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+
+    padding: 15px;
+  }
+
+  .voluntario-form > .btn-primary {
+    align-self: stretch;
+
+    width: 100%;
+  }
+
+}
