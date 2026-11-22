@@ -348,20 +348,5 @@ export async function eliminarMascotaController(req, res) {
     mascotaEliminada
   );
 }
-export async function getMascotasInternasController(req, res) {
-    const [mascotas, error] =
-        await getMascotasInternasService();
 
-    if (error) {
-        return res.status(500).json({
-            status: "Error",
-            message: error
-        });
-    }
 
-    return res.status(200).json({
-        status: "Success",
-        message: "Mascotas internas obtenidas correctamente",
-        data: mascotas
-    });
-}
