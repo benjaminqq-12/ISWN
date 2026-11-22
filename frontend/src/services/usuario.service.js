@@ -1,14 +1,6 @@
 import axios from "./root.service.js";
 import cookies from "js-cookie";
 
-export async function getUsuarios() {
-  try {
-    const response = await axios.get("/usuarios");
-    return response.data.data;
-  } catch (error) {
-    throw new Error(
-      error.response?.data?.message ||
-        "Error al obtener los usuarios",
 function authConfig() {
   const token = cookies.get("jwt-auth");
   return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
