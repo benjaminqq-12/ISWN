@@ -15,6 +15,7 @@ import {
   listarSolicitudesPendientesController,
   aprobarSolicitudController,
   rechazarSolicitudController,
+  reenviarInvitacionController,
 } from "../controllers/solicitudVoluntario.controller.js";
 
 const router = Router();
@@ -39,6 +40,12 @@ router.patch(
 router.patch(
   "/:id/rechazar",
   rechazarSolicitudController
+);
+
+// NUEVO: Reenviar invitación a un voluntario aprobado.
+router.post(
+  "/:id/reenviar-invitacion",
+  reenviarInvitacionController
 );
 
 export default router;

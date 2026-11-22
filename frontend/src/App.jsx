@@ -22,6 +22,7 @@ import DonacionResultado from "./pages/DonacionResultado.jsx";
 import MisSolicitudes from "./pages/MisSolicitudes";
 import Usuarios from "./pages/Usuarios";
 import SolicitudesVoluntarios from "./pages/SolicitudesVoluntarios";
+import CrearCuentaVoluntario from "./pages/CrearCuentaVoluntario";
 
 export default function App() {
   return (
@@ -65,6 +66,11 @@ export default function App() {
           <Route
             path="voluntarios/registrar"
             element={<RegistrarVoluntario />}
+          />
+          {/* Activación de cuenta de voluntarios aprobados */}
+          <Route
+            path="crear-cuenta-voluntario"
+            element={<CrearCuentaVoluntario />}
           />
           {/* RF2 - Gestión de solicitudes de voluntariado */}
           <Route element={<ProtectedRoute roles={["Admin"]} />}>
