@@ -7,6 +7,7 @@ import {
   eliminarMascota,
   getMascotaInterna,
   getMascotas,
+  getMascotasInternas,
 } from '../services/mascota.service';
 
 import '../styles/home.css';
@@ -26,14 +27,54 @@ const NuestrasMascotas = () => {
   const [actionError, setActionError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const formRef = useRef(null);
-  const puedeGestionar = ["Voluntario", "Admin"].includes(session?.user?.rol);
+  const puedeGestionar = session?.user?.activo === true &&
+    ["Admin", "Voluntario", "Veterinario"].includes(
+      session?.user?.rol
+    );
+  const mascotasVisibles = puedeGestionar
+    ? mascotas
+    : mascotas.filter(
+        (mascota) => mascota.mascota_estado === "En Refugio"
+      );
+
 
   useEffect(() => {
-    getMascotas()
-      .then(setMascotas)
-      .catch(() => setError("No se pudieron cargar las mascotas."))
-      .finally(() => setLoading(false));
-  }, []);
+    let vigente = true;
+
+    setLoading(true);
+    setError(null);
+    setMascotas([]);
+
+    const peticion = puedeGestionar
+      ? getMascotasInternas()
+      : getMascotas();
+
+    peticion
+      .then((datos) => {
+        if (vigente) {
+          setMascotas(datos);
+        }
+      })
+      .catch((error) => {
+        console.error("Error al cargar mascotas:", error);
+
+        if (vigente) {
+          setError(
+            error.cause?.response?.data?.message ||
+            error.message ||
+            "No se pudieron cargar las mascotas."
+          );
+        }
+      })
+      .finally(() => {
+        if (vigente) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [puedeGestionar, session?.token]);
 
   useEffect(() => {
     if (formVisible) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -150,11 +191,9 @@ const NuestrasMascotas = () => {
           </button>
         )}
       </div>
-      {!puedeGestionar && (
+      {!puedeGestionar && session && (
         <p className="mascotas-access-note">
-          {session
-            ? "El registro de mascotas está habilitado solo para Voluntarios y Administradores."
-            : " "}
+          La gestión de mascotas está disponible únicamente para el personal interno autorizado.
         </p>
       )}
 
@@ -209,9 +248,11 @@ const NuestrasMascotas = () => {
               Estado
               <select name="mascota_estado" defaultValue={mascotaEnEdicion?.mascota_estado ?? ""} required>
                 <option value="" disabled>Seleccione un estado</option>
+                <option value="En Refugio">En Refugio</option>
                 <option value="En Tratamiento">En Tratamiento</option>
                 <option value="En Cuarentena">En Cuarentena</option>
-                <option value="En adopción">En adopción</option>
+                <option value="En Observación">En Observación</option>
+                <option value="Adoptada">Adoptada</option>
               </select>
             </label>
             <label>
@@ -232,7 +273,7 @@ const NuestrasMascotas = () => {
       )}
 
       <div className="mascotas-grid">
-        {mascotas.map((mascota) => (
+        {mascotasVisibles.map((mascota) => (
           <MascotaCard
             key={mascota.mascota_id}
             mascota={mascota}
@@ -245,7 +286,11 @@ const NuestrasMascotas = () => {
       </div>
       {actionError && <p className="form-message form-error" role="alert">{actionError}</p>}
       {actionMessage && <p className="form-message form-success" role="status">{actionMessage}</p>}
-      {mascotas.length === 0 && <p>Aún no hay mascotas registradas.</p>}
+      {mascotasVisibles.length === 0 && (
+        <p>
+          {puedeGestionar ? "Aún no hay mascotas registradas." : "Actualmente no hay mascotas disponibles para adopción."}
+        </p>)
+      }
     </div>
   );
 };

@@ -2,11 +2,13 @@
 import { AppDataSource } from "../config/configDb.js";
 import MascotaSchema from "../entity/mascota.entity.js";
 
-export async function getMascotasService() {
+export async function getMascotasService(soloPublicas = false) {
   try {
     const mascotaRepository = AppDataSource.getRepository(MascotaSchema);
-    const mascotas = await mascotaRepository.find();
-    console.log("hay un total de %d mascotas", mascotas.length);
+    const mascotas = await mascotaRepository.find({
+      where: soloPublicas ? { mascota_estado: "En Refugio"} : {},
+    });
+    
     const mascotasPublicas = mascotas.map((mascota) => ({
       mascota_id: mascota.mascota_id,
       mascota_nombreCompleto: mascota.mascota_nombreCompleto,

@@ -45,6 +45,29 @@ export async function getMascota(id) {
   }
 }
 
+// Obtener todas las mascotas con info para internos
+export async function getMascotasInternas() {
+  try {
+    const response = await axios.get("/mascotas/interno");
+
+    console.log(
+      "Mascotas internas obtenidas:",
+      response.data
+    );
+
+    return response.data.data;
+  } catch (error) {
+    console.error("Error en getMascotasInternas:", {
+      status: error.response?.status,
+      mensaje: error.response?.data?.message,
+      datos: error.response?.data,
+      url: error.config?.url,
+    });
+
+    throw error;
+  }
+}
+
 // Obtener los datos internos de una mascota.
 export async function getMascotaInterna(id, token) {
   try {

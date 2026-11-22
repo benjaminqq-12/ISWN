@@ -95,7 +95,7 @@ function obtenerIdMascota(req, res) {
 
 export async function getMascotasController(req, res) {
   try {
-    const [mascotas, error] = await getMascotasService();
+    const [mascotas, error] = await getMascotasService(true);
     if (error) return handleErrorClient(res, 404, error);
     return handleSuccess(res, 200, "Mascotas encontradas", mascotas);
   } catch (error) {
@@ -114,6 +114,14 @@ export async function getMascotaController(req, res) {
     return handleErrorServer(res, 500, error);
   }
 
+  if (mascota.mascota_estado !== "En Refugio") {
+  return handleErrorClient(
+    res,
+    404,
+    "Mascota no encontrada"
+  );
+  }
+
   const mascotaPublica = {
     mascota_id: mascota.mascota_id,
     mascota_nombreCompleto: mascota.mascota_nombreCompleto,
@@ -125,6 +133,26 @@ export async function getMascotaController(req, res) {
     mascota_fotoURL: mascota.mascota_fotoURL,
   };
   return handleSuccess(res, 200, "Mascota encontrada", mascotaPublica);
+}
+
+export async function getMascotasInternasController(req, res) {
+  try {
+    const [mascotas, error] = await getMascotasService(false);
+
+    if (error) {
+      return handleErrorServer(res, 500, error);
+    }
+
+    return handleSuccess(
+      res,
+      200,
+      "Mascotas internas encontradas",
+      mascotas
+    );
+  } catch (error) {
+    console.error("Error al obtener mascotas internas:", error);
+    return handleErrorServer(res, 500, "Error interno del servidor");
+  }
 }
 
 export async function getMascotaInternaController(req, res) {
