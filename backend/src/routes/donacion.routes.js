@@ -10,7 +10,8 @@ import {
     obtenerEstadoAporte,
     exportarRecaudacion,
     desactivarSuscripcion,
-    obtenerRecaudacion
+    obtenerRecaudacion,
+    obtenerMisDonaciones
 } from "../controllers/donacion.controller.js";
 
 import { authenticateJwt } from "../middlewares/authentication.middleware.js"
@@ -22,6 +23,7 @@ router
     .get("/configuracion", obtenerConfiguracionDonaciones)
     .get("/animales", obtenerAnimalesApadrinables)
     .post("/", authenticateJwt, crearDonacion)
+    .get("/mis-donaciones", authenticateJwt, obtenerMisDonaciones)
     .get("/estado/:id", obtenerEstadoAporte)
     .get("/gestion", authenticateJwt, authorizeRoles("Admin", "Voluntario"), obtenerRecaudacion)
     .get("/gestion/exportar", authenticateJwt, authorizeRoles("Admin", "Voluntario"), exportarRecaudacion)

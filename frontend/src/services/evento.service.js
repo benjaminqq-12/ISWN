@@ -110,3 +110,34 @@ export const publicarEvento = async (eventoId, datos) => {
         return error.response?.data || { status: 'Error', message: 'No se pudo publicar el evento.' };
     }
 };
+
+export const subirImagenEvento = async (archivo) => {
+    try {
+        const formData = new FormData();
+        formData.append('imagen', archivo);
+        const response = await axios.post('/eventos/imagen', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    } catch (error) {
+        return error.response?.data || { status: 'Error', message: 'No se pudo subir la imagen.' };
+    }
+};
+
+export const getInscritosEvento = async (eventoId) => {
+    try {
+        const response = await axios.get(`/eventos/${eventoId}/inscritos`);
+        return response.data;
+    } catch (error) {
+        return error.response?.data || { status: 'Error', message: 'No se pudo obtener la lista de inscritos.' };
+    }
+};
+
+export const marcarAsistenciaEvento = async (eventoId, usuarioId, asistenciaConfirmada) => {
+    try {
+        const response = await axios.patch(`/eventos/${eventoId}/asistencia/${usuarioId}`, { asistenciaConfirmada });
+        return response.data;
+    } catch (error) {
+        return error.response?.data || { status: 'Error', message: 'No se pudo actualizar la asistencia.' };
+    }
+};

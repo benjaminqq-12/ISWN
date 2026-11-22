@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { fechaActualChile } from '../../helpers/formatoFecha.js';
+import { subirImagenEvento } from '../../services/evento.service.js';
 
 const EventoFormulario = ({ evento, organizadores, guardando, error, onGuardar, onCancelar }) => {
     const [datos, setDatos] = useState({
@@ -11,20 +12,39 @@ const EventoFormulario = ({ evento, organizadores, guardando, error, onGuardar, 
         horaFin: evento?.horaFin || '',
         lugar: evento?.lugar || '',
         capacidadMaxima: evento?.capacidadMaxima || '',
+        imagenURL: evento?.imagenURL || '',
         organizadorId: evento?.organizador?.usuarioId || ''
     });
     const [errorFormulario, setErrorFormulario] = useState('');
+    const [subiendoImagen, setSubiendoImagen] = useState(false);
 
     const cambiarCampo = (event) => {
         setDatos({ ...datos, [event.target.name]: event.target.value });
         setErrorFormulario('');
     };
 
+    const manejarSubirFoto = async (e) => {
+        const archivo = e.target.files?.[0];
+        if (!archivo) return;
+        setSubiendoImagen(true);
+        setErrorFormulario('');
+        try {
+            const resp = await subirImagenEvento(archivo);
+            if (resp?.status === 'Success') {
+                setDatos((prev) => ({ ...prev, imagenURL: resp.data.imagenURL }));
+            } else {
+                setErrorFormulario(resp?.message || 'No se pudo subir la imagen.');
+            }
+        } finally {
+            setSubiendoImagen(false);
+        }
+    };
+
     const esBorrador = !evento || evento.estado === 'Borrador';
 
     const guardar = (event) => {
         event.preventDefault();
-        
+
         if (guardando) return;
         const borrador = event.nativeEvent.submitter?.value === 'borrador';
         if (!borrador && datos.fechaEvento < fechaActualChile()) {
@@ -49,6 +69,7 @@ const EventoFormulario = ({ evento, organizadores, guardando, error, onGuardar, 
             titulo: datos.titulo.trim(),
             descripcion: datos.descripcion.trim() || null,
             lugar: datos.lugar.trim() || null,
+            imagenURL: datos.imagenURL || null,
             capacidadMaxima: datos.capacidadMaxima ? Number(datos.capacidadMaxima) : null,
             organizadorId: datos.organizadorId ? Number(datos.organizadorId) : null,
             ...(evento?.estado === 'Borrador' ? { version: evento.version } : {})
@@ -100,6 +121,19 @@ const EventoFormulario = ({ evento, organizadores, guardando, error, onGuardar, 
                         ))}
                     </select>
                 </label>
+                <label className="evento-campo-completo">
+                    Foto del evento (opcional)
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={manejarSubirFoto} disabled={subiendoImagen} />
+                </label>
+                {datos.imagenURL && (
+                    <div className="evento-campo-completo">
+                        <img
+                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${datos.imagenURL}`}
+                            alt="Vista previa del evento"
+                            className="evento-preview-img"
+                        />
+                    </div>
+                )}
             </fieldset>
             <p className="evento-info">Puedes guardar un borrador con solo el título. Al publicar se exigirán todos los datos y se comprobarán la fecha y los horarios de Chile.</p>
             {(errorFormulario || error) && <p className="mensaje mensaje-error" role="alert">{errorFormulario || error}</p>}
@@ -109,7 +143,7 @@ const EventoFormulario = ({ evento, organizadores, guardando, error, onGuardar, 
                         Guardar borrador
                     </button>
                 )}
-                <button type="submit" value="publicar" className="boton boton-primario" disabled={guardando || organizadores.length === 0}>
+                <button type="submit" value="publicar" className="boton boton-primario" disabled={guardando || subiendoImagen || organizadores.length === 0}>
                     {guardando ? 'Guardando…' : esBorrador ? 'Publicar evento' : 'Guardar cambios'}
                 </button>
                 <button type="button" className="boton boton-secundario" onClick={onCancelar} disabled={guardando}>

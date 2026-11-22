@@ -6,6 +6,7 @@ import {
     confirmarDonacion,
     descartarDonacionPendiente,
     desactivarSuscripcion,
+    formatearDetalleInsumo
 } from '../../services/donacion.service.js';
 import Modal from '../eventos/Modal.jsx';
 
@@ -271,7 +272,7 @@ const DonacionGestion = ({ session, onVerFormulario }) => {
                                                             </td>
                                                             <td>
                                                                 {item.categoriaDonacion === 'Insumo'
-                                                                    ? item.detalleInsumo
+                                                                    ? formatearDetalleInsumo(item.detalleInsumo)
                                                                     : item.animal
                                                                         ? `Apadrinar a ${item.animal}`
                                                                         : 'Refugio'}
@@ -363,7 +364,7 @@ const DonacionGestion = ({ session, onVerFormulario }) => {
                                                             </td>
                                                             <td>
                                                                 {item.categoriaDonacion === 'Insumo'
-                                                                    ? item.detalleInsumo
+                                                                    ? formatearDetalleInsumo(item.detalleInsumo)
                                                                     : item.animal || 'Refugio'}
                                                             </td>
                                                             <td><span className="donacion-estado">{item.estado}</span></td>

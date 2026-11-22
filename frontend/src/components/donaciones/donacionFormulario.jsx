@@ -1,9 +1,36 @@
+import { useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
+
+const CATEGORIAS_INSUMOS = [
+    {
+        id: 'comida',
+        etiqueta: 'Comida de animales',
+        esComida: true,
+        unidadFija: 'kg',
+        placeholder: 'Ej: Alimento seco adulto, marca Master Dog...',
+    },
+    {
+        id: 'medicamentos',
+        etiqueta: 'Medicamentos',
+        esComida: false,
+        unidades: ['unidades', 'paquetes', 'litros'],
+        placeholder: 'Ej: Antiparasitario interno, gasas, suero...',
+    },
+    {
+        id: 'limpieza',
+        etiqueta: 'Insumos de limpieza',
+        esComida: false,
+        unidades: ['unidades', 'litros', 'paquetes'],
+        placeholder: 'Ej: Cloro, desinfectante, bolsas de basura...',
+    },
+];
 
 const DonacionFormulario = ({
     datos,
     apadrinar,
     animales,
+    animalesApadrinadosIds = [],
+    animalesPendientesIds = [],
     enviando,
     error,
     onCambiar,
@@ -11,9 +38,57 @@ const DonacionFormulario = ({
     onCambiarModalidad,
     onSeleccionarMonto,
     onCambiarApadrinar,
+    onToggleAnimal,
+    onCambiarDetalleInsumo,
     onSubmit,
 }) => {
     const esInsumo = datos.categoriaDonacion === 'Insumo';
+    const [seleccionInsumos, setSeleccionInsumos] = useState({});
+
+    const sincronizarDetalle = (nuevoMapa) => {
+        const texto = Object.entries(nuevoMapa)
+            .map(([catId, info]) => {
+                const cant = Math.max(1, Number(info.cantidad) || 1);
+                const desc = (info.descripcion || '').trim();
+                if (catId === 'comida') {
+                    const kg = Math.max(1, Number(info.kg) || 1);
+                    const totalKg = cant * kg;
+                    const destino = info.subcategoria || 'perros';
+                    return `comida|${destino}|${totalKg}|kg|${desc || `${cant}x${kg}kg`}`;
+                }
+                const unidad = info.unidad || 'unidades';
+                return `${catId}|general|${cant}|${unidad}|${desc || catId}`;
+            })
+            .join(' ; ');
+        onCambiarDetalleInsumo(texto);
+    };
+
+    const toggleCategoriaInsumo = (catId) => {
+        const copia = { ...seleccionInsumos };
+        if (copia[catId]) {
+            delete copia[catId];
+        } else {
+            copia[catId] =
+                catId === 'comida'
+                    ? { subcategoria: 'perros', cantidad: 1, kg: 1, descripcion: '' }
+                    : { unidad: 'unidades', cantidad: 1, descripcion: '' };
+        }
+        setSeleccionInsumos(copia);
+        sincronizarDetalle(copia);
+    };
+    const actualizarInsumo = (catId, campo, valor) => {
+        const copia = {
+            ...seleccionInsumos,
+            [catId]: { ...seleccionInsumos[catId], [campo]: valor },
+        };
+        setSeleccionInsumos(copia);
+        sincronizarDetalle(copia);
+    };
+
+    const cantidadAnimales = apadrinar ? (datos.animalIds?.length || 0) : 0;
+    const montoUnitario = Number(datos.monto || 0);
+    const totalMensual = cantidadAnimales > 1 ? montoUnitario * cantidadAnimales : montoUnitario;
+    const categoriasMarcadas = CATEGORIAS_INSUMOS.filter((c) => Boolean(seleccionInsumos[c.id]));
 
     return (
         <form className="donacion-formulario" onSubmit={onSubmit}>
@@ -36,19 +111,126 @@ const DonacionFormulario = ({
                 </div>
 
                 {esInsumo ? (
-                    <label>
-                        Detalle de los insumos a donar
-                        <textarea
-                            name="detalleInsumo"
-                            value={datos.detalleInsumo}
-                            onChange={onCambiar}
-                            maxLength={2000}
-                            minLength={3}
-                            rows={3}
-                            required
-                            placeholder="Ej: 2 sacos de alimento de 15 kg para perro adulto, mantas térmicas, gasas y antiparasitarios..."
-                        />
-                    </label>
+                    <div className="donaciones-bloque-insumos">
+                        <p className="descripcion-seccion">
+                            Marca los tipos de insumos que vas a entregar y luego indica la cantidad y el detalle abajo:
+                        </p>
+
+                        <div className="donaciones-dos-columnas">
+                            {CATEGORIAS_INSUMOS.map((cat) => {
+                                const marcado = Boolean(seleccionInsumos[cat.id]);
+                                return (
+                                    <label
+                                        key={cat.id}
+                                        className={`donaciones-casilla ${marcado ? 'insumo-marcado' : ''}`}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={marcado}
+                                            onChange={() => toggleCategoriaInsumo(cat.id)}
+                                        />
+                                        <span>{cat.etiqueta}</span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+
+                        {categoriasMarcadas.length > 0 && (
+                            <div className="donaciones-detalles-insumos">
+                                {categoriasMarcadas.map((cat) => {
+                                    const info = seleccionInsumos[cat.id];
+                                    return (
+                                        <div key={cat.id} className="donacion-detalle-fila">
+                                            {cat.esComida ? (
+                                                <>
+                                                    <label style={{ width: '130px' }}>
+                                                        Destinado a
+                                                        <select
+                                                            value={info.subcategoria}
+                                                            onChange={(e) => actualizarInsumo(cat.id, 'subcategoria', e.target.value)}
+                                                        >
+                                                            <option value="perros">Perros</option>
+                                                            <option value="gatos">Gatos</option>
+                                                        </select>
+                                                    </label>
+                                                    <label style={{ width: '95px' }}>
+                                                        Cantidad
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            max={999}
+                                                            value={info.cantidad}
+                                                            onChange={(e) => actualizarInsumo(cat.id, 'cantidad', e.target.value)}
+                                                            required
+                                                        />
+                                                    </label>
+                                                    <label style={{ width: '105px' }}>
+                                                        Kg c/u (kg)
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            max={500}
+                                                            value={info.kg}
+                                                            onChange={(e) => actualizarInsumo(cat.id, 'kg', e.target.value)}
+                                                            required
+                                                        />
+                                                    </label>
+                                                    <label style={{ flex: 1, minWidth: '180px' }}>
+                                                        Detalle ({(Number(info.cantidad) || 1) * (Number(info.kg) || 1)} kg total)
+                                                        <input
+                                                            type="text"
+                                                            maxLength={250}
+                                                            value={info.descripcion}
+                                                            onChange={(e) => actualizarInsumo(cat.id, 'descripcion', e.target.value)}
+                                                            placeholder={cat.placeholder}
+                                                            required
+                                                        />
+                                                    </label>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <label style={{ width: '95px' }}>
+                                                        Cantidad
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            max={999}
+                                                            value={info.cantidad}
+                                                            onChange={(e) => actualizarInsumo(cat.id, 'cantidad', e.target.value)}
+                                                            required
+                                                        />
+                                                    </label>
+                                                    <label style={{ width: '125px' }}>
+                                                        Unidad
+                                                        <select
+                                                            value={info.unidad}
+                                                            onChange={(e) => actualizarInsumo(cat.id, 'unidad', e.target.value)}
+                                                        >
+                                                            {cat.unidades.map((u) => (
+                                                                <option key={u} value={u}>{u}</option>
+                                                            ))}
+                                                        </select>
+                                                    </label>
+                                                    <label style={{ flex: 1, minWidth: '180px' }}>
+                                                        Detalle de {cat.etiqueta}
+                                                        <input
+                                                            type="text"
+                                                            maxLength={250}
+                                                            value={info.descripcion}
+                                                            onChange={(e) => actualizarInsumo(cat.id, 'descripcion', e.target.value)}
+                                                            placeholder={cat.placeholder}
+                                                            required
+                                                        />
+                                                    </label>
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 ) : (
                     <>
                         <div className="donaciones-opciones" aria-label="Frecuencia del aporte">
@@ -81,7 +263,7 @@ const DonacionFormulario = ({
                         </div>
 
                         <label>
-                            Otro monto en pesos chilenos
+                            Otro monto en pesos chilenos {cantidadAnimales > 1 ? '(por cada animal)' : ''}
                             <input
                                 name="monto"
                                 type="number"
@@ -100,54 +282,59 @@ const DonacionFormulario = ({
 
             {!esInsumo && datos.modalidad === 'Mensual' && (
                 <fieldset disabled={enviando}>
-                    <legend>¿Quieres apadrinar a un animal?</legend>
+                    <legend>¿Quieres apadrinar a uno o más animales?</legend>
                     <label className="donaciones-casilla">
                         <input
                             type="checkbox"
                             checked={apadrinar}
                             onChange={(event) => onCambiarApadrinar(event.target.checked)}
                         />
-                        Dedicar mi aporte mensual a un animal del refugio
+                        Dedicar mi aporte mensual a uno o más animales del refugio
                     </label>
 
                     {apadrinar && (
                         <>
                             <p className="descripcion-seccion">
-                                Selecciona desde la galería. Solo aparecen animales en estado En Refugio.
+                                Puedes seleccionar más de un animal desde la galería. Solo aparecen animales en estado En Refugio.
                             </p>
                             {animales.length === 0 ? (
                                 <p className="evento-info">No hay animales disponibles para apadrinar en este momento.</p>
                             ) : (
                                 <div className="donaciones-galeria">
-                                    {animales.map((animal) => (
-                                        <label
-                                            key={animal.mascota_id}
-                                            className={`donacion-animal ${
-                                                String(datos.animalId) === String(animal.mascota_id) ? 'seleccionado' : ''
-                                            }`}
-                                        >
-                                            <img
-                                                src={animal.mascota_fotoURL || '/placeholder-mascota.svg'}
-                                                alt={animal.mascota_nombreCompleto}
-                                                onError={(event) => {
-                                                    event.currentTarget.onerror = null;
-                                                    event.currentTarget.src = '/placeholder-mascota.svg';
-                                                }}
-                                            />
-                                            <span>
-                                                <input
-                                                    type="radio"
-                                                    name="animalId"
-                                                    value={animal.mascota_id}
-                                                    checked={String(datos.animalId) === String(animal.mascota_id)}
-                                                    onChange={onCambiar}
-                                                    required={apadrinar}
+                                    {animales.map((animal) => {
+                                        const yaEsPadrino = animalesApadrinadosIds.includes(animal.mascota_id);
+                                        const estaPendiente = animalesPendientesIds.includes(animal.mascota_id);
+                                        const bloqueado = yaEsPadrino || estaPendiente;
+                                        const seleccionado = (datos.animalIds || []).includes(animal.mascota_id);
+
+                                        return (
+                                            <label
+                                                key={animal.mascota_id}
+                                                className={`donacion-animal ${seleccionado ? 'seleccionado' : ''} ${bloqueado ? 'ya-apadrinado' : ''}`}
+                                            >
+                                                <img
+                                                    src={animal.mascota_fotoURL || '/placeholder-mascota.svg'}
+                                                    alt={animal.mascota_nombreCompleto}
+                                                    onError={(event) => {
+                                                        event.currentTarget.onerror = null;
+                                                        event.currentTarget.src = '/placeholder-mascota.svg';
+                                                    }}
                                                 />
-                                                {animal.mascota_nombreCompleto}
-                                            </span>
-                                            <small>{animal.mascota_especie} · En Refugio</small>
-                                        </label>
-                                    ))}
+                                                <span>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={seleccionado}
+                                                        disabled={bloqueado}
+                                                        onChange={() => onToggleAnimal(animal.mascota_id)}
+                                                    />
+                                                    {animal.mascota_nombreCompleto}
+                                                </span>
+                                                <small>{animal.mascota_especie} · En Refugio</small>
+                                                {yaEsPadrino && <small className="donacion-aviso-padrino">Ya eres padrino</small>}
+                                                {!yaEsPadrino && estaPendiente && <small className="donacion-aviso-padrino">Pendiente</small>}
+                                            </label>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </>
@@ -161,9 +348,9 @@ const DonacionFormulario = ({
                             onChange={onCambiar}
                             required
                         />
-                        Autorizo un aporte mensual de{' '}
-                        {Number(datos.monto || 0).toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}.
-                        Puedo solicitar su desactivación al refugio cuando lo necesite.
+                        {cantidadAnimales > 1
+                            ? `Autorizo un aporte mensual de ${montoUnitario.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })} por cada animal seleccionado (${cantidadAnimales} animales · Total: ${totalMensual.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}/mes).`
+                            : `Autorizo un aporte mensual de ${montoUnitario.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}. Puedo solicitar su desactivación al refugio cuando lo necesite.`}
                     </label>
                 </fieldset>
             )}

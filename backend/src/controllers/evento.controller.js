@@ -218,11 +218,17 @@ export const marcarAsistencia = async (req, res) => {
 
         const { eventoId, usuarioId } = value;
         const solicitanteId = req.user.usuarioId;
+        const asistenciaConfirmada = req.body?.asistenciaConfirmada ?? true;
 
-        const [resultado, error_servicio] = await marcarAsistenciaService(eventoId, usuarioId, solicitanteId);
+        const [resultado, error_servicio] = await marcarAsistenciaService(
+            eventoId,
+            usuarioId,
+            solicitanteId,
+            asistenciaConfirmada
+        );
         if (error_servicio) return handleErrorClient(res, 400, "No se pudo marcar la asistencia", error_servicio);
 
-        return handleSuccess(res, 200, "Asistencia registrada correctamente", resultado);
+        return handleSuccess(res, 200, "Asistencia actualizada correctamente", resultado);
     } catch (error) {
         console.error("Error en marcarAsistencia controller:", error);
         return handleErrorServer(res, 500, "Error interno del servidor", error.message);
@@ -313,6 +319,20 @@ export const publicarEvento = async (req, res) => {
         return handleSuccess(res, 200, "Evento publicado correctamente", resultado);
     } catch (error) {
         console.error("Error en publicarEvento controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
+    }
+};
+
+export const subirImagenEvento = async (req, res) => {
+    try {
+        if (!req.file) {
+            return handleErrorClient(res, 400, "Error de validación", "Debes seleccionar una imagen válida.");
+        }
+
+        const resultado = { imagenURL: `/uploads/eventos/${req.file.filename}` };
+        return handleSuccess(res, 200, "Imagen subida correctamente", resultado);
+    } catch (error) {
+        console.error("Error en subirImagenEvento controller:", error);
         return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };

@@ -46,6 +46,13 @@ const MovimientoInventarioSchema = new EntitySchema({
       nullable: false, 
       onDelete: "RESTRICT",
     },
+    donacion: {
+      type: "many-to-one",
+      target: "Donacion",
+      joinColumn: { name: "donacionId" },
+      nullable: true,
+      onDelete: "SET NULL"
+    }
   },
   indices: [{ name: "IDX_MOVIMIENTOS_INVENTARIO", columns: ["inventario"] }],
 });

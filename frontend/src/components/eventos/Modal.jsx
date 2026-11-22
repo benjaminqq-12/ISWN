@@ -1,8 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { X } from 'lucide-react';
 
-// Ventana compartida por los detalles, el formulario y la confirmación de eliminación.
-const Modal = ({ titulo = 'Información del evento', onClose, bloqueado = false, children }) => {
+const Modal = ({ titulo = 'Información del evento', onClose, bloqueado = false, ancho = '', children }) => {
     const ventana = useRef(null);
     const tituloId = useId();
 

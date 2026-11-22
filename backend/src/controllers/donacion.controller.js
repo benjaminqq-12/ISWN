@@ -8,6 +8,7 @@ import {
     obtenerRecaudacionService,
     exportarRecaudacionService,
     desactivarSuscripcionService,
+    obtenerMisDonacionesService
 } from "../services/donacion.service.js";
 import {
     donacionBodyValidation,
@@ -64,7 +65,8 @@ export const confirmarDonacion = async (req, res) => {
         if (error) return handleErrorClient(res, 400, "URL inválida", error.details[0].message);
 
         const donacionId = value.id;
-        const [resultado, error_servicio] = await confirmarDonacionService(donacionId);
+        const usuarioId = req.user?.usuarioId;
+        const [resultado, error_servicio] = await confirmarDonacionService(donacionId, usuarioId);
 
         if (error_servicio) {
             return handleErrorClient(res, 400, "No se pudo confirmar la donación", error_servicio);
@@ -73,6 +75,23 @@ export const confirmarDonacion = async (req, res) => {
         return handleSuccess(res, 200, "Donación marcada como completada exitosamente", resultado);
     } catch (error) {
         console.error("Error en confirmarDonacion controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
+    }
+};
+
+export const obtenerMisDonaciones = async (req, res) => {
+    try {
+        const usuarioId = req.user?.usuarioId;
+        if (!usuarioId) {
+            return handleErrorClient(res, 401, "No autorizado", "Debes iniciar sesión para consultar tus donaciones.");
+        }
+
+        const [datos, error_servicio] = await obtenerMisDonacionesService(usuarioId);
+        if (error_servicio) return handleErrorServer(res, 500, error_servicio);
+
+        return handleSuccess(res, 200, "Mis donaciones obtenidas", datos);
+    } catch (error) {
+        console.error("Error en obtenerMisDonaciones controller:", error);
         return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };

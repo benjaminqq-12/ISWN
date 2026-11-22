@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Download, RefreshCw } from 'lucide-react';
-import { getEstadoAporte } from '../services/donacion.service.js';
+import { getEstadoAporte, formatearDetalleInsumo } from '../services/donacion.service.js';
 import '../styles/eventos.css';
 import '../styles/donaciones.css';
 
@@ -48,7 +48,7 @@ const DonacionResultado = () => {
             `Correo         : ${datos.correoDonante || 'No especificado'}`,
             `Categoría      : ${esInsumo ? 'Donación de Insumos' : 'Aporte Económico'}`,
             ...(esInsumo
-                ? [`Detalle Insumos: ${datos.detalleInsumo}`]
+                ? [`Detalle Insumos: ${formatearDetalleInsumo(datos.detalleInsumo)}`]
                 : [
                     `Modalidad      : ${datos.modalidad === 'Mensual' ? 'Suscripción mensual' : 'Donación única'}`,
                     `Destino        : ${datos.animal ? `Apadrinamiento de ${datos.animal}` : 'Fondo general del refugio'}`,
@@ -65,7 +65,7 @@ const DonacionResultado = () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `comprobante-donacion-${datos.donacionId}.txt`;
+        a.download = `comprobante-donacion-${datos.donacionId}.pdf`;
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     };
@@ -98,7 +98,7 @@ const DonacionResultado = () => {
                             </p>
                             {esInsumo && datos.detalleInsumo && (
                                 <p className="evento-info">
-                                    Insumos registrados: <strong>{datos.detalleInsumo}</strong>
+                                    Insumos registrados: <strong>{formatearDetalleInsumo(datos.detalleInsumo)}</strong>
                                 </p>
                             )}
                             {!esInsumo && datos.animal && (
@@ -171,7 +171,7 @@ const DonacionResultado = () => {
                 <div className="evento-acciones">
                     {datos && confirmado && (
                         <button type="button" className="boton boton-verde" onClick={descargarComprobante}>
-                            <Download />Descargar comprobante (.txt)
+                            <Download />Descargar comprobante (.pdf)
                         </button>
                     )}
                     <button type="button" className="boton boton-secundario" disabled={cargando} onClick={consultar}>

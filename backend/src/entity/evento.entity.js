@@ -56,6 +56,11 @@ const EventoSchema = new EntitySchema({
             length: 20, // "Programado", "Finalizado", "Cancelado"
             nullable: false,
             default: "Activo"
+        },
+        imagenURL: {
+            type: "varchar",
+            length: 512,
+            nullable: true,
         }
     },
     relations: {
