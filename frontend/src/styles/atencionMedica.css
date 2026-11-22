@@ -1,4 +1,3 @@
-
 /* =========================================
    PÁGINA PRINCIPAL
 ========================================= */
@@ -71,8 +70,7 @@
   font-size: 13px;
 }
 
-/* La barra de usuario pertenece a la navegación general.
-   Se conserva por si se necesita mostrarla. */
+/* La barra de usuario pertenece a la navegación general. */
 
 .vet-user-card {
   display: flex;
@@ -115,9 +113,6 @@
 /* =========================================
    TARJETAS INFORMATIVAS
 ========================================= */
-
-/* Se ocultan porque no forman parte de la
-   distribución de la imagen de referencia. */
 
 .vet-info-grid {
   display: none;
@@ -424,6 +419,36 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  /* Altura máxima del historial */
+  max-height: 430px;
+
+  /* Barra de desplazamiento vertical */
+  overflow-y: auto;
+
+  /* Espacio para que la barra no tape el contenido */
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #c98455 #f5eee7;
+}
+
+/* Personalización de la barra */
+.vet-history-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.vet-history-list::-webkit-scrollbar-track {
+  background: #f5eee7;
+  border-radius: 10px;
+}
+
+.vet-history-list::-webkit-scrollbar-thumb {
+  background: #c98455;
+  border-radius: 10px;
+}
+
+.vet-history-list::-webkit-scrollbar-thumb:hover {
+  background: #bd7547;
 }
 
 .vet-history-item {
@@ -642,6 +667,7 @@
     min-width: 600px;
   }
 }
+
 /* =========================================
    NUEVOS ELEMENTOS DEL FORMULARIO
 ========================================= */
@@ -888,5 +914,915 @@
   .vet-history-top {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+/* =========================================
+   ACCIONES DEL HISTORIAL CLÍNICO
+========================================= */
+
+.vet-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.vet-history-actions button {
+  padding: 6px 11px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.vet-history-edit {
+  border: 1px solid #e5c4aa;
+  background: #fff8f2;
+  color: #ad683d;
+}
+
+.vet-history-edit:hover:not(:disabled) {
+  border-color: #c98455;
+  background: #faeee4;
+}
+
+.vet-history-delete {
+  border: 1px solid #efd0ca;
+  background: #fff7f5;
+  color: #a54f43;
+}
+
+.vet-history-delete:hover:not(:disabled) {
+  border-color: #d99b90;
+  background: #fff0ed;
+}
+
+.vet-history-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .vet-history-actions button {
+    flex: 1;
+  }
+}
+
+
+/* =========================================
+   CONFIRMACIÓN DE ELIMINACIÓN
+========================================= */
+
+.vet-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(35, 39, 36, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.vet-confirm-modal {
+  width: min(100%, 440px);
+  padding: 30px;
+  border: 1px solid #eee5dc;
+  border-radius: 18px;
+  background: #fffdfa;
+  color: #343b37;
+  box-shadow: 0 20px 60px rgba(36, 31, 26, 0.22);
+  text-align: center;
+}
+
+.vet-confirm-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff0e8;
+  color: #bd7547;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.vet-confirm-modal h2 {
+  margin: 0 0 10px;
+  color: #343b37;
+  font-size: 21px;
+}
+
+.vet-confirm-modal p {
+  margin: 0;
+  color: #68716b;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.vet-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.vet-confirm-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vet-confirm-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.vet-confirm-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.vet-confirm-cancel {
+  background: #f0eee9;
+  color: #4b554e;
+}
+
+.vet-confirm-delete {
+  background: #bd604b;
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .vet-confirm-modal {
+    padding: 24px 18px;
+  }
+
+  .vet-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .vet-confirm-actions button {
+    width: 100%;
+  }
+}
+/* =========================================
+   REGISTRO DE VACUNAS
+========================================= */
+
+.vet-vaccine-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.vet-vaccine-heading h3 {
+  margin-bottom: 5px;
+}
+
+.vet-vaccine-heading p {
+  margin: 0;
+  color: #77716b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.vet-vaccine-add {
+  flex-shrink: 0;
+  padding: 10px 15px;
+  border: 1px solid #bd7547;
+  border-radius: 9px;
+  background: #fff8f2;
+  color: #a85e35;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.vet-vaccine-add:hover {
+  background: #f7e8dc;
+}
+
+.vet-vaccine-add:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vet-vaccine-empty {
+  padding: 25px 15px;
+  border: 1px dashed #ddcfc3;
+  border-radius: 12px;
+  background: #fcfaf7;
+  text-align: center;
+}
+
+.vet-vaccine-empty > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #bd7547;
+  font-size: 25px;
+}
+
+.vet-vaccine-empty p {
+  margin: 0 0 5px;
+  color: #514940;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.vet-vaccine-empty small {
+  color: #898078;
+  font-size: 12px;
+}
+
+.vet-vaccine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vet-vaccine-card {
+  padding: 18px;
+  border: 1px solid #e8ddd3;
+  border-radius: 12px;
+  background: #fdfbf8;
+}
+
+.vet-vaccine-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.vet-vaccine-card-heading strong {
+  color: #59483c;
+  font-size: 14px;
+}
+
+.vet-vaccine-remove {
+  padding: 6px 11px;
+  border: 1px solid #e5c7bb;
+  border-radius: 7px;
+  background: #fff7f4;
+  color: #a94d3c;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vet-vaccine-remove:hover {
+  background: #fbe8e2;
+}
+
+.vet-vaccine-remove:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vet-vaccine-notice {
+  padding: 13px 15px;
+  border: 1px solid #ead9bd;
+  border-radius: 9px;
+  background: #fffaf0;
+  color: #77613e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .vet-vaccine-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vet-vaccine-add {
+    width: 100%;
+  }
+}
+/* Campo de veterinario no editable */
+.vet-input-readonly {
+  background-color: #eeeeeb !important;
+  color: #777d78 !important;
+  border-color: #d8d9d5 !important;
+  cursor: not-allowed;
+}
+/* ==========================================
+   CALENDARIO SANITARIO
+========================================== */
+
+.vet-calendar-section {
+  margin-top: 24px;
+}
+
+.vet-calendar-toggle {
+  margin-top: 16px;
+  width: fit-content;
+}
+
+/* CONTENEDOR DEL CALENDARIO */
+.vet-calendar {
+  margin-top: 22px;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #eee4dc;
+  border-radius: 16px;
+}
+
+/* CABECERA DEL MES */
+.vet-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.vet-calendar-header h4 {
+  margin: 0;
+  text-transform: capitalize;
+  font-size: 18px;
+  font-weight: 700;
+  color: #3d3935;
+}
+
+.vet-calendar-nav {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #eadbd0;
+  background: #fffaf6;
+  color: #bd7547;
+  border-radius: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.vet-calendar-nav:hover {
+  background: #bd7547;
+  color: #fff;
+  border-color: #bd7547;
+}
+
+/* DÍAS DE LA SEMANA */
+.vet-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.vet-calendar-weekdays span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #95877c;
+  padding: 8px 0;
+}
+
+/* CUADRÍCULA DE DÍAS */
+.vet-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.vet-calendar-empty {
+  min-height: 44px;
+}
+
+/* DÍA NORMAL */
+.vet-calendar-day {
+  position: relative;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: #faf8f5;
+  color: #49433e;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vet-calendar-day:hover {
+  background: #f3e5d9;
+  border-color: #dfb99e;
+}
+
+/* DÍA ACTUAL */
+.vet-calendar-day.today {
+  border-color: #bd7547;
+  font-weight: 800;
+}
+
+/* DÍA SELECCIONADO */
+.vet-calendar-day.selected {
+  background: #bd7547;
+  color: #fff;
+  border-color: #bd7547;
+}
+
+/* DÍAS QUE TIENEN EVENTOS */
+.vet-calendar-day.has-events {
+  font-weight: 700;
+}
+
+/* INDICADOR DE EVENTO */
+.vet-calendar-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #557b67;
+  border-radius: 50%;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vet-calendar-day.selected .vet-calendar-dot {
+  background: #fff;
+}
+
+/* LEYENDA */
+.vet-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #eee8e2;
+}
+
+.vet-calendar-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #786e65;
+  font-size: 12px;
+}
+
+.vet-calendar-legend i {
+  width: 9px;
+  height: 9px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.vet-calendar-legend i.event-pending {
+  background: #557b67;
+}
+
+.vet-calendar-legend i.event-done {
+  background: #bd7547;
+}
+
+/* DETALLE DEL DÍA SELECCIONADO */
+.vet-calendar-details {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #eee8e2;
+}
+
+.vet-calendar-details h4 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #49413b;
+}
+
+.vet-calendar-details > p {
+  color: #93877e;
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+/* LISTADO DE EVENTOS */
+.vet-calendar-event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vet-calendar-event {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border-left: 4px solid #bd7547;
+  background: #fcf8f4;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vet-calendar-event strong {
+  font-size: 14px;
+  color: #403a35;
+}
+
+.vet-calendar-event span {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #bd7547;
+}
+
+.vet-calendar-event p {
+  margin: 2px 0;
+  font-size: 13px;
+  color: #70665e;
+}
+
+.vet-calendar-event small {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* EVENTO PENDIENTE */
+.vet-calendar-event.event-pending {
+  border-left-color: #d49a43;
+  background: #fffaf0;
+}
+
+.vet-calendar-event.event-pending small {
+  color: #b6812c;
+}
+
+/* EVENTO REALIZADO */
+.vet-calendar-event.event-done {
+  border-left-color: #6c907b;
+  background: #f3f8f4;
+}
+
+.vet-calendar-event.event-done small {
+  color: #5b8069;
+}
+
+/* ==========================================
+   AVISOS DE VACUNACIÓN PRÓXIMA
+========================================== */
+
+.vet-calendar-alerts {
+  margin-top: 20px;
+  padding: 18px;
+  background: #fff8eb;
+  border: 1px solid #f0dfbc;
+  border-radius: 14px;
+}
+
+.vet-calendar-alerts h4 {
+  margin: 0 0 14px;
+  color: #956722;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.vet-calendar-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #f2e7d4;
+}
+
+.vet-calendar-alert + .vet-calendar-alert {
+  margin-top: 10px;
+}
+
+.vet-calendar-alert strong {
+  font-size: 14px;
+  color: #49413b;
+}
+
+.vet-calendar-alert span {
+  color: #77685a;
+  font-size: 13px;
+}
+
+.vet-calendar-alert small {
+  color: #ad7b31;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 600px) {
+  .vet-calendar {
+    padding: 14px;
+  }
+
+  .vet-calendar-grid,
+  .vet-calendar-weekdays {
+    gap: 4px;
+  }
+
+  .vet-calendar-day {
+    min-height: 38px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .vet-calendar-empty {
+    min-height: 38px;
+  }
+
+  .vet-calendar-weekdays span {
+    font-size: 10px;
+  }
+
+  .vet-calendar-header h4 {
+    font-size: 16px;
+  }
+
+  .vet-calendar-legend {
+    gap: 10px;
+  }
+
+  .vet-calendar-legend span {
+    font-size: 11px;
+  }
+
+  .vet-calendar-alerts {
+    padding: 12px;
+  }
+
+  .vet-calendar-event {
+    padding: 12px;
+  }
+}
+/* SELECTOR DE MEDICAMENTOS */
+.vet-medication-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vet-medication-add {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.vet-medication-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.vet-medication-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: #f8eee7;
+  border: 1px solid #e8cbb8;
+  border-radius: 9px;
+  color: #75472f;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vet-medication-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  border: none;
+  border-radius: 50%;
+  background: #ead2c3;
+  color: #874a2c;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vet-medication-remove:hover {
+  background: #d9b49c;
+}
+
+.vet-medication-empty {
+  margin: 0;
+  padding: 13px;
+  color: #888078;
+  background: #faf8f5;
+  border: 1px dashed #ded5cc;
+  border-radius: 8px;
+  font-size: 13px;
+}
+/* ==========================================
+   BOTÓN PARA ABRIR EL CALENDARIO
+========================================== */
+
+.vet-calendar-section {
+  margin-top: 24px;
+}
+
+.vet-calendar-trigger {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 14px 18px;
+
+  border: 1px solid #eadbd0;
+  border-radius: 12px;
+  background: #fff;
+
+  color: #343b37;
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vet-calendar-trigger:hover {
+  border-color: #bd7547;
+  background: #fffaf6;
+  box-shadow: 0 4px 14px rgba(50, 55, 45, 0.06);
+  transform: translateY(-1px);
+}
+
+.vet-calendar-trigger-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+
+  width: 46px;
+  height: 46px;
+
+  border-radius: 11px;
+  background: #faeee4;
+  color: #bd7547;
+
+  font-size: 27px;
+}
+
+.vet-calendar-trigger-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vet-calendar-trigger-text strong {
+  color: #343b37;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.vet-calendar-trigger-text small {
+  color: #929892;
+  font-size: 11px;
+}
+
+
+/* ==========================================
+   MODAL DEL CALENDARIO
+========================================== */
+
+.vet-calendar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  box-sizing: border-box;
+
+  background: rgba(35, 39, 36, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.vet-calendar-modal {
+  width: min(100%, 900px);
+  max-height: 90vh;
+  overflow-y: auto;
+
+  padding: 24px;
+  box-sizing: border-box;
+
+  border: 1px solid #eee5dc;
+  border-radius: 18px;
+
+  background: #fffdfa;
+  color: #343b37;
+
+  box-shadow: 0 20px 60px rgba(36, 31, 26, 0.25);
+}
+
+
+/* ==========================================
+   ENCABEZADO DEL MODAL
+========================================== */
+
+.vet-calendar-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eee8e2;
+}
+
+.vet-calendar-modal-header h2 {
+  margin: 0;
+
+  color: #343b37;
+  font-size: 22px;
+  font-weight: 750;
+}
+
+.vet-calendar-modal-header p {
+  margin: 7px 0 0;
+
+  color: #858d86;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.vet-calendar-modal-close {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid #eadbd0;
+  border-radius: 10px;
+
+  background: #fff8f2;
+  color: #bd7547;
+
+  font-size: 27px;
+  line-height: 1;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vet-calendar-modal-close:hover {
+  background: #bd7547;
+  border-color: #bd7547;
+  color: #fff;
+}
+
+
+/* El calendario se adapta al espacio del modal */
+
+.vet-calendar-modal .vet-calendar {
+  margin-top: 18px;
+}
+
+
+/* ==========================================
+   RESPONSIVE DEL MODAL
+========================================== */
+
+@media (max-width: 600px) {
+  .vet-calendar-modal-overlay {
+    padding: 10px;
+  }
+
+  .vet-calendar-modal {
+    max-height: 94vh;
+    padding: 15px;
+    border-radius: 14px;
+  }
+
+  .vet-calendar-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .vet-calendar-trigger {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

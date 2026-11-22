@@ -1,5 +1,6 @@
-
 "use strict";
+
+
 
 import {
   handleErrorClient,
@@ -13,8 +14,10 @@ import {
   getMascotaService,
   getMascotaPublicaService,
   actualizarMascotaService,
+  getMascotasInternasService,
   eliminarMascotaService,
 } from "../services/mascota.service.js";
+import { ESTADOS_MASCOTA } from "../config/estadosMascota.js";
 
 const CAMPOS_TEXTO = {
   mascota_nombreCompleto: 100,

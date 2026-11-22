@@ -163,21 +163,24 @@ export async function createVeterinarioPrueba() {
             }
 
             // Crear el usuario si todavía no existe
-            if (!usuario) {
-                const passwordHash = await bcrypt.hash(password, 10);
+            // Crear o actualizar el usuario veterinario
+if (!usuario) {
+    const passwordHash = await bcrypt.hash(password, 10);
 
-                usuario = usuarioRepository.create({
-                    rut: "99.999.999-9",
-                    usuarioNombre: "Veterinario de Prueba",
-                    usuarioEmail: correo,
-                    usuarioPassword: passwordHash,
-                    rol: "Veterinario",
-                    activo: true
-                });
+    usuario = usuarioRepository.create({
+        rut: "99.999.999-9",
+        usuarioNombre: "Dr. Sebastián Valdés Riquelme",
+        usuarioEmail: correo,
+        usuarioPassword: passwordHash,
+        rol: "Veterinario",
+        activo: true
+    });
 
-                usuario = await usuarioRepository.save(usuario);
-            }
-
+    usuario = await usuarioRepository.save(usuario);
+} else {
+    usuario.usuarioNombre = "Dr. Sebastián Valdés Riquelme";
+    await usuarioRepository.save(usuario);
+}
             // Comprobar si ya tiene un registro veterinario
             const veterinarioExistente = await veterinarioRepository.findOne({
                 where: {

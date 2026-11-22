@@ -9,6 +9,7 @@ import {
   getMascotasController,
   getMascotaController,
   getMascotaInternaController,
+  getMascotasInternasController,
   actualizarMascotaController,
   eliminarMascotaController,
 } from "../controllers/mascota.controller.js";
@@ -19,6 +20,31 @@ const router = Router();
 // LISTADO PÚBLICO DE MASCOTAS
 // ==========================================
 router.get("/", getMascotasController);
+
+// ==========================================
+// LISTADO INTERNO DE MASCOTAS
+// Voluntario, Veterinario y Administrador
+// ==========================================
+router.get(
+  "/internas",
+  passport.authenticate("jwt", { session: false }),
+  (req, res, next) => {
+    if (
+      !req.user?.activo ||
+      !["Voluntario", "Veterinario", "Admin"].includes(req.user.rol)
+    ) {
+      return res.status(403).json({
+        status: "Client error",
+        message:
+          "Solo Voluntarios, Veterinarios y Administradores pueden consultar todas las mascotas",
+      });
+    }
+
+    return next();
+  },
+  getMascotasInternasController
+);
+
 
 // ==========================================
 // CONSULTA INTERNA DE UNA MASCOTA

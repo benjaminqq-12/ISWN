@@ -32,6 +32,31 @@
   .evento-detalle { @apply mt-5 whitespace-pre-wrap text-sm leading-7 text-muted; }
   .evento-acciones { @apply mt-4 flex flex-wrap items-center gap-3; }
   .evento-estado { @apply rounded-full bg-sage px-2.5 py-1 text-[9px] font-semibold tracking-wide text-forest uppercase; }
+  
+  .eventos-gestion { @apply mb-10 rounded-2xl border border-line bg-white p-5 sm:p-7; }
+  .eventos-tabla-scroll { @apply overflow-x-auto; }
+  .eventos-tabla { @apply w-full min-w-[760px] border-collapse text-left text-xs; }
+  .eventos-tabla th { @apply border-b border-line bg-canvas px-4 py-3 font-semibold; }
+  .eventos-tabla td { @apply border-b border-line px-4 py-4 align-middle; }
+  .eventos-tabla td span { @apply mt-1 block text-muted; }
+  .evento-formulario fieldset { @apply grid grid-cols-1 gap-4 sm:grid-cols-2; }
+  .evento-formulario label { @apply flex flex-col gap-2 text-sm font-semibold; }
+  .evento-formulario input, .evento-formulario select, .evento-formulario textarea {
+    @apply w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm font-normal text-ink outline-brand;
+  }
+  .evento-formulario .evento-campo-completo { @apply sm:col-span-2; }
+  .evento-formulario .mensaje { @apply mt-4; }
+  .eventos-panel { @apply pt-8; }
+  .eventos-panel .eventos-etiqueta { @apply mb-2; }
+  .gestion-acciones { @apply flex flex-wrap items-center gap-2; }
+  .gestion-resumen { @apply mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4; }
+  .gestion-resumen > div { @apply rounded-xl border border-line bg-white p-4; }
+  .gestion-resumen span { @apply block text-xs text-muted; }
+  .gestion-resumen strong { @apply mt-2 block text-2xl font-bold; }
+  .gestion-subtitulo { @apply text-xl font-bold; }
+  .gestion-filtros { @apply my-5 grid gap-3 sm:grid-cols-2; }
+  .gestion-filtros label { @apply flex flex-col gap-2 text-xs font-semibold; }
+  .gestion-filtros input, .gestion-filtros select { @apply w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm font-normal outline-brand; }
 
   .estado-pagina { @apply rounded-2xl border border-line bg-white px-6 py-12 text-center; }
   .estado-pagina h3 { @apply font-display text-xl font-bold; }
