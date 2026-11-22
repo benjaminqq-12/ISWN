@@ -1,12 +1,16 @@
 import axios from "./root.service.js";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
 export async function getUsuarios() {
-  const response = await fetch(`${API_URL}/usuarios`);
-  if (!response.ok) throw new Error("Error al obtener los usuarios");
-  const { data } = await response.json();
-  return data;
+  try {
+    const response = await axios.get("/usuarios");
+    return response.data.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+        "Error al obtener los usuarios",
+      { cause: error }
+    );
+  }
 }
 
 export async function iniciarSesion(usuarioEmail, usuarioPassword) {
