@@ -1,11 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
-import { HeartHandshake, PawPrint } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
+import { Download, HeartHandshake, PawPrint } from 'lucide-react';
 import DonacionFormulario from '../components/donaciones/donacionFormulario.jsx';
 import DonacionGestion from '../components/donaciones/donacionGestion.jsx';
-import { getAnimalesApadrinables, iniciarAporte } from '../services/donacion.service.js';
+import HistorialDonacionesUsuario from '../components/donaciones/historialDonacionesUsuario.jsx';
+import {
+    getAnimalesApadrinables,
+    getMisDonaciones,
+    iniciarAporte,
+    descargarComprobante,
+    formatearDetalleInsumo
+} from '../services/donacion.service.js';
 import '../styles/eventos.css';
 import '../styles/donaciones.css';
+
+const pesos = (valor) => Number(valor || 0).toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
 
 const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion }) => {
     const navigate = useNavigate();
@@ -19,7 +28,7 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
         monto: 10000,
         detalleInsumo: '',
         mensaje: '',
-        animalId: animalInicial,
+        animalIds: animalInicial ? [Number(animalInicial)] : [],
         aceptaMensual: false,
     });
     const [apadrinar, setApadrinar] = useState(Boolean(animalInicial));
@@ -29,7 +38,10 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
     const [error, setError] = useState('');
     const [enviando, setEnviando] = useState(false);
 
-    const cargarAnimales = async () => {
+    const [misAportes, setMisAportes] = useState(null);
+    const [cargandoMisAportes, setCargandoMisAportes] = useState(false);
+
+    const cargarAnimales = useCallback(async () => {
         setCargando(true);
         setErrorCarga('');
         try {
@@ -42,14 +54,35 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
         } finally {
             setCargando(false);
         }
-    };
+    }, []);
+
+    const cargarMisAportes = useCallback(async () => {
+        if (!autenticado) {
+            setMisAportes(null);
+            return;
+        }
+        setCargandoMisAportes(true);
+        try {
+            const respuesta = await getMisDonaciones();
+            if (respuesta?.status === 'Success') {
+                setMisAportes(respuesta.data);
+            }
+        } finally {
+            setCargandoMisAportes(false);
+        }
+    }, [autenticado]);
 
     useEffect(() => {
         cargarAnimales();
-    }, []);
+    }, [cargarAnimales]);
+
+    useEffect(() => {
+        cargarMisAportes();
+    }, [cargarMisAportes]);
 
     const manejarCambio = (event) => {
         const { name, type, checked, value } = event.target;
+        setError('');
         setDatos((actual) => ({
             ...actual,
             [name]: type === 'checkbox' ? checked : value,
@@ -57,6 +90,7 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
     };
 
     const manejarCategoria = (categoriaDonacion) => {
+        setError('');
         setDatos((actual) => ({
             ...actual,
             categoriaDonacion,
@@ -69,6 +103,7 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
     };
 
     const manejarModalidad = (modalidad) => {
+        setError('');
         setDatos((actual) => ({ ...actual, modalidad, aceptaMensual: false }));
         if (modalidad === 'Unica') {
             setApadrinar(false);
@@ -76,7 +111,26 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
     };
 
     const manejarMonto = (monto) => {
+        setError('');
         setDatos((actual) => ({ ...actual, monto }));
+    };
+
+    const manejarToggleAnimal = (mascotaId) => {
+        setError('');
+        setDatos((actual) => {
+            const existe = actual.animalIds.includes(mascotaId);
+            return {
+                ...actual,
+                animalIds: existe
+                    ? actual.animalIds.filter((id) => id !== mascotaId)
+                    : [...actual.animalIds, mascotaId],
+            };
+        });
+    };
+
+    const manejarDetalleInsumo = (detalleInsumo) => {
+        setError('');
+        setDatos((actual) => ({ ...actual, detalleInsumo }));
     };
 
     const manejarEnvio = async (event) => {
@@ -94,7 +148,7 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
 
         if (esInsumo) {
             if (!datos.detalleInsumo || datos.detalleInsumo.trim().length < 3) {
-                setError('Especifica qué insumos (alimento, medicinas, mantas, etc.) vas a donar.');
+                setError('Marca al menos una categoría de insumo e indica la cantidad y el detalle.');
                 return;
             }
         } else {
@@ -102,8 +156,8 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
                 setError('El aporte económico debe ser un número entero estrictamente mayor a $2.000.');
                 return;
             }
-            if (apadrinar && !animales.some((animal) => String(animal.mascota_id) === String(datos.animalId))) {
-                setError('Selecciona un animal que se encuentre En Refugio.');
+            if (apadrinar && datos.animalIds.length === 0) {
+                setError('Selecciona al menos un animal que se encuentre En Refugio.');
                 return;
             }
         }
@@ -116,12 +170,16 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
                 monto: esInsumo ? 0 : Number(datos.monto),
                 detalleInsumo: esInsumo ? datos.detalleInsumo.trim() : null,
                 mensaje: datos.mensaje,
-                animalId: !esInsumo && apadrinar ? Number(datos.animalId) : null,
+                animalIds: !esInsumo && apadrinar ? datos.animalIds : [],
                 ...(datos.modalidad === 'Mensual' && !esInsumo ? { aceptaMensual: datos.aceptaMensual } : {}),
             });
 
             if (respuesta?.status !== 'Success') {
-                setError(typeof respuesta?.details === 'string' ? respuesta.details : respuesta?.message || 'No se pudo registrar la donación.');
+                setError(
+                    typeof respuesta?.details === 'string'
+                        ? respuesta.details
+                        : respuesta?.message || 'No se pudo registrar la donación.'
+                );
                 return;
             }
 
@@ -130,6 +188,12 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
             setEnviando(false);
         }
     };
+
+    const ultima = misAportes?.ultimaDonacion;
+    const animalesApadrinadosIds = (misAportes?.suscripciones || []).map((item) => item.animalId).filter(Boolean);
+    const animalesPendientesIds = (misAportes?.pendientes || [])
+        .filter((item) => item.modalidad === 'Mensual' && item.animalId)
+        .map((item) => item.animalId);
 
     return (
         <div className="donaciones-contenedor">
@@ -164,14 +228,51 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
 
             {autenticado ? (
                 <div className="eventos-selector">
-                    <p className="evento-info">
-                        Donando con tu cuenta: <strong>{session.user.usuarioNombre}</strong> ({session.user.usuarioEmail})
-                    </p>
+                    <div>
+                        <p className="evento-info">
+                            Donando con tu cuenta: <strong>{session.user.usuarioNombre}</strong> ({session.user.usuarioEmail})
+                        </p>
+                        {ultima && (
+                            <p className="evento-info">
+                                Tu última donación: <strong>Donación #{ultima.donacionId}</strong> ·{' '}
+                                <strong>
+                                    {ultima.categoriaDonacion === 'Insumo'
+                                        ? `Insumos (${formatearDetalleInsumo(ultima.detalleInsumo)})`
+                                        : pesos(ultima.monto)}
+                                </strong>{' '}
+                                · Estado: <strong>{ultima.estado}</strong>
+                            </p>
+                        )}
+                    </div>
+                    <div className="gestion-acciones">
+                        {ultima?.estado === 'Completado' && (
+                            <button
+                                type="button"
+                                className="boton boton-verde"
+                                onClick={() => descargarComprobante(ultima)}
+                            >
+                                <Download />Descargar comprobante (#{ultima.donacionId})
+                            </button>
+                        )}
+                        {ultima && (
+                            <Link
+                                className="boton boton-secundario"
+                                to={`/donaciones/resultado?id=${ultima.donacionId}`}
+                            >
+                                {ultima.estado === 'Pendiente'
+                                    ? `Ver instrucciones (#${ultima.donacionId})`
+                                    : `Ver detalle (#${ultima.donacionId})`}
+                            </Link>
+                        )}
+                        <a className="boton boton-secundario" href="#mis-donaciones">
+                            Ver mi historial
+                        </a>
+                    </div>
                 </div>
             ) : (
                 <div className="eventos-selector">
                     <p className="evento-info">
-                        Puedes revisar las modalidades de ayuda libremente. Para registrar una donación necesitas iniciar sesión.
+                        Puedes revisar las modalidades de ayuda libremente. Para registrar una donación o ver tus comprobantes necesitas iniciar sesión.
                     </p>
                     <button type="button" className="boton boton-secundario" onClick={abrirLogin}>
                         Iniciar sesión
@@ -200,17 +301,32 @@ const DonacionesContenido = ({ session, abrirLogin, esEquipo, onVolverGestion })
                         datos={datos}
                         apadrinar={apadrinar}
                         animales={animales}
+                        animalesApadrinadosIds={animalesApadrinadosIds}
+                        animalesPendientesIds={animalesPendientesIds}
                         enviando={enviando}
                         error={error}
                         onCambiar={manejarCambio}
                         onCambiarCategoria={manejarCategoria}
                         onCambiarModalidad={manejarModalidad}
                         onSeleccionarMonto={manejarMonto}
-                        onCambiarApadrinar={setApadrinar}
+                        onCambiarApadrinar={(marcado) => {
+                            setError('');
+                            setApadrinar(marcado);
+                        }}
+                        onToggleAnimal={manejarToggleAnimal}
+                        onCambiarDetalleInsumo={manejarDetalleInsumo}
                         onSubmit={manejarEnvio}
                     />
                 )}
             </section>
+
+            {autenticado && (
+                <HistorialDonacionesUsuario
+                    misAportes={misAportes}
+                    cargando={cargandoMisAportes}
+                    onActualizar={cargarMisAportes}
+                />
+            )}
         </div>
     );
 };

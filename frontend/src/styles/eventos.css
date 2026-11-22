@@ -72,4 +72,23 @@
   .modal-cabecera { @apply sticky top-0 flex items-center justify-between gap-4 border-b border-line bg-white px-6 py-4; }
   .modal-cabecera h2 { @apply font-display text-xl font-bold; }
   .modal-contenido { @apply p-6; }
+  .modal-grande { @apply max-w-4xl w-full; }
+  .evento-preview-img { @apply h-32 w-full rounded-xl border border-line object-cover; }
+  .evento-tarjeta-horizontal { @apply flex flex-col overflow-hidden sm:flex-row; }
+  .evento-tarjeta-foto { @apply h-44 w-full shrink-0 bg-peach sm:h-auto sm:w-44; }
+  .evento-tarjeta-foto img { @apply h-full w-full object-cover; }
+  .evento-tarjeta-cuerpo { @apply flex flex-1 flex-col justify-between p-4; }
+  .evento-modal-detalle { @apply space-y-4; }
+  .evento-modal-banner { @apply relative h-52 w-full overflow-hidden rounded-2xl bg-peach; }
+  .evento-modal-banner img { @apply h-full w-full object-cover; }
+  .evento-modal-badge { @apply absolute left-3 top-3 rounded-full bg-brand px-3 py-1 text-xs font-bold uppercase text-white shadow; }
+  .evento-modal-titulo { @apply text-2xl font-bold text-ink; }
+  .evento-modal-grid { @apply grid grid-cols-2 gap-3 rounded-xl bg-canvas p-4 text-sm; }
+  .evento-modal-grid strong { @apply block text-xs uppercase tracking-wide text-muted; }
+  .evento-modal-desc { @apply rounded-xl border border-line bg-white p-4 text-sm leading-6 text-ink; }
+  .evento-modal-desc strong { @apply mb-1 block text-xs uppercase tracking-wide text-brand; }
+  .boton-peligro { @apply border border-red-600 bg-red-600 text-white hover:bg-red-700; }
+  .fila-modo-eliminar { @apply cursor-pointer select-none transition hover:bg-red-50/70; }
+  .fila-seleccionada-eliminar td { @apply bg-red-100; }
+  .fila-seleccionada-eliminar td:first-child { @apply shadow-[inset_4px_0_0_0_#dc2626]; }
 }

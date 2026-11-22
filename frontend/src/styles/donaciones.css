@@ -19,7 +19,7 @@
   .donacion-formulario fieldset { @apply mb-5 space-y-4 border-b border-line pb-6; }
   .donacion-formulario legend { @apply mb-2 text-base font-bold; }
   .donacion-formulario label { @apply flex flex-col gap-2 text-sm font-medium; }
-  .donacion-formulario input:not([type=checkbox]):not([type=radio]), .donacion-formulario textarea { @apply w-full rounded-xl border border-line bg-canvas px-3 py-3 font-normal outline-brand; }
+  .donacion-formulario input:not([type=checkbox]):not([type=radio]), .donacion-formulario textarea, .donacion-formulario select { @apply w-full rounded-xl border border-line bg-canvas px-3 py-3 font-normal outline-brand; }
   .donaciones-dos-columnas { @apply grid gap-4 sm:grid-cols-2; }
   .donaciones-opciones { @apply grid grid-cols-2 gap-3; }
   .donaciones-opciones button { @apply rounded-full border border-line bg-canvas px-4 py-3 text-xs font-semibold; }
@@ -62,6 +62,16 @@
   .donaciones-paginacion { @apply mt-5 flex items-center justify-end gap-4 text-xs text-muted; }
   .donaciones-pie { @apply flex flex-wrap items-center justify-between gap-4 text-xs text-muted; }
   .donacion-resultado { @apply max-w-3xl pt-12; }
+  .donaciones-insumos { @apply grid grid-cols-2 gap-3 sm:grid-cols-3; }
+  .donacion-insumo-chip { @apply rounded-xl border border-line bg-canvas px-3 py-3 text-center text-xs font-semibold cursor-pointer transition; }
+  .donacion-insumo-chip[aria-pressed=true] { @apply border-brand bg-peach text-brand ring-1 ring-brand; }
+  .donacion-formulario .donacion-animal.ya-apadrinado { @apply opacity-65 cursor-not-allowed; }
+  .donacion-aviso-padrino { @apply mt-1 block font-semibold text-brand; }
+  .donaciones-contenedor .eventos-selector { @apply mb-6; }
+  .donacion-formulario .donaciones-casilla.insumo-marcado { @apply border border-brand bg-peach; }
+  .donaciones-detalles-insumos { @apply mt-4 space-y-3 rounded-xl border border-line bg-white p-4; }
+  .donacion-detalle-fila { @apply flex flex-wrap gap-3; }
+
 }
 
 
