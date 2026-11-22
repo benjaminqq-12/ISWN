@@ -17,7 +17,7 @@ const opcionesCookies = {
 const NAV = [
   { label: "Inicio", to: "/" },
   { label: "Mascotas", to: "/mascotas" },
-  { label: "Adopciones" },
+  { label: "Adopciones", to: "/solicitudes" },
   { label: "Atención Médica", to: "/atencion-medica" },
   {
     label: "Voluntarios",
@@ -224,7 +224,6 @@ export default function RootLayout() {
                                ) {
                        return null;
                                }
-            {navItems.map((item) => {
               if (item.to) {
               
                                             
