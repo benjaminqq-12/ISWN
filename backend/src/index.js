@@ -53,7 +53,7 @@ function configureApp() {
 async function startServer() {
   try {
     await connectDB();
-
+    await createVeterinarioPrueba();
     await createUsuarios();
     await createAnimales();
     await createVeterinarioPrueba();

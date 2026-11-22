@@ -1,11 +1,16 @@
+
 "use strict";
+
 import { Router } from "express";
+import passport from "passport";
+
 import {
   crearMascotaController,
   getMascotasController,
   getMascotasInternasController,
   getMascotaController,
   getMascotaInternaController,
+  getMascotasInternasController,
   actualizarMascotaController,
   eliminarMascotaController,
 } from "../controllers/mascota.controller.js";

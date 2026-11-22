@@ -519,3 +519,58 @@
   background: #e3f0ff;
   color: #1b5fb4;
 }
+
+.modal-content.adopcion-modal {
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.adopcion-modal label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.adopcion-modal input,
+.adopcion-modal textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.adopcion-modal textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.adopcion-ayuda {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.adopcion-modal .modal-actions button {
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.adopcion-modal .modal-actions button[type="submit"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.adopcion-modal .modal-actions a.adopcion-link-primario {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+}

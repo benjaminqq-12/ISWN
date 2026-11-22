@@ -29,7 +29,7 @@ const VoluntarioSchema = new EntitySchema({
 
         fechaNacimiento: {
             type: "date",
-            nullable: false,
+            nullable: true,
         },
 
         telefono: {

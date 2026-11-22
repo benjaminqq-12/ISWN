@@ -15,9 +15,49 @@ import {
 } from "../config/estadosSolicitud.js";
 import { ESTADO_MASCOTA } from "../config/estadosMascota.js";
 
+// una solicitud en seguimiento se considera concluida cuando ya se registraron todos los seguimientos
+async function seguimientosCompletos(solicitudId) {
+  const seguimientoRepository = AppDataSource.getRepository(SeguimientoAdopcionSchema);
+  const filtro = { seguimientoAdopcion_solicitud: { solicitudAdopcion_id: solicitudId } };
+
+  const total = await seguimientoRepository.count({ where: filtro });
+  const pendientes = await seguimientoRepository.count({
+    where: { ...filtro, seguimientoAdopcion_resultado: IsNull() },
+  });
+
+  return total >= PLAZOS_SEGUIMIENTO.length && pendientes === 0;
+}
+
+// primera solicitud inconclusa del adoptante (null si no tiene ninguna)
+async function obtenerSolicitudInconclusa(usuarioId) {
+  const solicitudRepository = AppDataSource.getRepository(SolicitudAdopcionSchema);
+
+  const abiertas = await solicitudRepository.find({
+    where: {
+      solicitudAdopcion_usuarioAdoptante: { usuarioId },
+      solicitudAadopcion_estado: Not(In([ESTADOS_SOLICITUD.ADOPTADA, ESTADOS_SOLICITUD.CANCELADA])),
+    },
+    relations: { solicitudAdopcion_mascotaAdoptada: true },
+    order: { solicitudAdopcion_id: "ASC" },
+  });
+
+  for (const solicitud of abiertas) {
+    const enSeguimiento = solicitud.solicitudAadopcion_estado === ESTADOS_SOLICITUD.SEGUIMIENTO;
+    if (enSeguimiento && (await seguimientosCompletos(solicitud.solicitudAdopcion_id))) continue;
+    return solicitud;
+  }
+  return null;
+}
+
+// mensaje que se muestra al adoptante cuando tiene una solicitud inconclusa
+function mensajeSolicitudInconclusa(solicitud) {
+  const nombre = solicitud.solicitudAdopcion_mascotaAdoptada?.mascota_nombreCompleto;
+  return `Ya tienes una solicitud de adopción en curso${nombre ? ` (para ${nombre})` : ""}. Podrás enviar otra cuando se cancele o se completen sus seguimientos post-adopción.`;
+}
+
 export async function crearSolicitudAdopcionService(datos) {
   try {
-    const { mascotaId, usuarioAdoptanteId } = datos;
+    const { mascotaId, usuarioAdoptanteId, telefono, correo, direccion, mascotasActuales, motivoAdopcion } = datos;
 
     if (!mascotaId || !usuarioAdoptanteId) {
       return [null, "Debe especificar la mascota y el usuario adoptante."];
@@ -36,21 +76,18 @@ export async function crearSolicitudAdopcionService(datos) {
     const adoptante = await usuarioRepository.findOne({ where: { usuarioId: usuarioAdoptanteId } });
     if (!adoptante) return [null, "El usuario adoptante no existe."];
 
-    // un usuario no puede tener dos solicitudes abiertas para la misma mascota
-    const solicitudAbierta = await solicitudRepository.findOne({
-      where: {
-        solicitudAdopcion_mascotaAdoptada: { mascota_id: mascotaId },
-        solicitudAdopcion_usuarioAdoptante: { usuarioId: usuarioAdoptanteId },
-        solicitudAadopcion_estado: Not(In([ESTADOS_SOLICITUD.ADOPTADA, ESTADOS_SOLICITUD.CANCELADA])),
-      },
-    });
-    if (solicitudAbierta) {
-      return [null, "Ya tienes una solicitud de adopción en curso para esta mascota."];
-    }
+    // un adoptante solo puede tener una solicitud inconclusa a la vez
+    const inconclusa = await obtenerSolicitudInconclusa(usuarioAdoptanteId);
+    if (inconclusa) return [null, mensajeSolicitudInconclusa(inconclusa)];
 
     const nuevaSolicitud = solicitudRepository.create({
       solicitudAadopcion_estado: ESTADOS_SOLICITUD.PENDIENTE,
       solicitudAadopcion_fechaSolicitud: new Date(),
+      solicitudAdopcion_telefono: telefono,
+      solicitudAdopcion_correo: correo,
+      solicitudAdopcion_direccion: direccion,
+      solicitudAdopcion_mascotasActuales: mascotasActuales,
+      solicitudAdopcion_motivoAdopcion: motivoAdopcion,
       solicitudAdopcion_mascotaAdoptada: { mascota_id: mascotaId },
       solicitudAdopcion_usuarioAdoptante: { usuarioId: usuarioAdoptanteId },
     });
@@ -228,6 +265,8 @@ export async function avanzarEstadoSolicitudService(solicitudId, { nuevoEstado, 
 export async function getSolicitudesService() {
   try {
     const solicitudRepository = AppDataSource.getRepository(SolicitudAdopcionSchema);
+    const seguimientoRepository = AppDataSource.getRepository(SeguimientoAdopcionSchema);
+
     const solicitudes = await solicitudRepository.find({
       relations: {
         solicitudAdopcion_mascotaAdoptada: true,
@@ -236,6 +275,31 @@ export async function getSolicitudesService() {
       order: { solicitudAdopcion_id: "DESC" },
     });
 
+    const seguimientos = await seguimientoRepository.find({
+      relations: { seguimientoAdopcion_solicitud: true },
+      order: { seguimientoAdopcion_fechaLimite: "ASC" },
+    });
+
+    // resumen de seguimientos por solicitud: total, pendientes y el próximo a vencer
+    const resumen = new Map();
+    for (const g of seguimientos) {
+      const id = g.seguimientoAdopcion_solicitud?.solicitudAdopcion_id;
+      if (!id) continue;
+
+      const r = resumen.get(id) ?? { total: 0, pendientes: 0, proximo: null };
+      r.total += 1;
+      if (!g.seguimientoAdopcion_resultado) {
+        r.pendientes += 1;
+        if (!r.proximo) {
+          r.proximo = {
+            plazoDias: g.seguimientoAdopcion_plazoDias,
+            fechaLimite: g.seguimientoAdopcion_fechaLimite,
+          };
+        }
+      }
+      resumen.set(id, r);
+    }
+
     const data = solicitudes.map((s) => {
       // nunca devolver el password del adoptante
       let adoptante = null;
@@ -243,11 +307,19 @@ export async function getSolicitudesService() {
         const { usuarioPassword, ...resto } = s.solicitudAdopcion_usuarioAdoptante;
         adoptante = resto;
       }
+
+      // los seguimientos solo importan mientras la solicitud está en seguimiento
+      const enSeguimiento = s.solicitudAadopcion_estado === ESTADOS_SOLICITUD.SEGUIMIENTO;
+      const r = resumen.get(s.solicitudAdopcion_id);
+
       return {
         ...s,
         solicitudAdopcion_usuarioAdoptante: adoptante,
         // el frontend muestra solo los pasos que el backend permite
         siguientesEstados: getSiguientesEstados(s.solicitudAadopcion_estado),
+        proximoSeguimiento: enSeguimiento ? (r?.proximo ?? null) : null,
+        listaParaCerrar:
+          enSeguimiento && !!r && r.total >= PLAZOS_SEGUIMIENTO.length && r.pendientes === 0,
       };
     });
 
@@ -289,6 +361,22 @@ export async function getMisSolicitudesService(usuarioId) {
     return [data, null];
   } catch (error) {
     console.error("Error al obtener las solicitudes del usuario:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
+export async function puedeSolicitarService(usuarioId) {
+  try {
+    const inconclusa = await obtenerSolicitudInconclusa(usuarioId);
+
+    return [
+      inconclusa
+        ? { puedeSolicitar: false, motivo: mensajeSolicitudInconclusa(inconclusa) }
+        : { puedeSolicitar: true, motivo: null },
+      null,
+    ];
+  } catch (error) {
+    console.error("Error al verificar si el usuario puede solicitar:", error);
     return [null, "Error interno del servidor"];
   }
 }

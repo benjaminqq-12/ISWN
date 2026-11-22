@@ -2,6 +2,7 @@ import { AppDataSource } from "../config/configDb.js";
 import EventoSchema from "../entity/evento.entity.js";
 import UsuarioSchema from "../entity/usuario.entity.js";
 import InscripcionSchema from "../entity/inscripcion.entity.js";
+import { enviarCorreoEventoModificado, enviarCorreoEventoEliminado } from "./email.service.js";
 import { In, MoreThanOrEqual, Not } from "typeorm";
 import { fechaActual, validarHorarioEvento, eventoTermino } from "../helpers/evento.helper.js";
 
@@ -9,7 +10,7 @@ export const crearEventoService = async (datosEvento, creadorId) => {
     try {
         return await AppDataSource.transaction(async manager => {
             await manager.query("SELECT pg_advisory_xact_lock(1001)");
-            const { titulo, descripcion, categoria, fechaEvento, horaInicio, horaFin, capacidadMaxima, lugar, organizadorId } = datosEvento;
+            const { titulo, descripcion, categoria, fechaEvento, horaInicio, horaFin, capacidadMaxima, lugar, organizadorId, imagenURL } = datosEvento;
 
             const eventoRepository = manager.getRepository(EventoSchema);
             const usuarioRepository = manager.getRepository(UsuarioSchema);
@@ -52,6 +53,7 @@ export const crearEventoService = async (datosEvento, creadorId) => {
                 horaFin,
                 capacidadMaxima,
                 lugar,
+                imagenURL: imagenURL || null,
                 estado: "Activo",
                 organizador: { usuarioId: organizadorId }
             });
@@ -94,7 +96,8 @@ export const obtenerEventosService = async (filtroCategoria = null) => {
 
 export const actualizarEventoService = async (eventoId, datosActualizados, usuarioId) => {
     try {
-        return await AppDataSource.transaction(async manager => {
+        let eventoAntes = null;
+        const [eventoActualizado, errorTransaccion] = await AppDataSource.transaction(async manager => {
             await manager.query("SELECT pg_advisory_xact_lock(1001)");
             const eventoRepository = manager.getRepository(EventoSchema);
             const usuarioRepository = manager.getRepository(UsuarioSchema);
@@ -102,21 +105,20 @@ export const actualizarEventoService = async (eventoId, datosActualizados, usuar
             const usuario = await usuarioRepository.findOne({ where: { usuarioId } });
             if (!usuario || !usuario.activo) return [null, "Usuario inválido."];
 
-            const existe = await eventoRepository.findOne({ 
-                where: { eventoId }, 
-                lock: { mode: "pessimistic_write" } 
+            const existe = await eventoRepository.findOne({
+                where: { eventoId },
+                lock: { mode: "pessimistic_write" }
             });
-
             if (!existe) return [null, "El evento no existe."];
+
             const evento = await eventoRepository.findOne({
                 where: { eventoId },
                 relations: { organizador: true }
             });
-
-            if(!evento) return [null, "El evento no existe."];
+            if (!evento) return [null, "El evento no existe."];
 
             const esAdmin = usuario.rol === "Admin";
-            if(!esAdmin && evento.organizador?.usuarioId !== usuarioId) {
+            if (!esAdmin && evento.organizador?.usuarioId !== usuarioId) {
                 return [null, "No tienes permisos para modificar este evento."];
             }
 
@@ -124,57 +126,89 @@ export const actualizarEventoService = async (eventoId, datosActualizados, usuar
             if (evento.estado === "Finalizado") return [null, "Los eventos finalizados no se pueden modificar."];
             if (datosActualizados.estado === "Finalizado") return [null, "Usa la acción Finalizar evento."];
 
-            if(datosActualizados.organizadorId) {
-                if(!esAdmin) return [null, "Solo un administrador puede reasignar el organizador del evento."];
+            if (datosActualizados.organizadorId) {
+                if (!esAdmin) return [null, "Solo un administrador puede reasignar el organizador del evento."];
 
                 const nuevoOrganizador = await usuarioRepository.findOne({
-                    where: { 
-                        usuarioId: datosActualizados.organizadorId, 
-                        rol: "Voluntario", activo: true 
-                    }
+                    where: { usuarioId: datosActualizados.organizadorId, rol: "Voluntario", activo: true }
                 });
-
-                if(!nuevoOrganizador) return [null, "El nuevo organizador asignado no es un voluntario activo."];
+                if (!nuevoOrganizador) return [null, "El nuevo organizador asignado no es un voluntario activo."];
 
                 datosActualizados.organizador = { usuarioId: datosActualizados.organizadorId };
                 delete datosActualizados.organizadorId;
             }
 
-            const eventoActualizado = eventoRepository.merge(evento, datosActualizados);
+            eventoAntes = {
+                titulo: evento.titulo,
+                descripcion: evento.descripcion,
+                fechaEvento: evento.fechaEvento,
+                horaInicio: evento.horaInicio,
+                horaFin: evento.horaFin,
+                lugar: evento.lugar,
+                capacidadMaxima: evento.capacidadMaxima,
+            };
 
-            if (["Activo", "Programado"].includes(eventoActualizado.estado)) {
-                const errorHorario = validarHorarioEvento(eventoActualizado);
+            const eventoMerged = eventoRepository.merge(evento, datosActualizados);
 
+            if (["Activo", "Programado"].includes(eventoMerged.estado)) {
+                const errorHorario = validarHorarioEvento(eventoMerged);
                 if (errorHorario) return [null, errorHorario];
-                if (!eventoActualizado.capacidadMaxima) return [null, "Debes indicar la capacidad máxima del evento."];
+                if (!eventoMerged.capacidadMaxima) return [null, "Debes indicar la capacidad máxima del evento."];
 
-                const conflicto = await validarSuperposicion(eventoRepository, eventoActualizado, eventoId);
-
+                const conflicto = await validarSuperposicion(eventoRepository, eventoMerged, eventoId);
                 if (conflicto) return [null, conflicto];
-                eventoActualizado.estado = "Activo";
+                eventoMerged.estado = "Activo";
             }
-            const totalInscritos = await manager.getRepository(InscripcionSchema).count({ 
-                where: { evento: { eventoId } } 
-            });
 
-            if (eventoActualizado.capacidadMaxima !== null && eventoActualizado.capacidadMaxima < totalInscritos) {
+            const totalInscritos = await manager.getRepository(InscripcionSchema).count({
+                where: { evento: { eventoId } }
+            });
+            if (eventoMerged.capacidadMaxima !== null && eventoMerged.capacidadMaxima < totalInscritos) {
                 return [null, "La capacidad no puede ser menor que la cantidad de personas inscritas."];
             }
-            await eventoRepository.save(eventoActualizado);
-            if (eventoActualizado.organizador) {
-                eventoActualizado.organizador = { usuarioId: eventoActualizado.organizador.usuarioId, usuarioNombre: eventoActualizado.organizador.usuarioNombre };
+
+            await eventoRepository.save(eventoMerged);
+            if (eventoMerged.organizador) {
+                eventoMerged.organizador = {
+                    usuarioId: eventoMerged.organizador.usuarioId,
+                    usuarioNombre: eventoMerged.organizador.usuarioNombre
+                };
             }
-            return [eventoActualizado, null];
+            return [eventoMerged, null];
         });
+
+        if (errorTransaccion) return [null, errorTransaccion];
+
+        if (eventoActualizado && eventoActualizado.estado !== "Borrador" && eventoAntes) {
+            const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
+            const inscritos = await inscripcionRepository.find({
+                where: { evento: { eventoId: eventoActualizado.eventoId } },
+                relations: { usuario: true },
+            });
+            const destinatarios = inscritos.map((item) => item.usuario?.usuarioEmail).filter(Boolean);
+
+            await enviarCorreoEventoModificado({
+                destinatarios,
+                eventoAntes,
+                eventoDespues: eventoActualizado,
+                motivo: datosActualizados.motivoModificacion || "",
+            });
+        }
+
+        return [eventoActualizado, null];
     } catch (error) {
         console.error("Error en actualizarEventoService:", error);
         return [null, "Error interno al actualizar el evento."];
     }
 };
 
+
 export const eliminarEventoService = async (eventoId, usuarioId) => {
     try {
-        return await AppDataSource.transaction(async manager => {
+        let destinatarios = [];
+        let eventoEliminado = null;
+
+        const [ok, errorTransaccion] = await AppDataSource.transaction(async manager => {
             const eventoRepository = manager.getRepository(EventoSchema);
             const usuarioRepository = manager.getRepository(UsuarioSchema);
             const inscripcionRepository = manager.getRepository(InscripcionSchema);
@@ -184,18 +218,42 @@ export const eliminarEventoService = async (eventoId, usuarioId) => {
                 return [null, "Solo los administradores pueden eliminar eventos de forma definitiva."];
             }
 
-            const evento = await eventoRepository.findOne({ 
-                where: { eventoId }, 
-                lock: { mode: "pessimistic_write" } 
+            const evento = await eventoRepository.findOne({
+                where: { eventoId },
+                lock: { mode: "pessimistic_write" }
             });
-
             if (!evento) return [null, "El evento no existe."];
+
+            eventoEliminado = {
+                titulo: evento.titulo,
+                fechaEvento: evento.fechaEvento,
+                horaInicio: evento.horaInicio,
+                horaFin: evento.horaFin,
+                lugar: evento.lugar,
+                estado: evento.estado,
+            };
+
+            if (evento.estado !== "Borrador") {
+                const inscritos = await inscripcionRepository.find({
+                    where: { evento: { eventoId } },
+                    relations: { usuario: true },
+                });
+                destinatarios = inscritos.map((item) => item.usuario?.usuarioEmail).filter(Boolean);
+            }
 
             await inscripcionRepository.delete({ evento: { eventoId } });
             await eventoRepository.remove(evento);
 
             return [true, null];
         });
+
+        if (errorTransaccion) return [null, errorTransaccion];
+
+        if (eventoEliminado && eventoEliminado.estado !== "Borrador" && destinatarios.length > 0) {
+            await enviarCorreoEventoEliminado({ destinatarios, evento: eventoEliminado });
+        }
+
+        return [ok, null];
     } catch (error) {
         console.error("Error en eliminarEventoService:", error);
         return [null, "Error interno al eliminar el evento."];
@@ -323,23 +381,17 @@ export const obtenerInscritosPorEventoService = async (eventoId, usuarioSolicita
         const usuarioRepository = AppDataSource.getRepository(UsuarioSchema);
         const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
 
-        const evento = await eventoRepository.findOne({ 
-            where: { eventoId }, 
-            relations: { organizador: true } 
+        const evento = await eventoRepository.findOne({
+            where: { eventoId },
+            relations: { organizador: true }
         });
         if (!evento) return [null, "El evento no existe."];
 
-        const usuario = await usuarioRepository.findOne({ 
-            where: { 
-                usuarioId: usuarioSolicitanteId 
-            }
-        });
-
+        const usuario = await usuarioRepository.findOne({ where: { usuarioId: usuarioSolicitanteId } });
         if (!usuario || !usuario.activo) return [null, "Usuario inválido."];
 
         const esAdmin = usuario?.rol === "Admin";
         const esOrganizador = evento.organizador?.usuarioId === usuarioSolicitanteId;
-
         if (!esAdmin && !esOrganizador) {
             return [null, "No tienes permisos para ver la lista de asistentes de este evento."];
         }
@@ -347,13 +399,16 @@ export const obtenerInscritosPorEventoService = async (eventoId, usuarioSolicita
         const inscritos = await inscripcionRepository.find({
             where: { evento: { eventoId } },
             relations: { usuario: true },
+            order: { fechaInscripcion: "ASC" },
             select: {
-                inscripcionId: true, 
-                fechaInscripcion: true, 
+                inscripcionId: true,
+                fechaInscripcion: true,
                 asistenciaConfirmada: true,
-                usuario: { 
-                    usuarioId: true, 
-                    usuarioNombre: true 
+                usuario: {
+                    usuarioId: true,
+                    usuarioNombre: true,
+                    usuarioEmail: true,
+                    rut: true,
                 }
             }
         });
@@ -365,35 +420,29 @@ export const obtenerInscritosPorEventoService = async (eventoId, usuarioSolicita
     }
 };
 
-export const marcarAsistenciaService = async (eventoId, usuarioId, usuarioSolicitanteId) => {
+export const marcarAsistenciaService = async (eventoId, usuarioId, usuarioSolicitanteId, asistenciaConfirmada = true) => {
     try {
         const eventoRepository = AppDataSource.getRepository(EventoSchema);
         const usuarioRepository = AppDataSource.getRepository(UsuarioSchema);
         const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
 
-        const evento = await eventoRepository.findOne({ 
-            where: { eventoId }, 
-            relations: { organizador: true } 
+        const evento = await eventoRepository.findOne({
+            where: { eventoId },
+            relations: { organizador: true }
         });
-
         if (!evento) return [null, "El evento no existe."];
-        const usuario = await usuarioRepository.findOne({ where: { usuarioId: usuarioSolicitanteId } });
 
+        const usuario = await usuarioRepository.findOne({ where: { usuarioId: usuarioSolicitanteId } });
         if (!usuario?.activo || (usuario.rol !== "Admin" && evento.organizador?.usuarioId !== usuarioSolicitanteId)) {
             return [null, "No tienes permisos para pasar lista en este evento."];
         }
 
         const inscripcion = await inscripcionRepository.findOne({
-            where: { 
-                evento: { eventoId }, 
-                usuario: { usuarioId } 
-            }
+            where: { evento: { eventoId }, usuario: { usuarioId } }
         });
-
         if (!inscripcion) return [null, "El usuario no está inscrito en este evento."];
-        if (inscripcion.asistenciaConfirmada) return [null, "El usuario ya tiene su asistencia confirmada."];
 
-        inscripcion.asistenciaConfirmada = true;
+        inscripcion.asistenciaConfirmada = Boolean(asistenciaConfirmada);
         await inscripcionRepository.save(inscripcion);
 
         return [inscripcion, null];
@@ -402,45 +451,6 @@ export const marcarAsistenciaService = async (eventoId, usuarioId, usuarioSolici
         return [null, "Error interno al registrar la asistencia."];
     }
 };
-
-async function agregarCupos(eventos) {
-    const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
-
-    for (const evento of eventos) {
-        evento.totalInscritos = await inscripcionRepository.count({ 
-            where: { 
-                evento: { eventoId: evento.eventoId } 
-            } 
-        });
-        evento.cuposDisponibles = evento.capacidadMaxima === null ? null : Math.max(0, evento.capacidadMaxima - evento.totalInscritos);
-        if (evento.organizador) {
-            evento.organizador = { 
-                usuarioId: evento.organizador.usuarioId, 
-                usuarioNombre: evento.organizador.usuarioNombre 
-            };
-        }
-    }
-
-    return eventos;
-}
-
-async function validarSuperposicion(eventoRepository, datos, eventoId = null) {
-    const eventos = await eventoRepository.find({
-        where: { 
-            fechaEvento: datos.fechaEvento, 
-            estado: In(["Activo", "Programado"]) 
-        }
-    });
-
-    for (const evento of eventos) {
-        if (evento.eventoId === eventoId) continue;
-        if (evento.horaInicio < datos.horaFin && (!evento.horaFin || evento.horaFin > datos.horaInicio)) {
-            return `El horario se superpone con "${evento.titulo}". Revisa las horas de inicio y término.`;
-        }
-    }
-
-    return null;
-}
 
 export const obtenerOrganizadoresService = async () => {
     try {
@@ -592,3 +602,71 @@ export const publicarEventoService = async (eventoId, datos, usuarioId) => {
         return [null, "No se pudo publicar el evento."];
     }
 };
+
+export const subirImagenEvento = async (archivo) => {
+    try {
+        const formData = new FormData();
+        formData.append('imagen', archivo);
+        const response = await axios.post('/eventos/imagen', formData, {
+            headers: { 'Content-Type': undefined },
+        });
+        return response.data;
+    } catch (error) {
+        return error.response?.data || { status: 'Error', message: 'No se pudo subir la imagen.' };
+    }
+};
+
+const aMinutos = (hora) => {
+    const [horas, minutos] = String(hora).split(":").map(Number);
+    return horas * 60 + minutos;
+};
+
+async function validarSuperposicion(eventoRepository, datos, eventoId = null) {
+    const eventos = await eventoRepository.find({
+        where: {
+            fechaEvento: datos.fechaEvento,
+            estado: In(["Activo", "Programado"])
+        }
+    });
+
+    const MARGEN_MINUTOS = 60;
+    const inicioNuevo = aMinutos(datos.horaInicio);
+    const finNuevo = aMinutos(datos.horaFin);
+
+    for (const evento of eventos) {
+        if (eventoId && evento.eventoId === Number(eventoId)) continue;
+        if (!evento.horaInicio || !evento.horaFin) continue;
+
+        const inicioExistente = aMinutos(evento.horaInicio);
+        const finExistente = aMinutos(evento.horaFin);
+
+        const hayConflicto =
+            inicioNuevo < finExistente + MARGEN_MINUTOS &&
+            finNuevo + MARGEN_MINUTOS > inicioExistente;
+
+        if (hayConflicto) {
+            return `Debe existir al menos 1 hora de diferencia con "${evento.titulo}" (${evento.horaInicio} - ${evento.horaFin}).`;
+        }
+    }
+
+    return null;
+}
+
+async function agregarCupos(eventos) {
+    const inscripcionRepository = AppDataSource.getRepository(InscripcionSchema);
+
+    for (const evento of eventos) {
+        evento.totalInscritos = await inscripcionRepository.count({
+            where: { evento: { eventoId: evento.eventoId } }
+        });
+        evento.cuposDisponibles = evento.capacidadMaxima === null ? null : Math.max(0, evento.capacidadMaxima - evento.totalInscritos);
+        if (evento.organizador) {
+            evento.organizador = {
+                usuarioId: evento.organizador.usuarioId,
+                usuarioNombre: evento.organizador.usuarioNombre
+            };
+        }
+    }
+
+    return eventos;
+}

@@ -3,12 +3,12 @@
 @layer components {
   .navbar { @apply sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur; }
   .navbar .container { @apply mx-auto max-w-6xl px-5 sm:px-8; }
-  .navbar-content { @apply flex min-h-[72px] flex-wrap items-center justify-between gap-x-4 gap-y-3 py-3 lg:flex-nowrap; }
+  .navbar-content { @apply flex min-h-[72px] flex-wrap items-center justify-between gap-x-4 gap-y-3 py-3 xl:flex-nowrap; }
   .nav-brand { @apply flex items-center gap-2.5; }
   .nav-logo { @apply flex size-9 items-center justify-center rounded-full bg-brand font-bold text-white; }
   .nav-title { @apply font-display text-[15px] leading-tight font-bold sm:text-[17px]; }
   .nav-subtitle { @apply mt-0.5 text-[8px] tracking-widest text-forest uppercase; }
-  .nav-links { @apply order-last flex w-full items-center gap-5 overflow-x-auto pb-1 lg:order-none lg:w-auto lg:gap-6 lg:pb-0; }
+  .nav-links { @apply order-last flex w-full items-center gap-5 overflow-x-auto pb-1 xl:order-none xl:w-auto xl:gap-6 xl:pb-0; }
   .nav-link { @apply shrink-0 rounded py-2 text-xs font-medium text-muted transition hover:text-brand; }
   .nav-link.active { @apply text-brand; }
   .nav-controls { @apply flex shrink-0 items-center gap-3; }
@@ -72,7 +72,6 @@
 }
 
 .nav-links {
-  flex: 1 1 auto;
   min-width: 0;
   overflow: visible;
 }

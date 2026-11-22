@@ -1,5 +1,6 @@
 import { Clock3, MapPin } from 'lucide-react';
 import { fechaLocal, fechaActualChile } from '../../helpers/formatoFecha.js';
+import { obtenerImagenEvento, obtenerFallbackEvento } from '../../helpers/eventoImagen.js';
 
 const EventCard = ({ evento, inscrito, procesando, bloqueado, autenticado, onAccion, onDetalles }) => {
     const fecha = fechaLocal(evento.fechaEvento);
@@ -9,6 +10,7 @@ const EventCard = ({ evento, inscrito, procesando, bloqueado, autenticado, onAcc
     const disponible = ['Activo', 'Programado'].includes(evento.estado) && fecha
         && evento.fechaEvento >= fechaActualChile() && evento.horaFin && evento.capacidadMaxima > 0;
     const lleno = evento.cuposDisponibles === 0;
+    const fotoSrc = obtenerImagenEvento(evento);
 
     let textoBoton = 'Inscribirse';
     if (!disponible) textoBoton = 'Inscripciones cerradas';
@@ -18,7 +20,18 @@ const EventCard = ({ evento, inscrito, procesando, bloqueado, autenticado, onAcc
     if (procesando) textoBoton = 'Procesando…';
 
     return (
-        <article className="evento-card">
+        <article className="evento-card evento-tarjeta-horizontal">
+            <div className="evento-tarjeta-foto">
+                <img
+                    src={fotoSrc}
+                    alt={evento.titulo}
+                    onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = obtenerFallbackEvento(evento.categoria);
+                    }}
+                />
+            </div>
+
             <div className="evento-contenido">
                 <div className="evento-cabecera">
                     <div className="evento-datos">

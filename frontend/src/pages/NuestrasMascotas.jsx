@@ -9,7 +9,6 @@ import {
   getMascotas,
   getMascotasInternas,
 } from '../services/mascota.service';
-
 import '../styles/home.css';
 import '../styles/mascotas.css';
 

@@ -30,7 +30,6 @@ export async function iniciarSesionController(req, res) {
       if (tieneHashBcrypt) {
         passwordValida = await bcrypt.compare(usuarioPassword, usuario.usuarioPassword);
       } else if (usuarioPassword === usuario.usuarioPassword) {
-        // Migrate legacy accounts to bcrypt after their first successful login.
         usuario.usuarioPassword = await bcrypt.hash(usuarioPassword, 10);
         await usuarioRepository.save(usuario);
         passwordValida = true;

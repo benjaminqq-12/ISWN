@@ -50,7 +50,8 @@ export const eventoBodyValidation = Joi.object({
     categoria: Joi.string().valid("adopcion", "salud", "taller", "feria").required().messages({
         "any.only": "La categoría debe ser adopcion, salud, taller o feria.",
         "any.required": "La categoría es obligatoria."
-    })
+    }),
+    imagenURL: Joi.string().max(512).allow("", null).optional()
 });
 
 export const eventoUpdateValidation = eventoBodyValidation.fork(
