@@ -10,7 +10,6 @@ import {
   getMascotasInternasController,
   getMascotaController,
   getMascotaInternaController,
-  getMascotasInternasController,
   actualizarMascotaController,
   eliminarMascotaController,
 } from "../controllers/mascota.controller.js";
