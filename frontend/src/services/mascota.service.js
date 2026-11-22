@@ -46,6 +46,31 @@ export async function getMascota(id) {
   }
 }
 
+
+// Obtener todas las mascotas para el personal autorizado.
+export async function getMascotasInternas(token) {
+  try {
+    const response = await axios.get(
+      "/mascotas/internas",
+      token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {}
+    );
+
+    return obtenerDatos(
+      response,
+      "Error al obtener las mascotas internas"
+    );
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      "No se pudieron obtener las mascotas internas."
+    );
+  }
+}
+
+
 // Obtener los datos internos de una mascota.
 export async function getMascotaInterna(id, token) {
   try {

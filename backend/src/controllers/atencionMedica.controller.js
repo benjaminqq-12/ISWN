@@ -1,4 +1,3 @@
-
 "use strict";
 
 import {
@@ -65,7 +64,7 @@ export async function updateAtencionMedicaController(req, res) {
 export async function deleteAtencionMedicaController(req, res) {
     try {
         const [resultado, error] = await deleteAtencionMedicaService(req.params.id);
-
+        
         if (error) {
             const status = error === "La atención médica no existe" ? 404 : 400;
             return handleErrorClient(res, status, error);

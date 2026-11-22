@@ -123,7 +123,17 @@ export default function RootLayout() {
 
           <nav className="nav-links">
             {NAV.map((item) => {
+                 // Atención médica: visible solo para Veterinarios y Administradores
+               if (
+               item.to === "/atencion-medica" &&
+                 !["Veterinario", "Admin"].includes(session?.user?.rol)
+                               ) {
+                       return null;
+                               }
               if (item.to) {
+              
+                                            
+
                 return (
                   <Link
                     key={item.label}
