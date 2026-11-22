@@ -45,6 +45,23 @@ export async function iniciarSesion(usuarioEmail, usuarioPassword) {
   }
 }
 
+/**
+ * Obtiene los datos actuales del usuario autenticado.
+ * Verifica la vigencia del JWT mediante el backend.
+ *
+ * @param {string} token - Token JWT del usuario.
+ * @returns {Promise<Object>} Usuario autenticado.
+ */
+export async function obtenerUsuarioActual(token) {
+  const response = await axios.get("/auth/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.data.data;
+}
+
 export async function crearMascota(mascota, token) {
   const response = await fetch(`${API_URL}/mascotas`, {
     method: "POST",

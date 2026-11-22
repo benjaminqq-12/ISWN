@@ -5,6 +5,11 @@ import {
 } from "../handlers/responseHandlers.js";
 
 import { 
+    crearBorradorService,
+    actualizarBorradorService,
+    publicarEventoService,
+    obtenerOrganizadoresService,
+    obtenerEventosGestionService,
     crearEventoService, 
     obtenerEventosService, 
     actualizarEventoService, 
@@ -14,10 +19,12 @@ import {
     obtenerEventoPorIdService,
     obtenerMisInscripcionesService,
     obtenerInscritosPorEventoService,
-    marcarAsistenciaService,
+    marcarAsistenciaService
 } from "../services/evento.service.js";
 
 import { 
+    eventoBorradorValidation, 
+    publicarEventoValidation,
     eventoBodyValidation, 
     eventoUpdateValidation, 
     idValidation,
@@ -32,7 +39,7 @@ export const crearEvento = async (req, res) => {
         }
 
         const datosEvento = value;
-        const creadorId = req.user?.id || 1;
+        const creadorId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await crearEventoService(datosEvento, creadorId);
 
@@ -77,7 +84,7 @@ export const actualizarEvento = async (req, res) => {
         }
 
         const eventoId = valueId.id;
-        const usuarioId = req.user?.id || 1; 
+        const usuarioId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await actualizarEventoService(eventoId, datosActualizados, usuarioId);
 
@@ -96,7 +103,7 @@ export const eliminarEvento = async (req, res) => {
         if (error) return handleErrorClient(res, 400, "URL inválida", error.details[0].message);
 
         const eventoId = value.id;
-        const usuarioId = req.user?.id || 1; 
+        const usuarioId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await eliminarEventoService(eventoId, usuarioId);
 
@@ -118,9 +125,7 @@ export const inscribirAEvento = async (req, res) => {
         }
 
         const eventoId = value.id;
-
-        // inyeccion temporal del id 2
-        const usuarioId = req.user?.id || 2; 
+        const usuarioId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await inscribirUsuarioService(eventoId, usuarioId);
 
@@ -128,10 +133,10 @@ export const inscribirAEvento = async (req, res) => {
             return handleErrorClient(res, 400, "No se pudo realizar la inscripción", error_servicio);
         }
 
-        return handleSuccess(res, 201, "te has inscrito al evento exitosamente", resultado);
+        return handleSuccess(res, 201, "Te has inscrito al evento exitosamente", resultado);
     } catch (error) {
-        console.error("error en inscribiraevento controller:", error);
-        return handleErrorServer(res, 500, "error interno del servidor", error.message);
+        console.error("Error en inscribirAEvento controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };
 
@@ -140,24 +145,22 @@ export const cancelarInscripcion = async (req, res) => {
         const { error, value } = idValidation.validate(req.params);
         
         if (error) {
-            return handleErrorClient(res, 400, "url invalida", error.details[0].message);
+            return handleErrorClient(res, 400, "URL inválida", error.details[0].message);
         }
 
         const eventoId = value.id;
-
-        // inyeccion temporal del id 2
-        const usuarioId = req.user?.id || 2; 
+        const usuarioId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await desinscribirUsuarioService(eventoId, usuarioId);
 
         if (error_servicio) {
-            return handleErrorClient(res, 400, "no se pudo cancelar la inscripcion", error_servicio);
+            return handleErrorClient(res, 400, "No se pudo cancelar la inscripción", error_servicio);
         }
 
-        return handleSuccess(res, 200, "tu inscripcion ha sido cancelada", resultado);
+        return handleSuccess(res, 200, "Tu inscripción ha sido cancelada", resultado);
     } catch (error) {
-        console.error("error en cancelarinscripcion controller:", error);
-        return handleErrorServer(res, 500, "error interno del servidor", error.message);
+        console.error("Error en cancelarInscripcion controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };
 
@@ -171,22 +174,21 @@ export const obtenerEventoPorId = async (req, res) => {
 
         return handleSuccess(res, 200, "Evento encontrado", resultado);
     } catch (error) {
-        console.error("error en obtenereventoporid controller:", error);
+        console.error("Error en obtenerEventoPorId controller:", error);
         return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };
 
 export const obtenerMisInscripciones = async (req, res) => {
     try {
-        // inyeccion temporal del id 2
-        const usuarioId = req.user?.id || 2; 
+        const usuarioId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await obtenerMisInscripcionesService(usuarioId);
         if (error_servicio) return handleErrorClient(res, 400, "Error al buscar inscripciones", error_servicio);
 
         return handleSuccess(res, 200, "Inscripciones obtenidas", resultado);
     } catch (error) {
-        console.error("error en obtenermisinscripciones controller:", error);
+        console.error("Error en obtenerMisInscripciones controller:", error);
         return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };
@@ -197,16 +199,14 @@ export const obtenerInscritosEvento = async (req, res) => {
         if (error) return handleErrorClient(res, 400, "URL inválida", error.details[0].message);
 
         const eventoId = value.id;
-
-        // inyeccion temporal del id 1 (admin) o 3 (organizador)
-        const solicitanteId = req.user?.id || 1; 
+        const solicitanteId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await obtenerInscritosPorEventoService(eventoId, solicitanteId);
         if (error_servicio) return handleErrorClient(res, 400, "Acceso denegado", error_servicio);
 
         return handleSuccess(res, 200, "Lista de asistentes obtenida", resultado);
     } catch (error) {
-        console.error("error en obtenerinscritosevento controller:", error);
+        console.error("Error en obtenerInscritosEvento controller:", error);
         return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };
@@ -217,16 +217,102 @@ export const marcarAsistencia = async (req, res) => {
         if (error) return handleErrorClient(res, 400, "URL inválida", error.details[0].message);
 
         const { eventoId, usuarioId } = value;
-
-        // inyeccion temporal del id 1 
-        const solicitanteId = req.user?.id || 1; 
+        const solicitanteId = req.user.usuarioId;
 
         const [resultado, error_servicio] = await marcarAsistenciaService(eventoId, usuarioId, solicitanteId);
         if (error_servicio) return handleErrorClient(res, 400, "No se pudo marcar la asistencia", error_servicio);
 
         return handleSuccess(res, 200, "Asistencia registrada correctamente", resultado);
     } catch (error) {
-        console.error("error en marcarasistencia controller:", error);
+        console.error("Error en marcarAsistencia controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
+    }
+};
+
+export const obtenerOrganizadores = async (req, res) => {
+    try {
+        const [resultado, error_servicio] = await obtenerOrganizadoresService();
+        if (error_servicio) return handleErrorServer(res, 500, error_servicio);
+
+        return handleSuccess(res, 200, "Organizadores obtenidos", resultado);
+    } catch (error) {
+        console.error("Error en obtenerOrganizadores controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
+    }
+};
+
+export const obtenerEventosGestion = async (req, res) => {
+    try {
+        const usuario = req.user;
+
+        const [resultado, error_servicio] = await obtenerEventosGestionService(usuario);
+        if (error_servicio) return handleErrorServer(res, 500, error_servicio);
+
+        return handleSuccess(res, 200, "Eventos de gestión obtenidos", resultado);
+    } catch (error) {
+        console.error("Error en obtenerEventosGestion controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
+    }
+};
+
+export const guardarBorradorEvento = async (req, res) => {
+    try {
+        const { error, value } = eventoBorradorValidation.validate(req.body);
+        if (error) return handleErrorClient(res, 400, "Error de validación", error.details[0].message);
+
+        let eventoId = null; 
+        if (req.params.id) {
+            const validacionUrl = idValidation.validate(req.params);
+            if (validacionUrl.error) {
+                return handleErrorClient(res, 400, "URL inválida", validacionUrl.error.details[0].message);
+            }
+            eventoId = validacionUrl.value.id;
+        }
+
+        const usuarioId = req.user.usuarioId;
+        let resultado, error_servicio;
+
+        if (eventoId) {
+            [resultado, error_servicio] = await actualizarBorradorService(eventoId, value, usuarioId);
+        } else {
+            [resultado, error_servicio] = await crearBorradorService(value, usuarioId);
+        }
+
+        if (error_servicio) {
+            return handleErrorClient(res, 400, "No se pudo guardar el borrador", error_servicio);
+        }
+
+        return handleSuccess(res, eventoId ? 200 : 201, "Borrador guardado correctamente", resultado);
+    } catch (error) {
+        console.error("Error en guardarBorradorEvento controller:", error);
+        return handleErrorServer(res, 500, "Error interno del servidor", error.message);
+    }
+};
+
+export const publicarEvento = async (req, res) => {
+    try {
+        const { error, value } = publicarEventoValidation.validate(req.body);
+        if (error) {
+            return handleErrorClient(res, 400, "Error de validación", error.details[0].message);
+        }
+
+        const validacionUrl = idValidation.validate(req.params);
+        if (validacionUrl.error) {
+            return handleErrorClient(res, 400, "URL inválida", validacionUrl.error.details[0].message);
+        }
+        
+        const eventoId = validacionUrl.value.id;
+        const usuarioId = req.user.usuarioId;
+
+        const [resultado, error_servicio] = await publicarEventoService(eventoId, value, usuarioId);
+        
+        if (error_servicio) {
+            return handleErrorClient(res, 400, "No se pudo publicar el evento", error_servicio);
+        }
+
+        return handleSuccess(res, 200, "Evento publicado correctamente", resultado);
+    } catch (error) {
+        console.error("Error en publicarEvento controller:", error);
         return handleErrorServer(res, 500, "Error interno del servidor", error.message);
     }
 };

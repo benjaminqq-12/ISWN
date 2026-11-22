@@ -1,17 +1,107 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+import axios from "./root.service.js";
 
-export async function crearSolicitudAdopcion({ mascotaId, usuarioAdoptanteId }) {
-  const response = await fetch(`${API_URL}/solicitudes-adopcion`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mascotaId, usuarioAdoptanteId }),
-  });
-
-  const body = await response.json();
-
-  if (!response.ok) {
-    throw new Error(body.message || "Error al enviar la solicitud de adopción");
+function authConfig() {
+  try {
+    const token = JSON.parse(localStorage.getItem("sesion") || "null")?.token;
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  } catch {
+    return {};
   }
+}
 
-  return body.data;
+export async function getSolicitudes() {
+  try {
+    const response = await axios.get("/solicitudes-adopcion", authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function crearSolicitudAdopcion({ mascotaId }) {
+  try {
+    const response = await axios.post("/solicitudes-adopcion", { mascotaId }, authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function avanzarEstadoSolicitud(id, { nuevoEstado, detalle, tipoCierre }) {
+  try {
+    const response = await axios.patch(
+      `/solicitudes-adopcion/${id}/estado`,
+      {
+        nuevoEstado,
+        detalle,
+        // el backend rechaza tipoCierre en cualquier paso que no sea cancelar
+        ...(tipoCierre ? { tipoCierre } : {}),
+      },
+      authConfig()
+    );
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function getSeguimientos(solicitudId) {
+  try {
+    const response = await axios.get(`/solicitudes-adopcion/${solicitudId}/seguimientos`, authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function registrarSeguimiento(solicitudId, seguimientoId, { tipo, resultado, detalle }) {
+  try {
+    const response = await axios.patch(
+      `/solicitudes-adopcion/${solicitudId}/seguimientos/${seguimientoId}`,
+      { tipo, resultado, detalle },
+      authConfig()
+    );
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
+}
+
+export async function getMisSolicitudes() {
+  try {
+    const response = await axios.get("/solicitudes-adopcion/mias", authConfig());
+    return response.data?.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message
+        || error.message
+        || "Error de conexión con el servidor.",
+      { cause: error }
+    );
+  }
 }

@@ -17,32 +17,45 @@ const EventoSchema = new EntitySchema({
         },
         descripcion: {
             type: "text",
-            nullable: false,
+            nullable: true,
         },
         categoria: {
             type: "varchar",
             length: 20,
-            nullable: false
+            nullable: true
         },
         fechaEvento: {
             type: "date",
-            nullable: false,
+            nullable: true
         },
         horaInicio: {
             type: "varchar",
             length: 5, // "HH:MM", "14:30"
-            nullable: false,
+            nullable: true
+        },
+        horaFin: {
+            type: "varchar",
+            length: 5,
+            nullable: true,
+        },
+        capacidadMaxima:{
+            type: "int",
+            nullable: true,
         },
         lugar: {
             type: "varchar",
             length: 200,
-            nullable: false,
+            nullable: true,
+        },
+        version: {
+            type: "int",
+            default: 1,
         },
         estado: {
             type: "varchar",
             length: 20, // "Programado", "Finalizado", "Cancelado"
             nullable: false,
-            default: "Programado"
+            default: "Activo"
         }
     },
     relations: {
@@ -50,7 +63,7 @@ const EventoSchema = new EntitySchema({
             target: "Usuario", 
             type: "many-to-one",
             joinColumn: { name: "organizadorId" },
-            nullable: false 
+            nullable: true 
         }
     },
     indices: [

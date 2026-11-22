@@ -1,0 +1,48 @@
+@reference "./index.css";
+
+@layer components {
+  .inventario-pagina { @apply mx-auto max-w-6xl px-5 py-10 sm:px-8; }
+  .inventario-encabezado { @apply mb-7 flex flex-wrap items-center justify-between gap-4; }
+  .inventario-etiqueta { @apply mb-2 text-[10px] font-bold tracking-widest text-brand uppercase; }
+  .inventario-resumen { @apply mb-7 grid gap-4 sm:grid-cols-3; }
+  .inventario-indicador { @apply flex items-center gap-4 rounded-2xl border border-line bg-white p-5 shadow-card; }
+  .inventario-indicador > svg { @apply size-9 shrink-0 rounded-xl bg-peach p-2 text-brand; }
+  .inventario-indicador:nth-child(2) > svg { @apply bg-amber-50 text-amber-700; }
+  .inventario-indicador:nth-child(3) > svg { @apply bg-sage text-forest; }
+  .inventario-indicador > div { @apply flex flex-col gap-1; }
+  .inventario-indicador strong { @apply text-2xl font-bold; }
+  .inventario-indicador span { @apply text-xs text-muted; }
+  .inventario-panel { @apply overflow-hidden rounded-2xl border border-line bg-white shadow-card; }
+  .inventario-filtros { @apply flex flex-wrap items-center justify-between gap-3 border-b border-line p-5; }
+  .inventario-categorias { @apply flex flex-wrap gap-2; }
+  .inventario-filtro { @apply rounded-full border border-line bg-white px-3 py-2 text-xs font-semibold text-muted transition hover:border-brand hover:text-brand; }
+  .inventario-filtro.seleccionado { @apply border-brand bg-peach text-brand; }
+  .inventario-busqueda { @apply flex min-h-10 items-center gap-2 rounded-lg border border-line bg-white px-3 text-muted; }
+  .inventario-busqueda > svg { @apply size-4; }
+  .inventario-busqueda input { @apply min-w-0 max-w-56 bg-transparent text-xs text-ink outline-none; }
+  .inventario-tabla-contenedor { @apply w-full overflow-x-auto; }
+  .inventario-tabla { @apply w-full min-w-[790px] border-collapse text-left text-xs; }
+  .inventario-tabla thead { @apply bg-canvas text-muted; }
+  .inventario-tabla th { @apply px-4 py-3 font-semibold whitespace-nowrap; }
+  .inventario-tabla td { @apply border-t border-line px-4 py-4 align-middle; }
+  .inventario-nombre { @apply block font-semibold text-ink; }
+  .inventario-descripcion { @apply mt-1 block max-w-48 text-[11px] leading-5 text-muted; }
+  .inventario-cantidad { @apply font-semibold whitespace-nowrap; }
+  .inventario-estado { @apply inline-flex rounded-full px-3 py-1 text-[10px] font-semibold whitespace-nowrap; }
+  .inventario-estado.bajo { @apply bg-amber-50 text-amber-800; }
+  .inventario-estado.disponible { @apply bg-sage text-forest; }
+  .inventario-acciones { @apply flex items-center gap-2 whitespace-nowrap; }
+  .inventario-acciones .boton { @apply min-h-8 px-3 py-1.5 text-[11px]; }
+  .inventario-acciones svg { @apply size-3.5; }
+  .inventario-enlace { @apply rounded px-2 py-1 text-[11px] font-semibold text-brand hover:underline; }
+  .inventario-vacio { @apply space-y-4 p-10 text-center text-sm text-muted; }
+  .inventario-aviso { @apply mx-5 mt-4 rounded-lg bg-sage px-4 py-3 text-sm text-forest; }
+  .inventario-ayuda { @apply text-xs leading-6 text-muted; }
+  .inventario-error { @apply rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800; }
+  .inventario-form { @apply grid gap-5; }
+  .inventario-form-grid { @apply grid gap-4 sm:grid-cols-2; }
+  .inventario-campo { @apply flex flex-col gap-2 text-xs font-semibold text-ink; }
+  .inventario-campo input, .inventario-campo select, .inventario-campo textarea { @apply w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm font-normal text-ink outline-none focus:border-brand; }
+  .inventario-campo textarea { @apply resize-y; }
+  .inventario-modal-acciones { @apply flex flex-wrap justify-end gap-3 border-t border-line pt-4; }
+}

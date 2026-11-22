@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import '../styles/mascotas.css';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import SolicitudAdopcionForm from './SolicitudAdopcionForm';
+
 
 const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
 
 const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, ocupado = false }) => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
+  const { session } = useOutletContext() ?? {};
 
   const {
     mascota_nombreCompleto,
@@ -49,9 +51,13 @@ const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, oc
         </Link>
 
         {mascota_estado === "En Refugio" && !solicitudEnviada && (
-          <button className="mascota-adoptar-button" type="button" onClick={() => setMostrarFormulario(true)}>
-            Adoptar
-          </button>
+          session ? (
+            <button className="mascota-adoptar-button" type="button" onClick={() => setMostrarFormulario(true)}>
+              Adoptar
+            </button>
+          ) : (
+            <p className="mascota-card-login-hint">Inicia sesión para solicitar la adopción</p>
+          )
         )}
         {solicitudEnviada && <p>Solicitud enviada ✓</p>}
       </div>

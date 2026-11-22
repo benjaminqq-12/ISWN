@@ -10,6 +10,9 @@ import authRoutes from "./auth.routes.js";
 import voluntarioRoutes from "./voluntario.routes.js";
 import solicitudAdopcionRoutes from "./solicitudAdopcion.routes.js";
 import usuarioRoutes from "./usuario.routes.js";
+import inventarioRoutes from "./inventario.routes.js";
+import historialMascotaRoutes from "./historialMascota.routes.js";
+import seguimientoAdopcionRoutes from "./seguimientoAdopcion.routes.js";
 
 const router = Router();
 
@@ -19,8 +22,12 @@ router
     .use("/eventos", eventoRoutes)
     .use("/auth", authRoutes)
     .use("/mascotas", mascotasRoutes)
+    .use("/mascotas", historialMascotaRoutes)
     .use("/voluntarios", voluntarioRoutes)
     .use("/solicitudes-adopcion", solicitudAdopcionRoutes)
+    .use("/usuarios", usuarioRoutes)
+    .use("/inventario", inventarioRoutes)
+    .use("/solicitudes-adopcion", seguimientoAdopcionRoutes)
     .use("/usuarios", usuarioRoutes);
 
 export default router;
