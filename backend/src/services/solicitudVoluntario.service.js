@@ -1,21 +1,22 @@
+
 "use strict";
 
 import { AppDataSource } from "../config/configDb.js";
 import VoluntarioSchema from "../entity/voluntario.entity.js";
 
 export async function obtenerSolicitudesPendientes() {
-    const repositorio = AppDataSource.getRepository(VoluntarioSchema);
+  const repositorio = AppDataSource.getRepository(VoluntarioSchema);
 
-    const solicitudes = await repositorio.find({
-        where: {
-            estado: "Pendiente",
-        },
-        order: {
-            fechaRegistro: "DESC",
-        },
-    });
+  const solicitudes = await repositorio.find({
+    where: {
+      estado: "Pendiente",
+    },
+    order: {
+      fechaRegistro: "DESC",
+    },
+  });
 
-    return solicitudes;
+  return solicitudes;
 }
 
 export async function cambiarEstadoSolicitud(id, nuevoEstado) {
@@ -29,6 +30,7 @@ export async function cambiarEstadoSolicitud(id, nuevoEstado) {
     };
   }
 
+  // Solo permite modificar solicitudes pendientes.
   const resultado = await repositorio
     .createQueryBuilder()
     .update()
@@ -38,9 +40,18 @@ export async function cambiarEstadoSolicitud(id, nuevoEstado) {
     .execute();
 
   if (resultado.affected === 1) {
+    // Recuperamos los datos para enviar la notificación.
+    const voluntario = await repositorio.findOne({
+      where: { voluntarioId: id },
+    });
+
     return {
       actualizado: true,
       estado: nuevoEstado,
+      voluntario: {
+        nombreCompleto: voluntario.nombreCompleto,
+        email: voluntario.email,
+      },
     };
   }
 
