@@ -10,6 +10,7 @@ const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
 const MascotaPerfil = () => {
   const { id } = useParams();
   const { session } = useOutletContext();
+  const puedeAdoptar = session?.user?.rol === 'Usuario';
   const puedeVerInterno = ['Voluntario', 'Admin'].includes(session?.user?.rol);
   const [mascota, setMascota] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,7 +95,7 @@ const MascotaPerfil = () => {
             {mascota.mascota_estado}
           </span>
           {mascota.mascota_estado === 'En Refugio' && !solicitudEnviada && (
-            session ? (
+            puedeAdoptar ? (
               <button
                 className="mascota-adoptar-button mascota-perfil-adoptar"
                 type="button"
@@ -102,9 +103,9 @@ const MascotaPerfil = () => {
               >
                 Adoptar
               </button>
-            ) : (
+            ) : !session ? (
               <p className="mascota-card-login-hint">Inicia sesión para solicitar la adopción</p>
-            )
+            ) : null
           )}
           {solicitudEnviada && <p className="form-message form-success" role="status">Solicitud enviada ✓</p>}
           <dl className="mascota-perfil-datos">
