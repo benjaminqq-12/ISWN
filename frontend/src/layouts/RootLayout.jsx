@@ -216,6 +216,18 @@ export default function RootLayout() {
           </div>
 
           <nav className="nav-links">
+            {NAV.filter((item) => {
+              // Las opciones públicas siempre se muestran.
+               if (!item.interno) return true;
+
+              // Las opciones internas requieren sesión y rol autorizado.
+                const usuario = session?.user;
+
+              return (
+                usuario?.activo === true &&
+                ["Admin", "Voluntario", "Veterinario"].includes(usuario?.rol)
+              );
+            }).map((item) => {
             {NAV.map((item) => {
                  // Atención médica: visible solo para Veterinarios y Administradores
                if (

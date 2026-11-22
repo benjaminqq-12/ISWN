@@ -155,19 +155,9 @@ function obtenerIdMascota(req, res) {
 // Obtener listado público de mascotas
 export async function getMascotasController(req, res) {
   try {
-    const [mascotas, error] = await getMascotasService();
-
-    if (error) {
-      return handleErrorClient(res, 404, error);
-    }
-
-    return handleSuccess(
-      res,
-      200,
-      "Mascotas encontradas",
-      mascotas
-    );
-
+    const [mascotas, error] = await getMascotasService(true);
+    if (error) return handleErrorClient(res, 404, error);
+    return handleSuccess(res, 200, "Mascotas encontradas", mascotas);
   } catch (error) {
     console.error("Error en getMascotasController:", error);
 
@@ -198,6 +188,14 @@ export async function getMascotaController(req, res) {
     return handleErrorServer(res, 500, error);
   }
 
+  if (mascota.mascota_estado !== "En Refugio") {
+  return handleErrorClient(
+    res,
+    404,
+    "Mascota no encontrada"
+  );
+  }
+
   const mascotaPublica = {
     mascota_id: mascota.mascota_id,
     mascota_nombreCompleto: mascota.mascota_nombreCompleto,
@@ -215,6 +213,26 @@ export async function getMascotaController(req, res) {
     "Mascota encontrada",
     mascotaPublica
   );
+}
+
+export async function getMascotasInternasController(req, res) {
+  try {
+    const [mascotas, error] = await getMascotasService(false);
+
+    if (error) {
+      return handleErrorServer(res, 500, error);
+    }
+
+    return handleSuccess(
+      res,
+      200,
+      "Mascotas internas encontradas",
+      mascotas
+    );
+  } catch (error) {
+    console.error("Error al obtener mascotas internas:", error);
+    return handleErrorServer(res, 500, "Error interno del servidor");
+  }
 }
 
 // Obtener información interna de una mascota
@@ -306,9 +324,8 @@ export async function eliminarMascotaController(req, res) {
   const id = obtenerIdMascota(req, res);
 
   if (id === null) return;
-
   const [mascotaEliminada, error] = await eliminarMascotaService(id);
-
+  
   if (error) {
     if (error === "Mascota no encontrada") {
       return handleErrorClient(res, 404, error);

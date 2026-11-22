@@ -47,7 +47,7 @@ export default function App() {
             <Route path="/usuarios" element={<Usuarios />} />
           </Route>
           <Route path="*" element={<Error404 />} />
-
+          
           <Route path="inventario" element={<RequirePersonal><Inventario /></RequirePersonal>} />
 
           {/* Atención médica - Desarrollo */}

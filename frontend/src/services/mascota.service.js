@@ -46,30 +46,28 @@ export async function getMascota(id) {
   }
 }
 
-
-// Obtener todas las mascotas para el personal autorizado.
-export async function getMascotasInternas(token) {
+// Obtener todas las mascotas con info para internos
+export async function getMascotasInternas() {
   try {
-    const response = await axios.get(
-      "/mascotas/internas",
-      token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : {}
+    const response = await axios.get("/mascotas/interno");
+
+    console.log(
+      "Mascotas internas obtenidas:",
+      response.data
     );
 
-    return obtenerDatos(
-      response,
-      "Error al obtener las mascotas internas"
-    );
+    return response.data.data;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.message ||
-      error.message ||
-      "No se pudieron obtener las mascotas internas."
-    );
+    console.error("Error en getMascotasInternas:", {
+      status: error.response?.status,
+      mensaje: error.response?.data?.message,
+      datos: error.response?.data,
+      url: error.config?.url,
+    });
+
+    throw error;
   }
 }
-
 
 // Obtener los datos internos de una mascota.
 export async function getMascotaInterna(id, token) {
@@ -92,50 +90,6 @@ export async function getMascotaInterna(id, token) {
       "No se pudieron obtener los datos internos."
     );
   }
-}
-
-// Iniciar sesión.
-export async function iniciarSesion(usuarioEmail, usuarioPassword) {
-  try {
-    const response = await axios.post("/auth/login", {
-      usuarioEmail,
-      usuarioPassword
-    });
-
-    const sesion = response.data?.data;
-
-    if (!sesion?.token || !sesion?.user) {
-      throw new Error(
-        response.data?.message ||
-        "El servidor devolvió una sesión inválida."
-      );
-    }
-
-    return sesion;
-  } catch (error) {
-    throw new Error(
-      error.response?.data?.message ||
-      error.message ||
-      "Error de conexión con el servidor."
-    );
-  }
-}
-
-/**
- * Obtiene los datos actuales del usuario autenticado.
- * Verifica la vigencia del JWT mediante el backend.
- *
- * @param {string} token - Token JWT del usuario.
- * @returns {Promise<Object>} Usuario autenticado.
- */
-export async function obtenerUsuarioActual(token) {
-  const response = await axios.get("/auth/me", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return response.data.data;
 }
 
 export async function crearMascota(mascota, token) {

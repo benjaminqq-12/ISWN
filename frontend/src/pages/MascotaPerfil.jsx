@@ -11,15 +11,16 @@ const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
 const MascotaPerfil = () => {
   const { id } = useParams();
   const { session } = useOutletContext();
-
-  // Veterinario y Admin pueden consultar información interna.
-  const puedeVerInterno = ['Voluntario','Veterinario', 'Admin'].includes(session?.user?.rol);
+  const puedeVerInterno =
+    session?.user?.activo === true &&
+    ["Admin", "Voluntario", "Veterinario"].includes(
+      session?.user?.rol
+    );
 
   const puedeAdoptar = session?.user?.rol === 'Usuario';
   const [mascota, setMascota] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [errorInterno, setErrorInterno] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
 
@@ -28,26 +29,25 @@ const MascotaPerfil = () => {
 
     async function cargarMascota() {
       setLoading(true);
-      setError('');
-      setErrorInterno('');
+      setError("");
+      setMascota(null);
 
       try {
-        // Veterinario y Admin consultan primero el perfil interno.
-        // Así pueden ver mascotas en cuarentena u observación.
-        if (puedeVerInterno && session?.token) {
-          const datosInternos = await getMascotaInterna(id, session.token);
+        const datos = puedeVerInterno
+          ? await getMascotaInterna(id, session.token)
+          : await getMascota(id);
 
-          if (vigente) setMascota(datosInternos);
-        } else {
-          // Los demás usuarios solamente consultan el perfil público.
-          const datosPublicos = await getMascota(id);
-
-          if (vigente) setMascota(datosPublicos);
+        if (vigente) {
+          setMascota(datos);
         }
       } catch (errorCarga) {
-        if (vigente) setError(errorCarga.message);
+        if (vigente) {
+          setError(errorCarga.message);
+        }
       } finally {
-        if (vigente) setLoading(false);
+        if (vigente) {
+          setLoading(false);
+        }
       }
     }
 
@@ -74,6 +74,14 @@ const MascotaPerfil = () => {
   }
 
   if (!mascota) return null;
+  
+  if (!puedeVerInterno && mascota.mascota_estado !== "En Refugio") {
+    return (
+      <p className="container mascota-feedback" role="alert">
+        Esta mascota no está disponible para consulta pública.
+      </p>
+    );
+  }
 
   const estadoClass = `estado-${mascota.mascota_estado
     .normalize('NFD')
@@ -169,12 +177,6 @@ const MascotaPerfil = () => {
                 </div>
               </dl>
             </div>
-          )}
-
-          {errorInterno && (
-            <p className="form-message form-error" role="alert">
-              {errorInterno}
-            </p>
           )}
         </div>
       </div>

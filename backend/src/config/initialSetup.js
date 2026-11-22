@@ -141,72 +141,74 @@ export async function createAnimales() {
     console.error("Error al crear mascotas:", error);
   }
 }
+
 export async function createVeterinarioPrueba() {
-    try {
-        const correo = "veterinario.prueba@iswn.cl";
-        const password = "VetPrueba2026!";
+  try {
+    const correo = "MartinP@gmail.com";
 
-        await AppDataSource.transaction(async (manager) => {
-            const usuarioRepository = manager.getRepository(UsuarioSchema);
-            const veterinarioRepository = manager.getRepository(VeterinarioSchema);
+    await AppDataSource.transaction(async (manager) => {
+      const usuarioRepository = manager.getRepository(UsuarioSchema);
+      const veterinarioRepository = manager.getRepository(VeterinarioSchema);
 
-            // Buscar si el usuario ya existe
-            let usuario = await usuarioRepository.findOne({
-                where: { usuarioEmail: correo }
-            });
+      // Buscar si Martín ya está registrado.
+      let usuario = await usuarioRepository.findOne({
+        where: {
+          usuarioEmail: correo
+        }
+      });
 
-            // Si existe, comprobar que tenga el rol correcto
-            if (usuario && usuario.rol !== "Veterinario") {
-                throw new Error(
-                    "El correo de prueba ya pertenece a un usuario con otro rol"
-                );
-            }
+      // Evitar utilizar una cuenta con otro rol.
+      if (usuario && usuario.rol !== "Veterinario") {
+        throw new Error(
+          "El correo de Martín pertenece a un usuario con otro rol"
+        );
+      }
 
-            // Crear el usuario si todavía no existe
-            // Crear o actualizar el usuario veterinario
-if (!usuario) {
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    usuario = usuarioRepository.create({
-        rut: "99.999.999-9",
-        usuarioNombre: "Dr. Sebastián Valdés Riquelme",
-        usuarioEmail: correo,
-        usuarioPassword: passwordHash,
-        rol: "Veterinario",
-        activo: true
-    });
-
-    usuario = await usuarioRepository.save(usuario);
-} else {
-    usuario.usuarioNombre = "Dr. Sebastián Valdés Riquelme";
-    await usuarioRepository.save(usuario);
-}
-            // Comprobar si ya tiene un registro veterinario
-            const veterinarioExistente = await veterinarioRepository.findOne({
-                where: {
-                    usuario: {
-                        usuarioId: usuario.usuarioId
-                    }
-                }
-            });
-
-            // Crear la asociación si todavía no existe
-            if (!veterinarioExistente) {
-                const veterinario = veterinarioRepository.create({
-                    veterinario_especialidad: "Medicina veterinaria",
-                    veterinario_registroProfesional: null,
-                    usuario: usuario
-                });
-
-                await veterinarioRepository.save(veterinario);
-            }
+      // Crear al usuario únicamente si no existe.
+      if (!usuario) {
+        usuario = usuarioRepository.create({
+          rut: "24222222-4",
+          usuarioNombre: "Martin Pescador",
+          usuarioEmail: correo,
+          usuarioPassword: await bcrypt.hash("password123", 10),
+          rol: "Veterinario",
+          activo: true
         });
 
-        console.log("=> Veterinario de prueba creado o ya existente");
-        console.log("=> Correo: veterinario.prueba@iswn.cl");
-        console.log("=> Contraseña: VetPrueba2026!");
+        usuario = await usuarioRepository.save(usuario);
 
-    } catch (error) {
-        console.error("Error al crear veterinario de prueba:", error);
-    }
+        console.log("* => Usuario veterinario Martín Pescador creado");
+      }
+
+      // Comprobar si tiene un registro en la entidad Veterinario.
+      const veterinarioExistente = await veterinarioRepository.findOne({
+        where: {
+          usuario: {
+            usuarioId: usuario.usuarioId
+          }
+        }
+      });
+
+      // Crear la asociación solamente cuando no exista.
+      if (!veterinarioExistente) {
+        const veterinario = veterinarioRepository.create({
+          veterinario_especialidad: "Medicina veterinaria",
+          veterinario_registroProfesional: null,
+          usuario: usuario
+        });
+
+        await veterinarioRepository.save(veterinario);
+
+        console.log("* => Registro profesional asociado a Martín");
+      }
+    });
+
+    console.log("=> Veterinario inicial verificado correctamente");
+
+  } catch (error) {
+    console.error(
+      "Error al inicializar veterinario:",
+      error
+    );
+  }
 }
