@@ -9,6 +9,7 @@ import eventoRoutes from "./evento.routes.js";
 import mascotasRoutes from "./mascota.routes.js";
 import authRoutes from "./auth.routes.js";
 import voluntarioRoutes from "./voluntario.routes.js";
+import solicitudVoluntarioRoutes from "./solicitudVoluntario.routes.js";
 import solicitudAdopcionRoutes from "./solicitudAdopcion.routes.js";
 import usuarioRoutes from "./usuario.routes.js";
 import solicitudEstadoRoutes from "./solicitudEstado.routes.js";
@@ -30,6 +31,7 @@ router
     .use("/mascotas", mascotasRoutes)
     .use("/mascotas", historialMascotaRoutes)
     .use("/voluntarios", voluntarioRoutes)
+    .use("/solicitudes-voluntarios", solicitudVoluntarioRoutes)
     .use("/solicitudes-adopcion", solicitudAdopcionRoutes)
     .use("/usuarios", usuarioRoutes)
     .use("/solicitudes-estado", solicitudEstadoRoutes)

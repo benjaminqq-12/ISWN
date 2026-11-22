@@ -1,6 +1,6 @@
 "use strict";
 
-import { promises as dns } from "node:dns";
+import { Resolver } from "node:dns/promises";
 import {
     crearVoluntario,
     obtenerVoluntarios,
@@ -8,6 +8,13 @@ import {
     obtenerVoluntarioPorRut,
     obtenerVoluntarioPorEmail,
 } from "../services/voluntario.service.js";
+
+const resolverCorreo = new Resolver();
+
+resolverCorreo.setServers([
+  "8.8.8.8",
+  "1.1.1.1",
+]);
 
 function normalizarEmail(email) { return email.trim().toLowerCase(); }
 function validarFormatoEmail(email) {
@@ -17,18 +24,18 @@ function validarFormatoEmail(email) {
 async function verificarDominioEmail(email) {
     const dominio = email.split("@")[1];
     try {
-        const mx = await dns.resolveMx(dominio);
+        const mx = await resolverCorreo.resolveMx(dominio);
         return mx.some(registro => registro.exchange && registro.exchange !== ".");
     } catch (error) {
         if (error.code === "ENOTFOUND") return false;
         if (error.code !== "ENODATA") throw error;
         try {
-            if ((await dns.resolve4(dominio)).length > 0) return true;
+            if ((await resolverCorreo.resolve4(dominio)).length > 0) return true;
         } catch (error4) {
             if (!["ENODATA", "ENOTFOUND"].includes(error4.code)) throw error4;
         }
         try {
-            return (await dns.resolve6(dominio)).length > 0;
+            return (await resolverCorreo.resolve6(dominio)).length > 0;
         } catch (error6) {
             if (["ENODATA", "ENOTFOUND"].includes(error6.code)) return false;
             throw error6;
