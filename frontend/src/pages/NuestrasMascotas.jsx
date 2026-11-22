@@ -204,71 +204,212 @@ const NuestrasMascotas = () => {
           className="mascota-form"
           onSubmit={handleSubmit}
         >
-          <h2>{mascotaEnEdicion ? "Editar mascota" : "Datos de la mascota"}</h2>
+          {/* Encabezado del formulario */}
+          <div className="mascota-form-header">
+            <h2>
+              {mascotaEnEdicion
+                ? "Editar mascota"
+                : "Registrar nueva mascota"}
+            </h2>
+
+            <p>
+              Completa la información de la mascota para
+              mantener actualizado su registro en el refugio.
+            </p>
+          </div>
+
+          {/* Campos del formulario */}
           <div className="mascota-form-grid">
+
             <label>
               Nombre
-              <input name="mascota_nombreCompleto" maxLength="100" defaultValue={mascotaEnEdicion?.mascota_nombreCompleto ?? ""} required />
+              <input
+                name="mascota_nombreCompleto"
+                type="text"
+                placeholder="Ej: Rocky"
+                maxLength="100"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_nombreCompleto ?? ""
+                }
+                required
+              />
             </label>
+
             <label>
               Especie
-              <select name="mascota_especie" defaultValue={mascotaEnEdicion?.mascota_especie ?? ""} required>
-                <option value="" disabled>Seleccione una especie</option>
+              <select
+                name="mascota_especie"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_especie ?? ""
+                }
+                required
+              >
+                <option value="" disabled>
+                  Seleccione una especie
+                </option>
                 <option value="Perro">Perro</option>
                 <option value="Gato">Gato</option>
               </select>
             </label>
+
             <label>
               Edad (años)
-              <input name="mascota_edad" type="number" min="0" step="1" defaultValue={mascotaEnEdicion?.mascota_edad ?? ""} required />
+              <input
+                name="mascota_edad"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Ej: 3"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_edad ?? ""
+                }
+                required
+              />
             </label>
+
             <label>
               Peso (kg)
-              <input name="mascota_peso" type="number" min="0.01" step="any" defaultValue={mascotaEnEdicion?.mascota_peso ?? ""} required />
+              <input
+                name="mascota_peso"
+                type="number"
+                min="0.01"
+                step="any"
+                placeholder="Ej: 12.5"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_peso ?? ""
+                }
+                required
+              />
             </label>
+
             <label>
               Sexo
-              <select name="mascota_sexo" defaultValue={mascotaEnEdicion?.mascota_sexo ?? ""} required>
-                <option value="" disabled>Seleccione el sexo</option>
+              <select
+                name="mascota_sexo"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_sexo ?? ""
+                }
+                required
+              >
+                <option value="" disabled>
+                  Seleccione el sexo
+                </option>
                 <option value="Hembra">Hembra</option>
                 <option value="Macho">Macho</option>
               </select>
             </label>
+
             <label>
               Vía de ingreso
-              <select name="mascota_viaIngreso" defaultValue={mascotaEnEdicion?.mascota_viaIngreso ?? ""} required>
-                <option value="" disabled>Seleccione una vía de ingreso</option>
-                <option value="Entrega voluntaria">Entrega voluntaria</option>
-                <option value="Decomiso municipal">Decomiso municipal</option>
+              <select
+                name="mascota_viaIngreso"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_viaIngreso ?? ""
+                }
+                required
+              >
+                <option value="" disabled>
+                  Seleccione una vía de ingreso
+                </option>
+                <option value="Entrega voluntaria">
+                  Entrega voluntaria
+                </option>
+                <option value="Decomiso municipal">
+                  Decomiso municipal
+                </option>
                 <option value="Traslado">Traslado</option>
-                <option value="Hallazgo en vía pública">Hallazgo en vía pública</option>
+                <option value="Hallazgo en vía pública">
+                  Hallazgo en vía pública
+                </option>
               </select>
             </label>
+
             <label>
               Estado
-              <select name="mascota_estado" defaultValue={mascotaEnEdicion?.mascota_estado ?? ""} required>
-                <option value="" disabled>Seleccione un estado</option>
+              <select
+                name="mascota_estado"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_estado ?? ""
+                }
+                required
+              >
+                <option value="" disabled>
+                  Seleccione un estado
+                </option>
                 <option value="En Refugio">En Refugio</option>
-                <option value="En Tratamiento">En Tratamiento</option>
-                <option value="En Cuarentena">En Cuarentena</option>
-                <option value="En Observación">En Observación</option>
+                <option value="En Tratamiento">
+                  En Tratamiento
+                </option>
+                <option value="En Cuarentena">
+                  En Cuarentena
+                </option>
+                <option value="En Observación">
+                  En Observación
+                </option>
                 <option value="Adoptada">Adoptada</option>
               </select>
             </label>
+
             <label>
               URL de foto (opcional)
-              <input name="mascota_fotoURL" type="url" placeholder="https://ejemplo.com/foto.jpg" maxLength="512" defaultValue={mascotaEnEdicion?.mascota_fotoURL ?? ""} />
+              <input
+                name="mascota_fotoURL"
+                type="url"
+                placeholder="https://ejemplo.com/foto.jpg"
+                maxLength="512"
+                defaultValue={
+                  mascotaEnEdicion?.mascota_fotoURL ?? ""
+                }
+              />
             </label>
+
             <label className="mascota-form-wide">
               Antecedentes previos
-              <textarea name="mascota_antecedentesPrevios" maxLength="512" rows="3" defaultValue={mascotaEnEdicion?.mascota_antecedentesPrevios ?? ""} required />
+              <textarea
+                name="mascota_antecedentesPrevios"
+                maxLength="512"
+                rows="4"
+                placeholder="Describe antecedentes relevantes de la mascota..."
+                defaultValue={
+                  mascotaEnEdicion?.mascota_antecedentesPrevios ?? ""
+                }
+                required
+              />
             </label>
           </div>
-          {formError && <p className="form-message form-error" role="alert">{formError}</p>}
-          {successMessage && <p className="form-message form-success" role="status">{successMessage}</p>}
-          <button className="btn-primary" type="submit" disabled={saving}>
-            {saving ? "Guardando..." : mascotaEnEdicion ? "Guardar cambios" : "Guardar mascota"}
+
+          {/* Mensajes de resultado */}
+          {formError && (
+            <p
+              className="form-message form-error"
+              role="alert"
+            >
+              {formError}
+            </p>
+          )}
+
+          {successMessage && (
+            <p
+              className="form-message form-success"
+              role="status"
+            >
+              {successMessage}
+            </p>
+          )}
+
+          {/* Botón principal */}
+          <button
+            className="boton boton-primario mascota-form-submit"
+            type="submit"
+            disabled={saving}
+          >
+            {saving
+              ? "Guardando..."
+              : mascotaEnEdicion
+                ? "Guardar cambios"
+                : "Guardar mascota"}
           </button>
+
         </form>
       )}
 
