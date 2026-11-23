@@ -3,6 +3,7 @@
 
 import { AppDataSource } from "../config/configDb.js";
 import MascotaSchema from "../entity/mascota.entity.js";
+import { ESTADO_MASCOTA } from "../config/estadosMascota.js";
 
 export async function getMascotasService(soloPublicas = false) {
   try {
@@ -64,8 +65,8 @@ export async function getMascotaPublicaService(id) {
     }
 
     // Impedir el acceso público si tiene restricción sanitaria
-    if (ESTADOS_RESTRINGIDOS.includes(mascota.mascota_estado)) {
-      return [null, "Mascota no disponible públicamente"];
+    if (mascota.mascota_estado !== ESTADO_MASCOTA.EN_REFUGIO) {
+      return [null, "Mascota no encontrada"];
     }
 
     return [mascota, null];
@@ -81,7 +82,10 @@ export async function crearMascotaService(datosMascota) {
   try {
     const mascotaRepository = AppDataSource.getRepository(MascotaSchema);
 
-    const mascota = mascotaRepository.create(datosMascota);
+    const mascota = mascotaRepository.create({
+      ...datosMascota,
+      mascota_fotoURL: datosMascota.mascota_fotoURL || null,
+    });
     const mascotaGuardada = await mascotaRepository.save(mascota);
 
     return [mascotaGuardada, null];
@@ -107,6 +111,7 @@ export async function actualizarMascotaService(id, datosActualizados) {
 
     // El estado sanitario no se puede modificar mediante el PUT general
     if (
+      Object.hasOwn(datosActualizados, "mascota_estado") &&
       datosActualizados.mascota_estado !== mascotaExistente.mascota_estado
     ) {
       return [
@@ -115,9 +120,16 @@ export async function actualizarMascotaService(id, datosActualizados) {
       ];
     }
 
+    const datosNormalizados = { ...datosActualizados };
+
+    if (Object.hasOwn(datosNormalizados, "mascota_fotoURL")) {
+      datosNormalizados.mascota_fotoURL =
+        datosNormalizados.mascota_fotoURL || null;
+    }
+
     const mascotaActualizada = Object.assign(
       mascotaExistente,
-      datosActualizados
+      datosNormalizados
     );
 
     const mascotaGuardada = await mascotaRepository.save(

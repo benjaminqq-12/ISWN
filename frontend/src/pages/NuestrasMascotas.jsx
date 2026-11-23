@@ -226,7 +226,9 @@ const NuestrasMascotas = () => {
                 name="mascota_nombreCompleto"
                 type="text"
                 placeholder="Ej: Rocky"
-                maxLength="100"
+                maxLength={100}
+                pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]{3,}"
+                title="El nombre debe tener al menos 3 letras y solo puede contener letras y espacios."
                 defaultValue={
                   mascotaEnEdicion?.mascota_nombreCompleto ?? ""
                 }

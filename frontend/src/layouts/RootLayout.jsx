@@ -228,7 +228,6 @@ export default function RootLayout() {
                 ["Admin", "Voluntario", "Veterinario"].includes(usuario?.rol)
               );
             }).map((item) => {
-            {NAV.map((item) => {
                  // Atención médica: visible solo para Veterinarios y Administradores
                if (
                item.to === "/atencion-medica" &&
