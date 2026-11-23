@@ -49,7 +49,7 @@ export async function getMascota(id) {
 // Obtener todas las mascotas con info para internos
 export async function getMascotasInternas() {
   try {
-    const response = await axios.get("/mascotas/interno");
+    const response = await axios.get("/mascotas/internas");
 
     console.log(
       "Mascotas internas obtenidas:",
