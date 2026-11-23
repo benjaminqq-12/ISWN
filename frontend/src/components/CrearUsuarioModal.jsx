@@ -4,7 +4,7 @@ import '../styles/mascotas.css';
 import '../styles/usuarios.css';
 
 // Debe coincidir con ROLES_CREABLES_POR_ADMIN del backend (src/config/roles.js)
-const ROLES = ["Usuario", "Admin"];
+const ROLES = ["Usuario", "Voluntario", "Admin"];
 
 const CrearUsuarioModal = ({ onClose, onSuccess }) => {
   const [rut, setRut] = useState('');
