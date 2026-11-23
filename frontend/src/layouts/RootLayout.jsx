@@ -216,7 +216,7 @@ export default function RootLayout() {
           </div>
 
           <nav className="nav-links">
-            {NAV.filter((item) => {
+            {navItems.filter((item) => {
               // Las opciones públicas siempre se muestran.
                if (!item.interno) return true;
 
