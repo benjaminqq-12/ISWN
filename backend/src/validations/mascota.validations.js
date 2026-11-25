@@ -19,13 +19,14 @@ export const mascotaBodyValidation = Joi.object({
   mascota_nombreCompleto: Joi.string()
     .trim()
     .max(100)
-    .pattern(/^(?=(?:.*\p{L}){3,})[\p{L}\s-]+$/u)
+    .pattern(/^(?=(?:.*\p{L}){3,})(?=(?:\D*\d){0,2}\D*$)[\p{L}\d\s-]+$/u)
     .required()
     .messages({
       "string.base": "El nombre debe ser un texto.",
       "string.empty": "El nombre no puede estar vacío.",
+      "string.min": "El nombre debe tener al menos 3 letras.",
       "string.max": "El nombre no debe exceder los 100 caracteres.",
-      "string.pattern.base": "El nombre debe componerse de letras.",
+      "string.pattern.base": "El nombre debe componerse de al menos 3 letras y un máximo de 2 números.",
       "any.required": "El nombre de la mascota es obligatorio.",
     }),
 

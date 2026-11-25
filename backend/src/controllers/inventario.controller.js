@@ -1,9 +1,6 @@
 "use strict";
 import { handleSuccess, handleErrorClient, handleErrorServer } from "../handlers/responseHandlers.js";
-import {
-  CATEGORIAS, crearInventarioSchema, editarInventarioSchema,
-  movimientoInventarioSchema, validar,
-} from "../validations/inventario.validations.js";
+
 import {
   listarInventarioService,
   obtenerItemInventarioService,
@@ -12,34 +9,48 @@ import {
   registrarMovimientoInventarioService,
   listarMovimientosInventarioService,
 } from "../services/inventario.service.js";
+import {
+  CATEGORIAS,
+  crearInventarioSchema, 
+  editarInventarioSchema, 
+  movimientoInventarioSchema,
+  inventarioIdValidation,
+  inventarioQueryValidation,
+} from "../validations/inventario.validations.js";
 
 // Los controladores, como los de Mascotas, validan la solicitud y traducen
 // [datos, error] de la capa de servicio a respuestas HTTP comunes del proyecto.
 function obtenerIdInventario(req, res) {
-  const texto = req.params.id;
-  const id = Number(texto);
-  if (typeof texto !== "string" || !/^\d+$/.test(texto) || !Number.isSafeInteger(id) || id < 1 || id > 2147483647) {
-    handleErrorClient(res, 400, "El ID del artículo debe ser un entero positivo válido");
+  const { error, value } = inventarioIdValidation.validate(req.params);
+  if (error) {
+    handleErrorClient(res, 400, error.details[0].message);
     return null;
   }
-  return id;
+  return value.id;
 }
-
+  
+//transforma los errores del service en respuestas HTTP 
 function responderError(res, error) {
   if (error.status >= 500) return handleErrorServer(res, error.status, error.message);
-  return handleErrorClient(res, error.status, error.message);
+  return handleErrorClient(res, error.status, error.message, error.message, error.details ?? {});
 }
 
+//formatea los mensajes devueltos por joi 
+function responderValidacion(res, error) {
+  return handleErrorClient(res, 400, "Datos inválidos", error.details.map((detalle) => detalle.message).join("; "));
+}
+
+//consultar inventario
 export async function listarInventario(req, res) {
-  const { categoria } = req.query;
-  if (categoria !== undefined && (typeof categoria !== "string" || !CATEGORIAS.includes(categoria))) {
-    return handleErrorClient(res, 400, "Categoría de inventario no permitida");
-  }
-  const [items, error] = await listarInventarioService(categoria);
-  if (error) return responderError(res, error);
+  const { error, value } = inventarioQueryValidation.validate(req.query);
+  if (error) return responderValidacion(res, error);
+  
+  const [items, fallo] = await listarInventarioService(value.categoria);
+  if (fallo) return responderError(res, fallo);
   return handleSuccess(res, 200, "Inventario obtenido", items);
 }
 
+//consultar item por id
 export async function obtenerItemInventario(req, res) {
   const id = obtenerIdInventario(req, res);
   if (id === null) return;
@@ -48,31 +59,41 @@ export async function obtenerItemInventario(req, res) {
   return handleSuccess(res, 200, "Artículo obtenido", item);
 }
 
+//registrar item
 export async function crearItemInventario(req, res) {
-  const datos = validar(crearInventarioSchema, req.body);
-  if (datos.error) return handleErrorClient(res, 400, "Datos inválidos", datos.error);
-  const [item, error] = await crearItemInventarioService(datos.value, req.user.usuarioId);
-  if (error) return responderError(res, error);
+  const { error, value } = crearInventarioSchema.validate(req.body, {
+    abortEarly: false,
+  });
+  if (error) return responderValidacion(res, error);
+ 
+  const [item, fallo] = await crearItemInventarioService(value, req.user.usuarioId);
+  if (fallo) return responderError(res, fallo);
   return handleSuccess(res, 201, "Artículo registrado", item);
 }
 
+//editar item
 export async function editarItemInventario(req, res) {
   const id = obtenerIdInventario(req, res);
   if (id === null) return;
-  const datos = validar(editarInventarioSchema, req.body);
-  if (datos.error) return handleErrorClient(res, 400, "Datos inválidos", datos.error);
-  const [item, error] = await editarItemInventarioService(id, datos.value);
-  if (error) return responderError(res, error);
+  const {error, value} = editarInventarioSchema.validate(req.body, {
+    abortEarly: false,
+  });
+
+  if (error) return responderValidacion(res, error);
+  const [item, fallo] = await editarItemInventarioService(id, value);
+  if (fallo) return responderError(res, fallo);
   return handleSuccess(res, 200, "Artículo actualizado", item);
 }
 
 export async function registrarMovimientoInventario(req, res) {
   const id = obtenerIdInventario(req, res);
   if (id === null) return;
-  const datos = validar(movimientoInventarioSchema, req.body);
-  if (datos.error) return handleErrorClient(res, 400, "Datos inválidos", datos.error);
-  const [movimiento, error] = await registrarMovimientoInventarioService(id, datos.value, req.user.usuarioId);
-  if (error) return responderError(res, error);
+  const {error, value} = movimientoInventarioSchema.validate(req.body, {
+    abortEarly: false,
+  });
+  if (error) return responderValidacion(res, error);
+  const [movimiento, fallo] = await registrarMovimientoInventarioService(id, value, req.user.usuarioId);
+  if (fallo) return responderError(res, fallo);
   return handleSuccess(res, 201, "Movimiento registrado", movimiento);
 }
 

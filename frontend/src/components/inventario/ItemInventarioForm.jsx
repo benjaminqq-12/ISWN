@@ -8,33 +8,66 @@ const CATEGORIAS = [
   { value: "oficina", label: "Artículos de oficina" },
 ];
 
+const PATRON_NOMBRE =
+  /^(?=(?:.*\p{L}){4,})(?=(?:\D*\d){0,2}\D*$)[\p{L}\d -]+$/u;
+
+const PATRON_TEXTO =
+  /^(?=.*\p{L})[\p{L}\d -]+$/u;
+
 // Patrón del registro de Mascotas: form nativo + FormData + defaultValue.
 // Solo necesitamos estado para alternar el campo Perros/Gatos al cambiar categoría.
 export default function ItemInventarioForm({ item, guardando, error, onSubmit, onClose }) {
   const [categoria, setCategoria] = useState(item?.categoria ?? "comida");
+  const [errorLocal, setErrorLocal] = useState(null);
 
-  function enviar(event) {
-    event.preventDefault();
-    const datos = new FormData(event.currentTarget);
-    const payload = {
-      nombre: String(datos.get("nombre") || "").trim(),
-      categoria,
-      subcategoria: categoria === "comida" ? datos.get("subcategoria") : null,
-      unidad: datos.get("unidad"),
-      descripcion: String(datos.get("descripcion") || "").trim(),
-      stockMinimo: Number(datos.get("stockMinimo")),
-    };
-    if (!item) payload.stockInicial = Number(datos.get("stockInicial"));
-    onSubmit(payload);
+ function enviar(event) {
+  event.preventDefault();
+  setErrorLocal("");
+
+  const datos = new FormData(event.currentTarget);
+
+  const payload = {
+    nombre: String(datos.get("nombre") || "").trim(),
+    categoria,
+    subcategoria: categoria === "comida"
+      ? datos.get("subcategoria")
+      : null,
+    unidad: datos.get("unidad"),
+    descripcion: String(datos.get("descripcion") || "").trim(),
+    stockMinimo: Number(datos.get("stockMinimo")),
+  };
+
+  if (!item) {
+    payload.stockInicial = Number(datos.get("stockInicial"));
   }
+
+  if (!PATRON_NOMBRE.test(payload.nombre)) {
+    setErrorLocal(
+      "El nombre debe contener al menos 4 letras, máximo 2 números y solo permite espacios y guiones."
+    );
+    return;
+  }
+
+  if (
+    payload.descripcion &&
+    !PATRON_TEXTO.test(payload.descripcion)
+  ) {
+    setErrorLocal(
+      "La descripción debe contener letras y solo puede incluir números, espacios y guiones."
+    );
+    return;
+  }
+
+  onSubmit(payload);
+}
 
   return (
     <Modal titulo={item ? "Editar artículo" : "Agregar artículo al inventario"}
       onClose={onClose} bloqueado={guardando}>
       <form className="inventario-form" onSubmit={enviar}>
         <label className="inventario-campo">Nombre del artículo
-          <input name="nombre" type="text" minLength={2} maxLength={120} required
-            defaultValue={item?.nombre ?? ""} placeholder="Ej.: Alimento seco para gatos" />
+          <input name="nombre" type="text" minLength={4} maxLength={120} required
+            defaultValue={item?.nombre ?? ""} placeholder="Ej.: Alimento seco para gatos" title="Mínimo 4 letras y máximo 2 números." />
         </label>
         <div className="inventario-form-grid">
           <label className="inventario-campo">Categoría
@@ -59,12 +92,12 @@ export default function ItemInventarioForm({ item, guardando, error, onSubmit, o
             </select>
           </label>
           <label className="inventario-campo">Stock mínimo
-            <input name="stockMinimo" type="number" min="0" max="9999999999.99" step="0.01" required
-              defaultValue={item?.stockMinimo ?? 0} />
+            <input name="stockMinimo" type="number" min="1" max="9999999999.99" step="0.01" required
+              defaultValue={item?.stockMinimo ?? 1} />
           </label>
           {!item && (
             <label className="inventario-campo">Stock inicial
-              <input name="stockInicial" type="number" min="0" max="9999999999.99" step="0.01" required defaultValue="0" />
+              <input name="stockInicial" type="number" min="1" max="9999999999.99" step="0.01" required defaultValue="1" />
             </label>
           )}
         </div>

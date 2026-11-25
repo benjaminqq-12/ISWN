@@ -3,14 +3,29 @@ import Modal from "../eventos/Modal.jsx";
 
 export default function MovimientoInventarioForm({ item, guardando, error, onSubmit, onClose }) {
   const [tipo, setTipo] = useState("entrada");
+  const [errorLocal, setErrorLocal] = useState(null);
+
 
   function enviar(event) {
     event.preventDefault();
+    setErrorLocal("");
     const datos = new FormData(event.currentTarget);
+    const cantidad = Number(datos.get("cantidad"));
+    const motivo = String(datos.get("motivo") || "").trim();
+
+    if(!Number.isFinite(cantidad) || cantidad <= 0) {
+      setErrorLocal("La cantidad debe ser un número positivo.");
+      return;
+    }
+
+    if(!/\p{L}/u.test(motivo)) {
+      setErrorLocal("El motivo debe contener al menos una letra.");
+      return;
+    }
     onSubmit({
       tipo,
-      cantidad: Number(datos.get("cantidad")),
-      motivo: String(datos.get("motivo") || "").trim(),
+      cantidad, 
+      motivo, 
     });
   }
 
@@ -33,6 +48,7 @@ export default function MovimientoInventarioForm({ item, guardando, error, onSub
           <input name="motivo" type="text" required minLength={3} maxLength={200}
             placeholder={tipo === "entrada" ? "Ej.: Donación de alimentos" : "Ej.: Alimentación diaria"} />
         </label>
+        {errorLocal && (<p className="inventario-error" role="alert">{errorLocal}</p>)}
         {error && <p className="inventario-error" role="alert">{error}</p>}
         <div className="inventario-modal-acciones">
           <button type="button" className="boton boton-secundario" onClick={onClose} disabled={guardando}>Cancelar</button>

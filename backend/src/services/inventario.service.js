@@ -4,10 +4,16 @@ import InventarioSchema from "../entity/inventario.entity.js";
 import MovimientoInventarioSchema from "../entity/movimientoInventario.entity.js";
 
 // Se añade status solo para distinguir 404/409 de errores de servidor.
-const fallo = (status, message) => ({ status, message });
+const fallo = (status, message, details = {}) => ({ status, message, details });
+
 function errorServidor(operacion, error) {
   console.error(`Error en inventario (${operacion}):`, error);
   return [null, fallo(500, "Error interno del servidor")];
+}
+
+function aCentavos(valor) {
+  const [entero, decimal = ""] = String(valor).split(".");
+  return Number(entero) * 100 + Number((decimal + "00").slice(0,2));
 }
 
 export async function listarInventarioService(categoria) {
@@ -38,16 +44,14 @@ export async function crearItemInventarioService(datos, usuarioId) {
     const item = await AppDataSource.transaction(async (manager) => {
       const inventario = manager.getRepository(InventarioSchema);
       const guardado = await inventario.save(inventario.create({ ...campos, stock: stockInicial }));
-      if (stockInicial > 0) {
-        const movimientos = manager.getRepository(MovimientoInventarioSchema);
-        await movimientos.save(movimientos.create({
-          inventario: { inventarioId: guardado.inventarioId },
-          usuario: { usuarioId },
-          tipo: "entrada",
-          cantidad: stockInicial,
-          motivo: "Stock inicial",
-        }));
-      }
+      const movimiento = manager.getRepository(MovimientoInventarioSchema);
+      await movimiento.save(movimiento.create({
+        inventario: { inventarioId: guardado.inventarioId },
+        usuario: { usuarioId },
+        tipo: "entrada",
+        cantidad: stockInicial,
+        motivo: "Stock inicial",
+      }));
       return guardado;
     });
     return [item, null];
@@ -71,39 +75,128 @@ export async function editarItemInventarioService(id, datos) {
 }
 
 export async function registrarMovimientoInventarioService(id, datos, usuarioId) {
-  const { tipo, cantidad, motivo } = datos;
+  const { tipo, cantidad, motivo, confirmarBajoStock = false } = datos;
   const delta = (tipo === "salida" ? -cantidad : cantidad).toFixed(2);
 
   try {
-    // UPDATE condicional atómico. Evita stock negativo incluso bajo concurrencia.
-    // Registro de movimiento y actualización quedan en la MISMA transacción.
     return await AppDataSource.transaction(async (manager) => {
+
+      // Bloquear el artículo durante la operación.
+      const filas = await manager.query(
+        `SELECT "stock", "stockMinimo", "unidad"
+         FROM "Inventario"
+         WHERE "inventarioId" = $1
+         FOR UPDATE`,
+        [id]
+      );
+
+      if (filas.length === 0) {
+        return [null, fallo(404, "Artículo no encontrado")];
+      }
+
+      const articulo = filas[0];
+
+      const stockCentavos = aCentavos(articulo.stock);
+      const minimoCentavos = aCentavos(articulo.stockMinimo);
+      const cantidadCentavos = aCentavos(cantidad);
+
+      // Reglas específicas para las salidas.
+      if (tipo === "salida") {
+
+        // No permitir retirar más de lo disponible.
+        if (cantidadCentavos > stockCentavos) {
+          return [
+            null,
+            fallo(
+              409,
+              `No se cuenta con stock suficiente para realizar la salida. Disponible: ${articulo.stock} ${articulo.unidad}.`,
+              {
+                codigo: "STOCK_INSUFICIENTE",
+                stockActual: articulo.stock,
+                stockMinimo: articulo.stockMinimo,
+              }
+            ),
+          ];
+        }
+
+        const restanteCentavos =
+          stockCentavos - cantidadCentavos;
+
+        // Solicitar confirmación si queda stock mínimo,
+        // bajo el mínimo o se agota completamente.
+        if (
+          restanteCentavos <= minimoCentavos &&
+          !confirmarBajoStock
+        ) {
+          const mensaje = restanteCentavos === 0
+            ? "Esta salida dejará el artículo sin stock. ¿Deseas continuar?"
+            : restanteCentavos === minimoCentavos
+              ? "Esta salida dejará el artículo exactamente en su stock mínimo. ¿Deseas continuar?"
+              : "Esta salida dejará el artículo por debajo de su stock mínimo. ¿Deseas continuar?";
+
+          return [
+            null,
+            fallo(409, mensaje, {
+              codigo: "CONFIRMACION_REQUERIDA",
+              stockActual: articulo.stock,
+              stockMinimo: articulo.stockMinimo,
+              stockRestante: (
+                restanteCentavos / 100
+              ).toFixed(2),
+            }),
+          ];
+        }
+      }
+
+      // Actualizar existencias dentro de la transacción.
+      const delta = tipo === "salida"
+        ? `-${cantidad}`
+        : String(cantidad);
+
       const actualizados = await manager.query(
         `UPDATE "Inventario"
-         SET "stock" = "stock" + $1::numeric, "actualizadoEn" = NOW()
+         SET "stock" = "stock" + $1::numeric,
+             "actualizadoEn" = NOW()
          WHERE "inventarioId" = $2
-           AND "stock" + $1::numeric BETWEEN 0 AND 9999999999.99
-         RETURNING "inventarioId", "stock"`,
-        [delta, id],
+           AND "stock" + $1::numeric
+               BETWEEN 0 AND 9999999999.99
+         RETURNING "stock"`,
+        [delta, id]
       );
+
       if (actualizados.length === 0) {
-        const existe = await manager.getRepository(InventarioSchema).exist({
-          where: { inventarioId: id },
-        });
-        return [null, existe
-          ? fallo(409, "El movimiento excede el stock disponible")
-          : fallo(404, "Artículo no encontrado")];
+        return [
+          null,
+          fallo(
+            409,
+            "El movimiento supera el límite permitido de existencias"
+          ),
+        ];
       }
-      const repository = manager.getRepository(MovimientoInventarioSchema);
-      const movimiento = await repository.save(repository.create({
-        inventario: { inventarioId: id },
-        usuario: { usuarioId },
-        tipo,
-        cantidad,
-        motivo,
-      }));
-      return [{ movimiento, stockActual: actualizados[0].stock }, null];
+
+      // Guardar el historial del movimiento.
+      const repository =
+        manager.getRepository(MovimientoInventarioSchema);
+
+      const movimiento = await repository.save(
+        repository.create({
+          inventario: { inventarioId: id },
+          usuario: { usuarioId },
+          tipo,
+          cantidad,
+          motivo,
+        })
+      );
+
+      return [
+        {
+          movimiento,
+          stockActual: actualizados[0].stock,
+        },
+        null,
+      ];
     });
+
   } catch (error) {
     return errorServidor("registrar movimiento", error);
   }

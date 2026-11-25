@@ -87,20 +87,128 @@ export default function Inventario() {
     }
   }
 
-  async function guardarMovimiento(datos) {
-    setGuardando(true);
-    setErrorFormulario("");
-    try {
-      await registrarMovimiento(token, modal.item.inventarioId, datos);
-      setModal(null);
-      setMensaje("Movimiento registrado correctamente.");
-      await recargar();
-    } catch (e) {
-      setErrorFormulario(mensajeErrorInventario(e));
-    } finally {
-      setGuardando(false);
+ async function guardarMovimiento(datos) {
+  setErrorFormulario("");
+
+  const item = modal.item;
+  const stockActual = Number(item.stock);
+  const stockMinimo = Number(item.stockMinimo);
+
+  let confirmado = false;
+
+  // Comprobaciones visuales antes de enviar la solicitud.
+  if (datos.tipo === "salida") {
+
+    // Avisar cuando no hay stock suficiente.
+    if (datos.cantidad > stockActual) {
+      setErrorFormulario(
+        `No se cuenta con stock suficiente para realizar la salida. Disponible: ${stockActual} ${item.unidad}.`
+      );
+      return;
+    }
+
+    const restante = Number(
+      (stockActual - datos.cantidad).toFixed(2)
+    );
+
+    // Pedir confirmación cuando se alcanza o supera
+    // el límite mínimo permitido.
+    if (restante <= stockMinimo) {
+      let aviso;
+
+      if (restante === 0) {
+        aviso =
+          `Esta salida dejará a "${item.nombre}" sin stock. ` +
+          "¿Deseas continuar?";
+      } else if (restante === stockMinimo) {
+        aviso =
+          `Esta salida dejará a "${item.nombre}" exactamente ` +
+          `en su stock mínimo de ${stockMinimo} ${item.unidad}. ` +
+          "¿Deseas continuar?";
+      } else {
+        aviso =
+          `Esta salida dejará a "${item.nombre}" por debajo ` +
+          `del stock mínimo de ${stockMinimo} ${item.unidad}. ` +
+          `Quedarán ${restante} ${item.unidad}. ` +
+          "¿Deseas continuar?";
+      }
+
+      confirmado = window.confirm(aviso);
+
+      if (!confirmado) return;
     }
   }
+
+  setGuardando(true);
+
+  const ejecutarMovimiento = (confirmacion) =>
+    registrarMovimiento(
+      token,
+      item.inventarioId,
+      {
+        ...datos,
+        confirmarBajoStock: confirmacion,
+      }
+    );
+
+  try {
+    try {
+      await ejecutarMovimiento(confirmado);
+
+    } catch (errorMovimiento) {
+      const detalles =
+        errorMovimiento.response?.data?.details;
+
+      // Si el stock cambió desde que se abrió el modal,
+      // el backend puede exigir una nueva confirmación.
+      if (
+        errorMovimiento.response?.status === 409 &&
+        detalles?.codigo === "CONFIRMACION_REQUERIDA" &&
+        !confirmado
+      ) {
+        const aceptar = window.confirm(
+          errorMovimiento.response.data.message
+        );
+
+        if (!aceptar) return;
+
+        await ejecutarMovimiento(true);
+      } else {
+        throw errorMovimiento;
+      }
+    }
+
+    setModal(null);
+    setMensaje("Movimiento registrado correctamente.");
+    await recargar();
+
+  } catch (errorMovimiento) {
+
+    // Actualizar la información del modal cuando
+    // el servidor informa que el stock cambió.
+    const detalles =
+      errorMovimiento.response?.data?.details;
+
+    if (detalles?.stockActual !== undefined) {
+      setModal((actual) => ({
+        ...actual,
+        item: {
+          ...actual.item,
+          stock: detalles.stockActual,
+          stockMinimo:
+            detalles.stockMinimo ?? actual.item.stockMinimo,
+        },
+      }));
+    }
+
+    setErrorFormulario(
+      mensajeErrorInventario(errorMovimiento)
+    );
+
+  } finally {
+    setGuardando(false);
+  }
+}
 
   return (
     <section className="inventario-pagina" aria-labelledby="inventario-titulo">
