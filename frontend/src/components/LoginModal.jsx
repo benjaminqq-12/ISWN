@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
+import '../styles/registro.css';
 
-export default function LoginModal({ onClose, onSubmit, error, loading }) {
+export default function LoginModal({ onClose, onSubmit, onRegistro, error, loading }) {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -39,6 +40,11 @@ export default function LoginModal({ onClose, onSubmit, error, loading }) {
         <button className="login-submit" type="submit" disabled={loading}>
           {loading ? "Ingresando..." : "Ingresar"}
         </button>
+        {onRegistro && (
+          <button className="login-link" type="button" onClick={onRegistro}>
+            ¿No tienes cuenta? Regístrate
+          </button>
+        )}
       </form>
     </dialog>
   );

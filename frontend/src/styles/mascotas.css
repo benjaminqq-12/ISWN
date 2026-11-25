@@ -34,21 +34,152 @@
 
 .mascotas-page .btn-primary:hover { background: var(--primary-hover); }
 
+/* Contenedor principal */
 .mascota-form {
-  margin: 1rem 0;
-  scroll-margin-top: 1rem;
-  padding: 1.5rem;
+  margin: 1.5rem 0;
+  scroll-margin-top: 1.5rem;
+  padding: 1.75rem;
+
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
+
+  box-shadow: 0 4px 18px -9px rgba(71, 45, 24, 0.18);
 }
 
-.mascota-form h2 { margin-bottom: 1rem; font-size: 1.125rem; }
-.mascota-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-.mascota-form-wide { grid-column: 1 / -1; }
-.mascota-form select,
-.mascota-form textarea { resize: vertical; }
-.mascota-form > .btn-primary { margin-top: 1rem; }
+/* Encabezado */
+.mascota-form-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mascota-form-header h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.mascota-form-header p {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* Distribución de los campos */
+.mascota-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.25rem;
+  row-gap: 1.5rem;
+}
+
+/* Etiquetas de los campos */
+.mascota-form-grid > label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Entradas, selectores y áreas de texto */
+.mascota-form-grid input,
+.mascota-form-grid select,
+.mascota-form-grid textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+
+  background-color: #faf7f2;
+  color: var(--text-main);
+
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Textos de ejemplo */
+.mascota-form-grid input::placeholder,
+.mascota-form-grid textarea::placeholder {
+  color: #998b81;
+  opacity: 1;
+}
+
+/* Selecciones */
+.mascota-form-grid select {
+  cursor: pointer;
+}
+
+/* Efecto al seleccionar un campo */
+.mascota-form-grid input:focus,
+.mascota-form-grid select:focus,
+.mascota-form-grid textarea:focus {
+  border-color: var(--primary);
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px rgba(198, 90, 52, 0.08);
+}
+
+/* Campo que utiliza ambas columnas */
+.mascota-form-wide {
+  grid-column: 1 / -1;
+}
+
+/* Área de antecedentes */
+.mascota-form-grid textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Botón de guardar */
+.mascota-form .mascota-form-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 44px;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+
+  border: none;
+  border-radius: 8px;
+
+  background: var(--primary);
+  color: #ffffff;
+
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+
+.mascota-form .mascota-form-submit:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.mascota-form .mascota-form-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 .form-message { margin-top: 1rem; font-size: 0.875rem; }
 .form-error { color: #b3261e; }
 .form-success { color: #1a7f4b; }
@@ -359,6 +490,9 @@
   .mascotas-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 155px), 1fr)); gap: 0.75rem; }
   .mascota-form-grid { grid-template-columns: 1fr; }
   .mascota-form-wide { grid-column: auto; }
+  .mascota-form { padding: 1.25rem; border-radius: 14px; }
+  .mascota-form-grid { row-gap: 1.125rem; }
+  .mascota-form-header h2 { font-size: 1.125rem; }
   .mascota-perfil-main { grid-template-columns: 1fr; gap: 1.25rem; }
   .mascota-perfil-image { max-width: none; }
   .mascota-perfil-info h1 { font-size: 1.5rem; }
@@ -384,4 +518,59 @@
 .estado-adoptada {
   background: #e3f0ff;
   color: #1b5fb4;
+}
+
+.modal-content.adopcion-modal {
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.adopcion-modal label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.adopcion-modal input,
+.adopcion-modal textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.adopcion-modal textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.adopcion-ayuda {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.adopcion-modal .modal-actions button {
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.adopcion-modal .modal-actions button[type="submit"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.adopcion-modal .modal-actions a.adopcion-link-primario {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
 }

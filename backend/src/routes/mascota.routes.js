@@ -1,150 +1,57 @@
-
 "use strict";
 
 import { Router } from "express";
-import passport from "passport";
 
 import {
   crearMascotaController,
   getMascotasController,
+  getMascotasInternasController,
   getMascotaController,
   getMascotaInternaController,
-  getMascotasInternasController,
   actualizarMascotaController,
   eliminarMascotaController,
 } from "../controllers/mascota.controller.js";
 
+import { authenticateJwt } from "../middlewares/authentication.middleware.js";
+import { authorizeRoles } from "../middlewares/authorization.middleware.js";
+
 const router = Router();
 
-// ==========================================
-// LISTADO PÚBLICO DE MASCOTAS
-// ==========================================
+// Middleware compartido para personal interno.
+const soloPersonal = [
+  authenticateJwt,
+  authorizeRoles("Admin", "Voluntario", "Veterinario"),
+];
+
+// Consultar mascotas públicas.
 router.get("/", getMascotasController);
 
-// ==========================================
-// LISTADO INTERNO DE MASCOTAS
-// Voluntario, Veterinario y Administrador
-// ==========================================
+// Consultar todas las mascotas para personal interno.
+console.log("Ruta /mascotas/internas registrada");
+
 router.get(
   "/internas",
-  passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
-    if (
-      !req.user?.activo ||
-      !["Voluntario", "Veterinario", "Admin"].includes(req.user.rol)
-    ) {
-      return res.status(403).json({
-        status: "Client error",
-        message:
-          "Solo Voluntarios, Veterinarios y Administradores pueden consultar todas las mascotas",
-      });
-    }
-
-    return next();
-  },
+  soloPersonal,
   getMascotasInternasController
 );
 
-
-// ==========================================
-// CONSULTA INTERNA DE UNA MASCOTA
-// Voluntario, Veterinario y Administrador
-// ==========================================
+// Consultar información interna de una mascota específica.
 router.get(
   "/:id/interno",
-  passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
-    if (
-      !req.user?.activo ||
-      !["Voluntario", "Veterinario", "Admin"].includes(req.user.rol)
-    ) {
-      return res.status(403).json({
-        status: "Client error",
-        message:
-          "Solo Voluntarios, Veterinarios y Administradores pueden ver los datos internos",
-      });
-    }
-
-    return next();
-  },
+  soloPersonal,
   getMascotaInternaController
 );
 
-// ==========================================
-// CONSULTA PÚBLICA DE UNA MASCOTA
-// ==========================================
+// Consultar perfil público de una mascota.
 router.get("/:id", getMascotaController);
 
-// ==========================================
-// CREAR MASCOTA
-// Voluntario y Administrador
-// ==========================================
-router.post(
-  "/",
-  passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
-    if (
-      !req.user?.activo ||
-      !["Voluntario", "Admin"].includes(req.user.rol)
-    ) {
-      return res.status(403).json({
-        status: "Client error",
-        message:
-          "Solo Voluntarios y Administradores pueden crear mascotas",
-      });
-    }
+// Registrar una mascota.
+router.post("/", soloPersonal, crearMascotaController);
 
-    return next();
-  },
-  crearMascotaController
-);
+// Actualizar una mascota.
+router.put("/:id", soloPersonal, actualizarMascotaController);
 
-// ==========================================
-// ACTUALIZAR MASCOTA
-// Voluntario y Administrador
-// ==========================================
-router.put(
-  "/:id",
-  passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
-    if (
-      !req.user?.activo ||
-      !["Voluntario", "Admin"].includes(req.user.rol)
-    ) {
-      return res.status(403).json({
-        status: "Client error",
-        message:
-          "Solo Voluntarios y Administradores pueden actualizar mascotas",
-      });
-    }
-
-    return next();
-  },
-  actualizarMascotaController
-);
-
-// ==========================================
-// ELIMINAR MASCOTA
-// Voluntario y Administrador
-// ==========================================
-router.delete(
-  "/:id",
-  passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
-    if (
-      !req.user?.activo ||
-      !["Voluntario", "Admin"].includes(req.user.rol)
-    ) {
-      return res.status(403).json({
-        status: "Client error",
-        message:
-          "Solo Voluntarios y Administradores pueden eliminar mascotas",
-      });
-    }
-
-    return next();
-  },
-  eliminarMascotaController
-);
+// Eliminar una mascota.
+router.delete("/:id", soloPersonal, eliminarMascotaController);
 
 export default router;

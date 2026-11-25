@@ -9,6 +9,7 @@ import eventoRoutes from "./evento.routes.js";
 import mascotasRoutes from "./mascota.routes.js";
 import authRoutes from "./auth.routes.js";
 import voluntarioRoutes from "./voluntario.routes.js";
+import solicitudVoluntarioRoutes from "./solicitudVoluntario.routes.js";
 import solicitudAdopcionRoutes from "./solicitudAdopcion.routes.js";
 import usuarioRoutes from "./usuario.routes.js";
 import solicitudEstadoRoutes from "./solicitudEstado.routes.js";
@@ -18,6 +19,7 @@ import vacunaRoutes from "./vacuna.routes.js";
 import inventarioRoutes from "./inventario.routes.js";
 import historialMascotaRoutes from "./historialMascota.routes.js";
 import seguimientoAdopcionRoutes from "./seguimientoAdopcion.routes.js";
+import activacionVoluntarioRoutes from "./activacionVoluntario.routes.js";
 
 const router = Router();
 
@@ -30,6 +32,7 @@ router
     .use("/mascotas", mascotasRoutes)
     .use("/mascotas", historialMascotaRoutes)
     .use("/voluntarios", voluntarioRoutes)
+    .use("/solicitudes-voluntarios", solicitudVoluntarioRoutes)
     .use("/solicitudes-adopcion", solicitudAdopcionRoutes)
     .use("/usuarios", usuarioRoutes)
     .use("/solicitudes-estado", solicitudEstadoRoutes)
@@ -37,6 +40,7 @@ router
     .use("/calendario-sanidad", calendarioSanidadRoutes)
     .use("/inventario", inventarioRoutes)
     .use("/solicitudes-adopcion", seguimientoAdopcionRoutes)
-    .use("/usuarios", usuarioRoutes);
+    .use("/usuarios", usuarioRoutes)
+    .use("/activacion-voluntario", activacionVoluntarioRoutes);
 
 export default router;

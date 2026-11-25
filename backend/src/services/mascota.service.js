@@ -4,39 +4,23 @@
 import { AppDataSource } from "../config/configDb.js";
 import MascotaSchema from "../entity/mascota.entity.js";
 
-// Estados que impiden mostrar una mascota públicamente
-const ESTADOS_RESTRINGIDOS = [
-  "En Cuarentena",
-  "En Observación",
-];
-
-export async function getMascotasService() {
+export async function getMascotasService(soloPublicas = false) {
   try {
     const mascotaRepository = AppDataSource.getRepository(MascotaSchema);
-
-    const mascotas = await mascotaRepository.find();
-
-    // Filtrar mascotas con restricciones sanitarias
-    const mascotasPublicas = mascotas
-      .filter((mascota) =>
-        !ESTADOS_RESTRINGIDOS.includes(mascota.mascota_estado)
-      )
-      .map((mascota) => ({
-        mascota_id: mascota.mascota_id,
-        mascota_nombreCompleto: mascota.mascota_nombreCompleto,
-        mascota_especie: mascota.mascota_especie,
-        mascota_edad: mascota.mascota_edad,
-        mascota_peso: mascota.mascota_peso,
-        mascota_sexo: mascota.mascota_sexo,
-        mascota_estado: mascota.mascota_estado,
-        mascota_fotoURL: mascota.mascota_fotoURL,
-      }));
-
-    console.log(
-      "Mascotas visibles públicamente: %d",
-      mascotasPublicas.length
-    );
-
+    const mascotas = await mascotaRepository.find({
+      where: soloPublicas ? { mascota_estado: "En Refugio"} : {},
+    });
+    
+    const mascotasPublicas = mascotas.map((mascota) => ({
+      mascota_id: mascota.mascota_id,
+      mascota_nombreCompleto: mascota.mascota_nombreCompleto,
+      mascota_especie: mascota.mascota_especie,
+      mascota_edad: mascota.mascota_edad,
+      mascota_peso: mascota.mascota_peso,
+      mascota_sexo: mascota.mascota_sexo,
+      mascota_estado: mascota.mascota_estado,
+      mascota_fotoURL: mascota.mascota_fotoURL,
+    }));
     return [mascotasPublicas, null];
 
   } catch (error) {

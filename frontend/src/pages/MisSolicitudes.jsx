@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getMisSolicitudes } from '../services/solicitudAdopcion.service';
+import { getMisSolicitudes, descargarComprobante } from '../services/solicitudAdopcion.service';
 
 import '../styles/home.css';
 import '../styles/solicitudes.css';
@@ -21,6 +21,8 @@ const MisSolicitudes = () => {
   const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [descargandoId, setDescargandoId] = useState(null);
+  const [errorDescarga, setErrorDescarga] = useState(null);
 
   useEffect(() => {
     let vigente = true;
@@ -43,12 +45,27 @@ const MisSolicitudes = () => {
     };
   }, []);
 
+  const handleDescargar = async (solicitud) => {
+    setDescargandoId(solicitud.solicitudAdopcion_id);
+    setErrorDescarga(null);
+
+    try {
+      await descargarComprobante(solicitud.solicitudAdopcion_id);
+    } catch (err) {
+      setErrorDescarga(err.message);
+    } finally {
+      setDescargandoId(null);
+    }
+  };
+
   if (loading) return <p className="container">Cargando tus solicitudes...</p>;
   if (error) return <p className="container" role="alert">{error}</p>;
 
   return (
     <div className="container">
       <h1>Mis solicitudes de adopción</h1>
+
+      {errorDescarga && <p className="form-error" role="alert">{errorDescarga}</p>}
 
       {solicitudes.length === 0 ? (
         <p>
@@ -63,6 +80,7 @@ const MisSolicitudes = () => {
                 <th>Mascota</th>
                 <th>Fecha</th>
                 <th>Estado</th>
+                <th>Comprobante</th>
               </tr>
             </thead>
             <tbody>
@@ -83,6 +101,18 @@ const MisSolicitudes = () => {
                       {s.solicitudAdopcion_tipoCierre && (
                         <span className="sol-tipo-cierre">{s.solicitudAdopcion_tipoCierre}</span>
                       )}
+                    </td>
+                    <td>
+                      {s.solicitudAadopcion_estado === "Adoptada" ? (
+                        <button
+                          type="button"
+                          className="btn-secondary-sm"
+                          onClick={() => handleDescargar(s)}
+                          disabled={descargandoId === s.solicitudAdopcion_id}
+                        >
+                          {descargandoId === s.solicitudAdopcion_id ? "Generando..." : "Descargar comprobante"}
+                        </button>
+                      ) : "—"}
                     </td>
                   </tr>
                 );

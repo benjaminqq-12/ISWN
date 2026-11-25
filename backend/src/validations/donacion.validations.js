@@ -34,6 +34,7 @@ export const donacionBodyValidation = Joi.object({
     }),
     mensaje: Joi.string().trim().max(2000).allow("", null).default(""),
     animalId: Joi.number().integer().positive().allow(null).default(null),
+    animalIds: Joi.array().items(Joi.number().integer().positive()).unique().default([]),
     aceptaMensual: Joi.boolean().when("modalidad", {
         is: "Mensual",
         then: Joi.valid(true).required().messages({
@@ -41,12 +42,13 @@ export const donacionBodyValidation = Joi.object({
             "any.required": "Debes autorizar el aporte mensual para continuar.",
         }),
         otherwise: Joi.optional(),
-    }),
+    })
 }).custom((datos, helpers) => {
-    if (datos.categoriaDonacion === "Insumo" && datos.animalId) {
+    const tieneAnimales = Boolean(datos.animalId) || (Array.isArray(datos.anmimalesIds) && datos.animalesIds.length > 0);
+    if (datos.categoriaDonacion === "Insumo" && tieneAnimales) {
         return helpers.message("El apadrinamiento corresponde únicamente a una suscripción mensual en dinero.");
     }
-    if (datos.animalId && datos.modalidad !== "Mensual") {
+    if (tieneAnimales && datos.modalidad !== "Mensual") {
         return helpers.message("El apadrinamiento corresponde a una suscripción mensual.");
     }
     return datos;
