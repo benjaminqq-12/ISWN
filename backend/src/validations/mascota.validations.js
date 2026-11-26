@@ -175,15 +175,26 @@ const idLote = Joi.number()
   .integer()
   .min(1)
   .max(2147483647)
-  .strict()
-  .required();
+  .strict();
 
 const idsLote = Joi.array()
   .items(idLote)
   .min(1)
   .max(50)
   .unique()
-  .required();
+  .required()
+  .messages({
+    "array.base":
+      "Debes enviar un arreglo de identificadores.",
+    "array.min":
+      "Debes seleccionar al menos una mascota.",
+    "array.max":
+      "No puedes seleccionar más de 50 mascotas.",
+    "array.unique":
+      "No se permiten identificadores duplicados.",
+    "any.required":
+      "Debes indicar las mascotas seleccionadas.",
+  });
 
 // Revisar qué mascotas tienen registros asociados.
 export const mascotaLoteValidation = Joi.object({
@@ -198,7 +209,7 @@ export const mascotaLoteEliminarValidation = Joi.object({
   confirmadas: Joi.array()
     .items(
       Joi.object({
-        id: idLote,
+        id: idLote.required(),
         firma: Joi.string()
           .hex()
           .length(64)
@@ -209,10 +220,7 @@ export const mascotaLoteEliminarValidation = Joi.object({
     .default([]),
 
   // Mascotas que el usuario decidió conservar.
-  canceladas: Joi.array()
-    .items(idLote)
-    .unique()
-    .default([]),
+  canceladas: Joi.array().items(idLote).unique().default([]),
 
 }).custom((datos, helpers) => {
   const idsSeleccionados = new Set(datos.ids);
@@ -231,13 +239,7 @@ export const mascotaLoteEliminarValidation = Joi.object({
     );
   }
 
-  if (
-    datos.canceladas.some(
-      (id) =>
-        !idsSeleccionados.has(id) ||
-        idsConfirmados.has(id)
-    )
-  ) {
+  if (datos.canceladas.some((id) => !idsSeleccionados.has(id) || idsConfirmados.has(id))) {
     return helpers.message(
       "Una mascota no puede estar confirmada y cancelada al mismo tiempo."
     );

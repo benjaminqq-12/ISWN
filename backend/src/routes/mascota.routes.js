@@ -32,18 +32,10 @@ const soloPersonal = [
 router.get("/", getMascotasController);
 
 // Consultar todas las mascotas (personal interno).
-router.get(
-  "/interno",
-  soloPersonal,
-  getMascotasInternasController
-);
+router.get("/interno", soloPersonal, getMascotasInternasController);
 
 // Consultar información interna de una mascota.
-router.get(
-  "/:id/interno",
-  soloPersonal,
-  getMascotaInternaController
-);
+router.get("/:id/interno", soloPersonal, getMascotaInternaController);
 
 // Consultar perfil público de una mascota.
 router.get("/:id", getMascotaController);
@@ -51,17 +43,11 @@ router.get("/:id", getMascotaController);
 // Registrar una mascota.
 router.post("/", soloPersonal, crearMascotaController);
 
-router.post(
-  "/lote/revisar",
-  soloPersonal,
-  revisarMascotasLoteController
-);
+//revisar las relaciones del lote de mascotas antes de eliminar
+router.post("/lote/revision", soloPersonal, revisarMascotasLoteController);
 
-router.delete(
-  "/lote",
-  soloPersonal,
-  eliminarMascotasLoteController
-);
+//ejecutar la eliminacion multiple
+router.delete("/lote", soloPersonal, eliminarMascotasLoteController);
 
 // Actualizar una mascota.
 router.put("/:id", soloPersonal, actualizarMascotaController);

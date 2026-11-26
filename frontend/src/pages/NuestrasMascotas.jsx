@@ -8,6 +8,8 @@ import {
   getMascotaInterna,
   getMascotas,
   getMascotasInternas,
+  revisarMascotasLote,  
+  eliminarMascotasLote,
 } from '../services/mascota.service';
 import '../styles/home.css';
 import '../styles/mascotas.css';
@@ -213,133 +215,161 @@ const NuestrasMascotas = () => {
   }
 
   async function handleEliminarSeleccionadas() {
-  if (!puedeGestionar || !modoSeleccion || eliminandoVarias) {
-    return;
-  }
+    if (!puedeGestionar || !modoSeleccion || eliminandoVarias) {
+      return;
+    }
 
-  const ids = mascotasVisibles
-    .filter((mascota) => seleccionadas.includes(mascota.mascota_id))
-    .map((mascota) => mascota.mascota_id);
+    const ids = mascotasVisibles
+      .filter((mascota) => seleccionadas.includes(mascota.mascota_id))
+      .map((mascota) => mascota.mascota_id);
 
-  if (ids.length === 0) return;
+    if (ids.length === 0) return;
 
-  setEliminandoVarias(true);
-  setActionError("");
-  setActionMessage("");
+    setEliminandoVarias(true);
+    setActionError("");
+    setActionMessage("");
 
-  try {
-    // 1. Revisar las relaciones del lote.
-    const revision = await revisarMascotasLote(ids, session.token);
+    try {
+      // 1. Revisar las relaciones del lote.
+      const revision = await revisarMascotasLote(ids, session.token);
 
-    const bloqueadas = revision.mascotas.filter((mascota) => mascota.estado === "bloqueada");
+      const bloqueadas = revision.mascotas.filter((mascota) => mascota.estado === "bloqueada");
 
-    const requierenConfirmacion =
-      revision.mascotas.filter((mascota) => mascota.estado === "confirmacion");
+      const requierenConfirmacion =
+        revision.mascotas.filter((mascota) => mascota.estado === "confirmacion");
 
-    const confirmadas = [];
+      const confirmadas = [];
 
-    // Excluir desde el comienzo las mascotas bloqueadas.
-    const canceladas = bloqueadas.map((mascota) => mascota.id);
+      // Excluir desde el comienzo las mascotas bloqueadas.
+      const canceladas = bloqueadas.map((mascota) => mascota.id);
 
-    // 2. Informar qué mascotas no pueden eliminarse.
-    if (bloqueadas.length > 0) {
-      const detalle = bloqueadas
-        .map((mascota) => {
-          const registros = mascota.registrosProtegidos
-            .map((registro) => `${registro.tipo} (${registro.cantidad})`).join(", ");
-          return (
-            `- ${mascota.nombre} (ID ${mascota.id})\n` +
-            `  Registros: ${registros}`
+      // 2. Informar qué mascotas no pueden eliminarse.
+      if (bloqueadas.length > 0) {
+        const detalle = bloqueadas
+          .map((mascota) => {
+            const registros = mascota.registrosProtegidos
+              .map((registro) => `${registro.tipo} (${registro.cantidad})`).join(", ");
+            return (
+              `- ${mascota.nombre} (ID ${mascota.id})\n` +
+              `  Registros: ${registros}`
+            );
+          })
+          .join("\n\n");
+
+        window.alert(
+          "Las siguientes mascotas no pueden eliminarse " +
+          "porque tienen registros protegidos:\n\n" +
+          detalle +
+          "\n\nDebes gestionar sus registros desde los " +
+          "módulos correspondientes antes de intentar " +
+          "eliminarlas nuevamente.\n\n" +
+          "Estas mascotas se excluirán automáticamente del lote."
+        );
+      }
+
+      // 3. Solicitar confirmación individual
+      // únicamente para relaciones en cascada.
+      for (const mascota of requierenConfirmacion) {
+        const detalle = mascota.registrosCascada
+          .map((registro) => `- ${registro.tipo}: ${registro.cantidad}`).join("\n");
+        const aceptar = window.confirm(
+          `La mascota "${mascota.nombre}" tiene ` +
+          "registros que se eliminarán automáticamente:\n\n" +
+          detalle +
+          "\n\n¿Deseas eliminar esta mascota junto con " +
+          "sus registros asociados?\n\n" +
+          "Esta acción no se puede deshacer."
+        );
+
+        if (aceptar) {
+          confirmadas.push({id: mascota.id, firma: mascota.firma,});
+        } else {
+          canceladas.push(mascota.id);
+        }
+      }
+
+      // 4. Calcular cuántas mascotas quedan autorizadas.
+      const cantidadPorEliminar = ids.length - canceladas.length;
+
+      if (cantidadPorEliminar > 0) {
+        const confirmarLote = window.confirm(
+          `¿Estás seguro que deseas eliminar ` + `${cantidadPorEliminar} ` + `${cantidadPorEliminar === 1
+            ? "mascota"
+            : "mascotas"}?\n\n` +
+          "Esta acción es irreversible."
+        );
+
+        if (!confirmarLote) {
+          setActionMessage("Operación cancelada. No se eliminó ninguna mascota.");
+          return;
+        }
+      }
+
+      // 5. El backend volverá a comprobar las relaciones.
+      const resultado = await eliminarMascotasLote({ids, confirmadas, canceladas, }, session.token);
+
+      if (!resultado || !Array.isArray(resultado.idsEliminados)) {
+        throw new Error(
+          "El backend confirmó la operación, pero no devolvió " +
+          "la lista de IDs eliminados en el formato esperado. " +
+          "Actualiza el catálogo antes de repetir la eliminación."
+        );
+      }
+
+      // Usar un conjunto para consultar los IDs eliminados.
+      const idsEliminados = new Set(
+        resultado.idsEliminados.map(Number)
+      );
+
+      // 6. Quitar únicamente las mascotas eliminadas.
+      setMascotas((actuales) =>
+        actuales.filter((mascota) => !idsEliminados.has(Number(mascota.mascota_id) ))
+      );
+
+      // 7. Mostrar el resumen.
+      setActionMessage(resultado.mensaje);
+
+      if (resultado.bloqueadas?.length > 0) {
+        const nombres = resultado.bloqueadas.map((mascota) => mascota.nombre).join(", ");
+
+        setActionError(`No se eliminaron las siguientes mascotas ` + `porque tienen registros protegidos: ${nombres}.`);
+      }
+
+      setModoSeleccion(false);
+      setSeleccionadas([]);
+
+    } catch (error) {
+        console.error("Error en eliminación múltiple:", error);
+
+        const respuesta =
+          error.cause?.response?.data ??
+          error.response?.data;
+
+        const codigo =
+          error.cause?.response?.status ??
+          error.response?.status;
+
+        console.error("Código HTTP:", codigo);
+        console.error("Respuesta del backend:", respuesta);
+
+        if (respuesta?.details?.codigo === "REVISION_REQUERIDA") {
+          setActionError(
+            "Los registros asociados de una o más mascotas " +
+            "requieren una nueva confirmación. " +
+            "Vuelve a presionar Eliminar seleccionadas para " +
+            "revisar la información actual."
           );
-        })
-        .join("\n\n");
-
-      window.alert(
-        "Las siguientes mascotas no pueden eliminarse " +
-        "porque tienen registros protegidos:\n\n" +
-        detalle +
-        "\n\nDebes gestionar sus registros desde los " +
-        "módulos correspondientes antes de intentar " +
-        "eliminarlas nuevamente.\n\n" +
-        "Estas mascotas se excluirán automáticamente del lote."
-      );
-    }
-
-    // 3. Solicitar confirmación individual
-    // únicamente para relaciones en cascada.
-    for (const mascota of requierenConfirmacion) {
-      const detalle = mascota.registrosCascada
-        .map((registro) => `- ${registro.tipo}: ${registro.cantidad}`).join("\n");
-      const aceptar = window.confirm(
-        `La mascota "${mascota.nombre}" tiene ` +
-        "registros que se eliminarán automáticamente:\n\n" +
-        detalle +
-        "\n\n¿Deseas eliminar esta mascota junto con " +
-        "sus registros asociados?\n\n" +
-        "Esta acción no se puede deshacer."
-      );
-
-      if (aceptar) {
-        confirmadas.push({id: mascota.id, firma: mascota.firma,});
-      } else {
-        canceladas.push(mascota.id);
+        } else {
+          setActionError(
+            respuesta?.message ||
+            error.message ||
+            "No se pudo procesar la eliminación múltiple."
+          );
+        }
+      } finally {
+      setEliminandoVarias(false);
       }
-    }
-
-    // 4. Calcular cuántas mascotas quedan autorizadas.
-    const cantidadPorEliminar = ids.length - canceladas.length;
-
-    if (cantidadPorEliminar > 0) {
-      const confirmarLote = window.confirm(
-        `¿Estás seguro que deseas eliminar ` + `${cantidadPorEliminar} ` + `${cantidadPorEliminar === 1
-          ? "mascota"
-          : "mascotas"}?\n\n` +
-        "Esta acción es irreversible."
-      );
-
-      if (!confirmarLote) {
-        setActionMessage("Operación cancelada. No se eliminó ninguna mascota.");
-        return;
-      }
-    }
-
-    // 5. El backend volverá a comprobar las relaciones.
-    const resultado = await eliminarMascotasLote({ids, confirmadas, canceladas, }, session.token);
-
-    // 6. Quitar únicamente las mascotas eliminadas.
-    setMascotas((actuales) =>
-      actuales.filter((mascota) => !resultado.idsEliminados.includes(mascota.mascota_id))
-    );
-
-    // 7. Mostrar el resumen.
-    setActionMessage(resultado.mensaje);
-
-    if (resultado.bloqueadas?.length > 0) {
-      const nombres = resultado.bloqueadas.map((mascota) => mascota.nombre).join(", ");
-
-      setActionError(`No se eliminaron las siguientes mascotas ` + `porque tienen registros protegidos: ${nombres}.`);
-    }
-
-    setModoSeleccion(false);
-    setSeleccionadas([]);
-
-  } catch (error) {
-    const respuesta =
-      error.cause?.response?.data ??
-      error.response?.data;
-
-    if (
-      respuesta?.details?.codigo === "REVISION_REQUERIDA"
-    ) {
-      setActionError("Los registros de algunas mascotas cambiaron. " + "Debes repetir la revisión antes de continuar.");
-    } else {
-      setActionError(respuesta?.message || error.message || "No se pudieron eliminar las mascotas.");
-    }
-
-  } finally {
-    setEliminandoVarias(false);
   }
-}
 
   if (loading) return <p>Cargando mascotas...</p>;
   if (error) return <p>{error}</p>;
@@ -352,22 +382,80 @@ const NuestrasMascotas = () => {
           <p>Conoce a los animales que buscan un hogar.</p>
         </div>
         {puedeGestionar && (
+          <div className="mascotas-heading-actions">
+            <button
+              type="button"
+              className={`mascotas-btn-multiple ${
+                modoSeleccion ? "activo" : ""
+              }`}
+              onClick={cambiarModoSeleccion}
+              disabled={eliminandoVarias}
+              aria-pressed={modoSeleccion}
+            >
+              <span aria-hidden="true">☑</span>
+              {modoSeleccion ? "Cancelar selección" : "Seleccionar varias"}
+            </button>
+            
+            <button
+              className="btn-primary"
+              type="button"
+              disabled={modoSeleccion || eliminandoVarias}
+              onClick={() => {
+                setFormVisible((visible) => !visible);
+                setMascotaEnEdicion(null);
+                setFormError("");
+                setSuccessMessage("");
+                setActionError("");
+                setActionMessage("");
+              }}
+            >
+              {formVisible ? "Cancelar" : "Registrar mascota"}
+            </button>
+        </div>
+      )}
+      {puedeGestionar && modoSeleccion && (
+        <div className="mascotas-seleccion-barra">
+
+          <label className="mascotas-seleccionar-todas">
+            <input
+              type="checkbox"
+              checked={
+                mascotasVisibles.length > 0 &&
+                seleccionadas.length === mascotasVisibles.length
+              }
+              onChange={(event) =>
+                seleccionarTodas(event.target.checked)
+              }
+              disabled={
+                eliminandoVarias ||
+                mascotasVisibles.length === 0
+              }
+            />
+
+            Seleccionar todas
+          </label>
+
+          <span className="mascotas-seleccion-contador">
+            {seleccionadas.length} de {mascotasVisibles.length} seleccionadas
+          </span>
+
           <button
-            className="btn-primary"
             type="button"
-            onClick={() => {
-              setFormVisible((visible) => !visible);
-              setMascotaEnEdicion(null);
-              setFormError("");
-              setSuccessMessage("");
-              setActionError("");
-              setActionMessage("");
-            }}
+            className="btn-danger mascotas-eliminar-multiple"
+            onClick={handleEliminarSeleccionadas}
+            disabled={
+              seleccionadas.length === 0 ||
+              eliminandoVarias
+            }
           >
-            {formVisible ? "Cancelar" : "Registrar mascota"}
+            {eliminandoVarias
+              ? "Eliminando..."
+              : `Eliminar seleccionadas (${seleccionadas.length})`}
           </button>
+
+        </div>
         )}
-      </div>
+    </div>
       {!puedeGestionar && session && (
         <p className="mascotas-access-note">
           La gestión de mascotas está disponible únicamente para el personal interno autorizado.
@@ -601,12 +689,15 @@ const NuestrasMascotas = () => {
             puedeGestionar={puedeGestionar}
             onEditar={handleEditar}
             onEliminar={handleEliminar}
-            ocupado={mascotaOcupadaId === mascota.mascota_id}
+            ocupado={eliminandoVarias || mascotaOcupadaId === mascota.mascota_id}
+            modoSeleccion={modoSeleccion}
+            seleccionada={seleccionadas.includes(mascota.mascota_id)}
+            onSeleccionar={alternarSeleccion}
           />
         ))}
       </div>
-      {actionError && <p className="form-message form-error" role="alert">{actionError}</p>}
-      {actionMessage && <p className="form-message form-success" role="status">{actionMessage}</p>}
+      {actionError && <p className="form-message form-error mascotas-mensaje-accion" role="alert">{actionError}</p>}
+      {actionMessage && <p className="form-message form-success mascotas-mensaje-accion" role="status">{actionMessage}</p>}
       {mascotasVisibles.length === 0 && (
         <p>
           {puedeGestionar ? "Aún no hay mascotas registradas." : "Actualmente no hay mascotas disponibles para adopción."}

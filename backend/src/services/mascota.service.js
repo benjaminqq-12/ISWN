@@ -29,6 +29,13 @@ const RELACIONES_LOTE = [
     nombre: "Suscripciones de donación",
     tipo: "protegida",
   },
+  {
+    entidad: "SolicitudEstado",
+    relacion: "mascota",
+    idRegistro: "solicitudEstadoId",
+    nombre: "Solicitudes de cambio de estado",
+    tipo: "protegida",
+  },
 
   // Registros cuya eliminación depende de CASCADE.
   {
@@ -50,6 +57,20 @@ const RELACIONES_LOTE = [
     relacion: "solicitudAdopcion_mascotaAdoptada",
     idRegistro: "solicitudAdopcion_id",
     nombre: "Solicitudes de adopción",
+    tipo: "cascada",
+  },
+  {
+    entidad: "Vacuna",
+    relacion: "mascota",
+    idRegistro: "vacuna_id",
+    nombre: "Vacunas",
+    tipo: "cascada",
+  },
+  {
+    entidad: "HistorialClinico",
+    relacion: "historialClinico_mascota",
+    idRegistro: "historialClinico_id",
+    nombre: "Historial clínico",
     tipo: "cascada",
   },
 ];
@@ -401,25 +422,38 @@ export async function revisarMascotasLoteService(ids) {
 }
 
 //eliminar mas de una mascota a la vez
-export async function eliminarMascotasLoteService(ids, confirmadas = [], canceladas = []) {
+export async function eliminarMascotasLoteService({ids, confirmadas = [], canceladas = [],}) {
+  if (!Array.isArray(ids)) {
+    return [
+      null,
+      {
+        statusCode: 400,
+        message:
+          "Los identificadores deben enviarse en un arreglo.",
+        details: {},
+      },
+    ];
+  }
+  
   try {
     const resultado = await AppDataSource.transaction(async (manager) => {
       //1 revisar las mascotas dentro de la transaccion
       const mascotas = await revisarLote(manager, ids, true);
-      const confirmadas = new Map(confirmadas.map((item) => [item.id, item.firma]));
+      const confirmaciones = new Map(confirmadas.map((item) => [item.id, item.firma]));
 
       const descartadas = new Set(canceladas);
 
       //2 identificar mascotas bloqueadas
-      const bloqueadas = mascotas.filter((mascota) => m.estado === "bloqueada");
+      const bloqueadas = mascotas.filter((mascota) => mascota.estado === "bloqueada");
 
       //3 identificar confirmaciones pendientes
       const pendientes = mascotas.filter((mascota) => 
-        m.estado === "confirmacion" && 
+        mascota.estado === "confirmacion" && 
+        !descartadas.has(mascota.id) &&
         confirmaciones.get(mascota.id) !== mascota.firma
       );
 
-      if (pendientes.length) {
+      if (pendientes.length > 0) {
         throw errorLote(400, "Hay mascotas con confirmación pendiente", { codigo: "REVISION_REQUERIDA", mascotas: pendientes, });
       }
 
@@ -430,13 +464,13 @@ export async function eliminarMascotasLoteService(ids, confirmadas = [], cancela
       );
 
       //5 eliminar las mascotas confirmadas
-      if(eliminables.length){
-        const resultadoDelete = await manager
-        .getRepository(MascotaSchema)
-        .delete(eliminables.map((mascota) => mascota.id));
+      if(eliminables.length > 0){
+        const idsAEliminar = eliminables.map((mascota) => mascota.id);
 
-        if(resultadoDelete.affected !== eliminables.length){
-          throw new Error("Eliminacion incompleta: se revierte la transacción");
+        const borrado = await manager.getRepository(MascotaSchema).delete(idsAEliminar);
+
+        if (borrado.affected !== idsAEliminar.length) {
+          throw new Error("Eliminación incompleta. Se revierte la transacción.");
         }
       }
 
@@ -447,17 +481,13 @@ export async function eliminarMascotasLoteService(ids, confirmadas = [], cancela
       );
 
       //7 construir resultado
-      const partes = [];
-
-      if (eliminables.length === 0) {
-        partes.push("No se eliminó ninguna mascota");
-      } else if (eliminables.length === 1) {
-        partes.push("Se eliminó 1 mascota");
-      } else {
-        partes.push(
-          `Se eliminaron ${eliminables.length} mascotas`
-        );
-      }
+      const partes = [
+        eliminables.length === 0
+          ? "No se eliminó ninguna mascota"
+          : eliminables.length === 1
+            ? "Se eliminó 1 mascota"
+            : `Se eliminaron ${eliminables.length} mascotas`,
+      ];
 
       if (bloqueadas.length > 0) {
         partes.push(
@@ -479,14 +509,14 @@ export async function eliminarMascotasLoteService(ids, confirmadas = [], cancela
         );
       }
 
-      const mensaje = partes.join("; ") + ".";
       return {
-        cantidadEliminadas: eliminables.length,
-        cantidadBloqueadas: bloqueadas.length,
-        cantidadCanceladas: canceladasUsuario.length,
-        idsEliminadas: eliminables.map((m) => m.id),
-        idsCanceladas: canceladasUsuario.map((m) => m.id),
-        mensaje,
+        cantidadEliminada: eliminables.length,
+        cantidadBloqueada: bloqueadas.length,
+        cantidadCancelada: canceladasUsuario.length,
+        idsEliminados: eliminables.map((m) => m.id),
+        idsCancelados: canceladasUsuario.map((m) => m.id),
+        bloqueadas,
+        mensaje: partes.join("; ") + ".",
       };
     });
 

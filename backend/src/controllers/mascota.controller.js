@@ -229,46 +229,63 @@ export async function revisarMascotasLoteController(req, res) {
 //eliminar mas de 1 mascota
 export async function eliminarMascotasLoteController(req, res) {
   try {
-    const { error, value } = mascotaLoteEliminarValidation.validate(req.body);
+    // 1. Validar los datos recibidos utilizando Joi.
+    const { error, value } =
+      mascotaLoteEliminarValidation.validate(req.body, {
+        abortEarly: false,
+      });
+
     if (error) {
-      return handleErrorClient(res, 400, error.details[0].message);
+      return handleErrorClient(
+        res,
+        400,
+        error.details
+          .map((detalle) => detalle.message)
+          .join(" ")
+      );
     }
 
-    const [resultado, fallo] = await eliminarMascotasLoteService(value);
+    // 2. Enviar al service el objeto completo validado.
+    const [resultado, fallo] =
+      await eliminarMascotasLoteService(value);
+
+    // 3. Controlar los errores del service.
     if (fallo) {
       if (fallo.statusCode >= 500) {
-        return handleErrorServer(res, fallo.statusCode, fallo.message);
+        return handleErrorServer(
+          res,
+          fallo.statusCode,
+          fallo.message
+        );
       }
-      return handleErrorClient(res, fallo.statusCode, fallo.message, fallo.details);
+
+      return handleErrorClient(
+        res,
+        fallo.statusCode,
+        fallo.message,
+        fallo.details ?? {}
+      );
     }
 
-    const eliminadas = resultado.cantidadEliminada;
-    const canceladas = resultado.cantidadCancelada;
+    // 4. Responder con el resumen de eliminación.
+    return handleSuccess(
+      res,
+      200,
+      resultado.mensaje,
+      resultado
+    );
 
-    let mensaje;
-
-    if(eliminadas === 0) {
-      mensaje = "No se eliminó ninguna mascota.";
-    } else if(eliminadas === 1) {
-      mensaje = "Se eliminó 1 mascota.";
-    } else {
-      mensaje = `Se eliminaron ${eliminadas} mascotas.`;
-    }
-
-    if(canceladas > 0) {
-      const textoCanceladas = canceladas === 1 
-      ? "1 mascota fue cancelada porque tenía registros asociados." 
-      : `${canceladas} mascotas fueron conservadas porque tenían registros asociados.`;
-      mensaje = mensaje.replace(/\.$/, "");
-      mensaje += ` y ${textoCanceladas}`;
-    } else if(!mensaje.endsWith(".")) {
-      mensaje += ".";
-    }
-
-    return handleSuccess(res, 200, resultado.mensaje, resultado);
   } catch (error) {
-    console.error("Error en eliminarMascotasLoteController:", error);
-    return handleErrorServer(res, 500, "Error interno del servidor");
+    console.error(
+      "Error en eliminarMascotasLoteController:",
+      error
+    );
+
+    return handleErrorServer(
+      res,
+      500,
+      "Error interno del servidor"
+    );
   }
 }
 

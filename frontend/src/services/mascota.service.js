@@ -2,12 +2,31 @@
 import axios from "./root.service.js";
 
 // Extraer los datos de la respuesta del servidor.
-function obtenerDatos(response, mensajeError) {
-  if (response.data?.status !== "Success") {
-    throw new Error(response.data?.message || mensajeError);
-  }
+async function obtenerDatos(peticion, mensajeError) {
+  try {
+    const respuesta = await peticion;
+    return respuesta.data?.data;
 
-  return response.data.data;
+  } catch (error) {
+    // Mostrar el error original de Axios.
+    console.error("Error real en servicio de mascotas:", {
+      metodo: error.config?.method,
+      url: error.config?.url,
+      codigoHTTP: error.response?.status,
+      mensajeBackend: error.response?.data?.message,
+      detallesBackend: error.response?.data?.details,
+      respuestaCompleta: error.response?.data,
+      errorOriginal: error,
+    });
+
+    // Conservar el error original dentro de cause.
+    throw new Error(
+      error.response?.data?.message ||
+      error.message ||
+      mensajeError,
+      { cause: error }
+    );
+  }
 }
 
 // Obtener todas las mascotas.
@@ -161,3 +180,30 @@ export async function eliminarMascota(id, token) {
     );
   }
 }
+
+export async function revisarMascotasLote(ids, token) {
+  return obtenerDatos(
+    axios.post("/mascotas/lote/revision",
+      { ids },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    ),
+    "No se pudieron revisar las mascotas seleccionadas."
+  );
+}
+
+export async function eliminarMascotasLote(datos, token) {
+  return obtenerDatos(
+    axios.delete("/mascotas/lote", {
+      data: datos,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    "No se pudieron eliminar las mascotas seleccionadas"
+  );
+}
+

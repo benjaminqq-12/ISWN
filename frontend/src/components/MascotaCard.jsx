@@ -6,7 +6,7 @@ import SolicitudAdopcionForm from './SolicitudAdopcionForm';
 
 const DEFAULT_PLACEHOLDER = '/placeholder-mascota.svg';
 
-const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, ocupado = false }) => {
+const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, ocupado = false, modoSeleccion = false, seleccionada = false, onSeleccionar, }) => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [solicitudEnviada, setSolicitudEnviada] = useState(false);
   const { session } = useOutletContext() ?? {};
@@ -27,9 +27,32 @@ const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, oc
     .toLowerCase()}`;
 
   return (
-    <article className="mascota-card">
+    <article className={`mascota-card ${modoSeleccion && seleccionada ? "mascota-card--seleccionada" : ""}`}>
+      {puedeGestionar && modoSeleccion && (
+        <label className="mascota-card-selector">
+          <input
+            type="checkbox"
+            checked={seleccionada}
+            onChange={() =>
+              onSeleccionar(mascota.mascota_id)
+            }
+            disabled={ocupado}
+            aria-label={`Seleccionar a ${mascota.mascota_nombreCompleto}`}
+          />
+          Seleccionar
+        </label>
+      )}
       <div className="mascota-card-body">
-        <Link className="mascota-card-link" to={`/mascotas/${mascota.mascota_id}`}>
+        <Link className="mascota-card-link" to={`/mascotas/${mascota.mascota_id}`} 
+          onClick={(event) => {
+            if (modoSeleccion) {
+              event.preventDefault();
+              if(!ocupado) {
+                onSeleccionar(mascota.mascota_id);
+              }
+            }
+          }}
+        >
           <div className="mascota-card-img">
             <img
               src={mascota_fotoURL || DEFAULT_PLACEHOLDER}
@@ -63,7 +86,7 @@ const MascotaCard = ({ mascota, puedeGestionar = false, onEditar, onEliminar, oc
         {solicitudEnviada && <p>Solicitud enviada ✓</p>}
       </div>
 
-      {puedeGestionar && (
+      {puedeGestionar && !modoSeleccion &&(
         <div className="mascota-card-actions" role="group" aria-label={`Acciones para ${mascota_nombreCompleto}`}>
           <button className="btn-secondary" type="button" onClick={() => onEditar(mascota)} disabled={ocupado}>
             Editar
