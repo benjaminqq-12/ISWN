@@ -106,6 +106,7 @@ export default function ItemInventarioForm({ item, guardando, error, onSubmit, o
             placeholder="Marca, presentación u observaciones" />
         </label>
         {item && <p className="inventario-ayuda">Para modificar cantidades utiliza «Registrar movimiento». Así se conserva el historial.</p>}
+        {errorLocal && (<p className="inventario-error" role="alert">{errorLocal}</p>)}
         {error && <p className="inventario-error" role="alert">{error}</p>}
         <div className="inventario-modal-acciones">
           <button type="button" className="boton boton-secundario" onClick={onClose} disabled={guardando}>Cancelar</button>

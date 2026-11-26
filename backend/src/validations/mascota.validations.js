@@ -170,3 +170,78 @@ export const mascotaIdValidation = Joi.object({
       "any.required": "El ID de la mascota es obligatorio.",
     }),
 });
+
+const idLote = Joi.number()
+  .integer()
+  .min(1)
+  .max(2147483647)
+  .strict()
+  .required();
+
+const idsLote = Joi.array()
+  .items(idLote)
+  .min(1)
+  .max(50)
+  .unique()
+  .required();
+
+// Revisar qué mascotas tienen registros asociados.
+export const mascotaLoteValidation = Joi.object({
+  ids: idsLote,
+});
+
+// Eliminar mascotas con las decisiones del usuario.
+export const mascotaLoteEliminarValidation = Joi.object({
+  ids: idsLote,
+
+  // Mascotas con registros cuya eliminación fue aceptada.
+  confirmadas: Joi.array()
+    .items(
+      Joi.object({
+        id: idLote,
+        firma: Joi.string()
+          .hex()
+          .length(64)
+          .required(),
+      })
+    )
+    .unique("id")
+    .default([]),
+
+  // Mascotas que el usuario decidió conservar.
+  canceladas: Joi.array()
+    .items(idLote)
+    .unique()
+    .default([]),
+
+}).custom((datos, helpers) => {
+  const idsSeleccionados = new Set(datos.ids);
+
+  const idsConfirmados = new Set(
+    datos.confirmadas.map((item) => item.id)
+  );
+
+  if (
+    datos.confirmadas.some(
+      (item) => !idsSeleccionados.has(item.id)
+    )
+  ) {
+    return helpers.message(
+      "Las mascotas confirmadas deben pertenecer al lote."
+    );
+  }
+
+  if (
+    datos.canceladas.some(
+      (id) =>
+        !idsSeleccionados.has(id) ||
+        idsConfirmados.has(id)
+    )
+  ) {
+    return helpers.message(
+      "Una mascota no puede estar confirmada y cancelada al mismo tiempo."
+    );
+  }
+
+  return datos;
+});

@@ -13,12 +13,16 @@ import {
   getMascotaPublicaService,
   actualizarMascotaService,
   eliminarMascotaService,
+  revisarMascotasLoteService,
+  eliminarMascotasLoteService,
 } from "../services/mascota.service.js";
 
 import {
   mascotaBodyValidation,
   mascotaUpdateValidation,
   mascotaIdValidation,
+  mascotaLoteValidation,
+  mascotaLoteEliminarValidation,
 } from "../validations/mascota.validations.js";
 
 
@@ -198,5 +202,76 @@ export async function eliminarMascotaController(req, res) {
     return handleErrorServer(res, 500, "Error interno del servidor");
   }
 }
+
+export async function revisarMascotasLoteController(req, res) {
+  try {
+    const { error, value } = mascotaLoteValidation.validate(req.body);
+    if (error) {
+      return handleErrorClient(res, 400, error.details[0].message);
+    }
+
+    const [resultado,  fallo] = await revisarMascotasLoteService(value.ids);
+
+    if (fallo) {
+      if (fallo.statusCode >= 500) {
+        return handleErrorServer(res, fallo.statusCode, fallo.message);
+      }
+      return handleErrorClient(res, fallo.statusCode, fallo.message, fallo.details);
+    }
+
+    return handleSuccess(res, 200, "Revisión de mascotas completada", resultado);
+  } catch (error) {
+    console.error("Error en revisarMascotasLoteController:", error);
+    return handleErrorServer(res, 500, "Error interno del servidor");
+  }
+}
+
+//eliminar mas de 1 mascota
+export async function eliminarMascotasLoteController(req, res) {
+  try {
+    const { error, value } = mascotaLoteEliminarValidation.validate(req.body);
+    if (error) {
+      return handleErrorClient(res, 400, error.details[0].message);
+    }
+
+    const [resultado, fallo] = await eliminarMascotasLoteService(value);
+    if (fallo) {
+      if (fallo.statusCode >= 500) {
+        return handleErrorServer(res, fallo.statusCode, fallo.message);
+      }
+      return handleErrorClient(res, fallo.statusCode, fallo.message, fallo.details);
+    }
+
+    const eliminadas = resultado.cantidadEliminada;
+    const canceladas = resultado.cantidadCancelada;
+
+    let mensaje;
+
+    if(eliminadas === 0) {
+      mensaje = "No se eliminó ninguna mascota.";
+    } else if(eliminadas === 1) {
+      mensaje = "Se eliminó 1 mascota.";
+    } else {
+      mensaje = `Se eliminaron ${eliminadas} mascotas.`;
+    }
+
+    if(canceladas > 0) {
+      const textoCanceladas = canceladas === 1 
+      ? "1 mascota fue cancelada porque tenía registros asociados." 
+      : `${canceladas} mascotas fueron conservadas porque tenían registros asociados.`;
+      mensaje = mensaje.replace(/\.$/, "");
+      mensaje += ` y ${textoCanceladas}`;
+    } else if(!mensaje.endsWith(".")) {
+      mensaje += ".";
+    }
+
+    return handleSuccess(res, 200, resultado.mensaje, resultado);
+  } catch (error) {
+    console.error("Error en eliminarMascotasLoteController:", error);
+    return handleErrorServer(res, 500, "Error interno del servidor");
+  }
+}
+
+
 
 

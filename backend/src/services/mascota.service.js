@@ -4,6 +4,100 @@
 import { AppDataSource } from "../config/configDb.js";
 import MascotaSchema from "../entity/mascota.entity.js";
 import { ESTADO_MASCOTA } from "../config/estadosMascota.js";
+import { createHash } from "node:crypto";
+
+const RELACIONES_LOTE = [
+  // Registros que bloquean la eliminación.
+  {
+    entidad: "AtencionMedica",
+    relacion: "mascota",
+    idRegistro: "atencion_id",
+    nombre: "Atenciones médicas",
+    tipo: "protegida",
+  },
+  {
+    entidad: "Donacion",
+    relacion: "animal",
+    idRegistro: "donacionId",
+    nombre: "Donaciones",
+    tipo: "protegida",
+  },
+  {
+    entidad: "SuscripcionDonacion",
+    relacion: "animal",
+    idRegistro: "suscripcionId",
+    nombre: "Suscripciones de donación",
+    tipo: "protegida",
+  },
+
+  // Registros cuya eliminación depende de CASCADE.
+  {
+    entidad: "HistorialMascota",
+    relacion: "historialAdopcion_mascota",
+    idRegistro: "historialMascota_id",
+    nombre: "Historial de mascota",
+    tipo: "cascada",
+  },
+  {
+    entidad: "CalendarioSanidad",
+    relacion: "calendarioSanidad_mascota",
+    idRegistro: "calendarioSanidad_id",
+    nombre: "Calendario sanitario",
+    tipo: "cascada",
+  },
+  {
+    entidad: "SolicitudAdopcion",
+    relacion: "solicitudAdopcion_mascotaAdoptada",
+    idRegistro: "solicitudAdopcion_id",
+    nombre: "Solicitudes de adopción",
+    tipo: "cascada",
+  },
+];
+
+function errorLote(statusCode, message, details = {}) {
+  return Object.assign(new Error(message), {statusCode, details,});
+}
+
+function normalizarErrorLote(error) {
+  if (error.statusCode) {
+    return {
+      statusCode: error.statusCode,
+      message: error.message,
+      details: error.details,
+    };
+  }
+
+  if (
+    error.code === "23503" ||
+    error.driverError?.code === "23503"
+  ) {
+    return {
+      statusCode: 409,
+      message:
+        "Existe otra relación que impide eliminar una mascota. No se eliminó ninguna.",
+      details: {
+        codigo: "RELACION_NO_PREVISTA",
+      },
+    };
+  }
+
+  console.error("Error al procesar lote:", error);
+
+  return {
+    statusCode: 500,
+    message: "Error interno al procesar el lote.",
+    details: {},
+  };
+}
+
+function crearErrorLote(statusCode, mensaje, details = {}) {
+  const error = new Error(mensaje);
+  error.statusCode = statusCode;
+  error.details = details;
+  return error;
+}
+
+
 
 export async function getMascotasService(soloPublicas = false) {
   try {
@@ -192,3 +286,213 @@ export async function getMascotasInternasService() {
         return [null, "Error al obtener las mascotas"];
     }
 }
+
+async function revisarLote(manager, ids, bloquear = false) {
+  const query = manager
+    .getRepository(MascotaSchema)
+    .createQueryBuilder("m")
+    .where("m.mascota_id IN (:...ids)", { ids })
+    .orderBy("m.mascota_id", "ASC");
+
+  if (bloquear) {
+    query.setLock("pessimistic_write");
+  }
+
+  const mascotas = await query.getMany();
+
+  const encontrados = new Set(mascotas.map((m) => m.mascota_id));
+
+  const faltantes = ids.filter((id) => !encontrados.has(id));
+
+  if (faltantes.length) {
+    throw errorLote(404, "Hay mascotas seleccionadas que ya no existen.", { idsNoEncontrados: faltantes });
+  }
+
+  const porId = new Map(
+    mascotas.map((m) => [
+      m.mascota_id,
+      {
+        id: m.mascota_id,
+        nombre: m.mascota_nombreCompleto,
+        registrosProtegidos: [],
+        registrosCascada: [],
+        _identificadoresCascada: [],
+      },
+    ])
+  );
+
+  // Consultar cada relación mediante TypeORM.
+  for (const def of RELACIONES_LOTE) {
+    const filas = await manager
+      .getRepository(def.entidad)
+      .createQueryBuilder("r")
+      .innerJoin(`r.${def.relacion}`, "m")
+      .select("m.mascota_id", "mascotaId")
+      .addSelect(`r.${def.idRegistro}`, "registroId")
+      .where("m.mascota_id IN (:...ids)", { ids })
+      .orderBy("m.mascota_id", "ASC")
+      .addOrderBy(`r.${def.idRegistro}`, "ASC")
+      .getRawMany();
+
+    const grupos = new Map();
+
+    for (const fila of filas) {
+      const id = Number(fila.mascotaId);
+
+      if (!grupos.has(id)) {
+        grupos.set(id, []);
+      }
+
+      grupos.get(id).push(Number(fila.registroId));
+    }
+
+    for (const [id, registros] of grupos) {
+      if (!registros.length) continue;
+
+      const mascota = porId.get(id);
+
+      const dato = {tipo: def.nombre, cantidad: registros.length,};
+
+      if (def.tipo === "protegida") {
+        mascota.registrosProtegidos.push(dato);
+      } else {
+        mascota.registrosCascada.push(dato);
+
+        mascota._identificadoresCascada.push([def.entidad, registros, ]);
+      }
+    }
+  }
+
+  return [...porId.values()].map((mascota) => {
+    const firma = mascota.registrosCascada.length
+      ? createHash("sha256")
+          .update(
+            JSON.stringify([
+              mascota.id,
+              mascota._identificadoresCascada,
+            ])
+          )
+          .digest("hex")
+      : null;
+
+    let estado = "libre";
+
+    if (mascota.registrosProtegidos.length) {
+      estado = "bloqueada";
+    } else if (mascota.registrosCascada.length) {
+      estado = "confirmacion";
+    }
+
+    // No exponer los identificadores internos
+    // utilizados para calcular la firma.
+    const {_identificadoresCascada, ...datosPublicos} = mascota;
+
+    return {...datosPublicos, estado, firma,};
+  });
+}
+
+export async function revisarMascotasLoteService(ids) {
+  try {
+    const mascotas = await revisarLote(AppDataSource.manager, ids);
+    return [{mascotas}, null];
+  } catch (error) {
+    return [null, normalizarErrorLote(error)];
+  }
+}
+
+//eliminar mas de una mascota a la vez
+export async function eliminarMascotasLoteService(ids, confirmadas = [], canceladas = []) {
+  try {
+    const resultado = await AppDataSource.transaction(async (manager) => {
+      //1 revisar las mascotas dentro de la transaccion
+      const mascotas = await revisarLote(manager, ids, true);
+      const confirmadas = new Map(confirmadas.map((item) => [item.id, item.firma]));
+
+      const descartadas = new Set(canceladas);
+
+      //2 identificar mascotas bloqueadas
+      const bloqueadas = mascotas.filter((mascota) => m.estado === "bloqueada");
+
+      //3 identificar confirmaciones pendientes
+      const pendientes = mascotas.filter((mascota) => 
+        m.estado === "confirmacion" && 
+        confirmaciones.get(mascota.id) !== mascota.firma
+      );
+
+      if (pendientes.length) {
+        throw errorLote(400, "Hay mascotas con confirmación pendiente", { codigo: "REVISION_REQUERIDA", mascotas: pendientes, });
+      }
+
+      //4 Excluir bloqueadas y canceladas
+      const eliminables = mascotas.filter((mascota) =>
+        mascota.estado !== "bloqueada" &&
+        !descartadas.has(mascota.id)
+      );
+
+      //5 eliminar las mascotas confirmadas
+      if(eliminables.length){
+        const resultadoDelete = await manager
+        .getRepository(MascotaSchema)
+        .delete(eliminables.map((mascota) => mascota.id));
+
+        if(resultadoDelete.affected !== eliminables.length){
+          throw new Error("Eliminacion incompleta: se revierte la transacción");
+        }
+      }
+
+      //6 contabilizar cancelaciones del user
+      const canceladasUsuario = mascotas.filter((mascota) => 
+        mascota.estado !== "bloqueada" &&
+        descartadas.has(mascota.id)
+      );
+
+      //7 construir resultado
+      const partes = [];
+
+      if (eliminables.length === 0) {
+        partes.push("No se eliminó ninguna mascota");
+      } else if (eliminables.length === 1) {
+        partes.push("Se eliminó 1 mascota");
+      } else {
+        partes.push(
+          `Se eliminaron ${eliminables.length} mascotas`
+        );
+      }
+
+      if (bloqueadas.length > 0) {
+        partes.push(
+          `${bloqueadas.length} ${
+            bloqueadas.length === 1
+              ? "fue descartada"
+              : "fueron descartadas"
+          } por tener registros protegidos`
+        );
+      }
+
+      if (canceladasUsuario.length > 0) {
+        partes.push(
+          `${canceladasUsuario.length} ${
+            canceladasUsuario.length === 1
+              ? "fue cancelada"
+              : "fueron canceladas"
+          } por decisión del usuario`
+        );
+      }
+
+      const mensaje = partes.join("; ") + ".";
+      return {
+        cantidadEliminadas: eliminables.length,
+        cantidadBloqueadas: bloqueadas.length,
+        cantidadCanceladas: canceladasUsuario.length,
+        idsEliminadas: eliminables.map((m) => m.id),
+        idsCanceladas: canceladasUsuario.map((m) => m.id),
+        mensaje,
+      };
+    });
+
+    return [resultado, null];
+  } catch (error) {
+    return [null, normalizarErrorLote(error)];
+  }
+}
+

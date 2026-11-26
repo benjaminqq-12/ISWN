@@ -205,7 +205,7 @@ export async function registrarMovimientoInventarioService(id, datos, usuarioId)
 export async function listarMovimientosInventarioService(id) {
   try {
     const inventario = AppDataSource.getRepository(InventarioSchema);
-    const existe = await inventario.exist({ where: { inventarioId: id } });
+    const existe = await inventario.exists({ where: { inventarioId: id } });
     if (!existe) return [null, fallo(404, "Artículo no encontrado")];
     const movimientos = await AppDataSource.getRepository(MovimientoInventarioSchema).find({
       where: { inventario: { inventarioId: id } },

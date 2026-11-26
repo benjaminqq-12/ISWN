@@ -12,6 +12,8 @@ import {
   getMascotaInternaController,
   actualizarMascotaController,
   eliminarMascotaController,
+  revisarMascotasLoteController,
+  eliminarMascotasLoteController,
 } from "../controllers/mascota.controller.js";
 
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
@@ -48,6 +50,18 @@ router.get("/:id", getMascotaController);
 
 // Registrar una mascota.
 router.post("/", soloPersonal, crearMascotaController);
+
+router.post(
+  "/lote/revisar",
+  soloPersonal,
+  revisarMascotasLoteController
+);
+
+router.delete(
+  "/lote",
+  soloPersonal,
+  eliminarMascotasLoteController
+);
 
 // Actualizar una mascota.
 router.put("/:id", soloPersonal, actualizarMascotaController);
