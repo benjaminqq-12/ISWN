@@ -1,7 +1,6 @@
 "use strict";
 
 import { Router } from "express";
-import passport from "passport";
 
 import {
   listarInventario,
@@ -14,39 +13,25 @@ import {
   eliminarItemInventario,
 } from "../controllers/inventario.controller.js";
 
+import { authenticateJwt } from "../middlewares/authentication.middleware.js";
+import { authorizeRoles } from "../middlewares/authorization.middleware.js";
+
 const router = Router();
+const soloPersonal = [
+  authenticateJwt,
+  authorizeRoles("Admin", "Voluntario", "Veterinario"),
+];
 
 // Autenticación y autorización de personal interno
-router.use(
-  passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
-    const rolesPermitidos = [
-      "Admin",
-      "Voluntario",
-      "Veterinario",
-    ];
+router.use(soloPersonal);
 
-    if (
-      !req.user?.activo ||
-      !rolesPermitidos.includes(req.user.rol)
-    ) {
-      return res.status(403).json({
-        status: "Client error",
-        message: "No tienes permisos para acceder al inventario",
-      });
-    }
+router.delete("/lote", soloPersonal, eliminarItemsInventario);
 
-    return next();
-  }
-);
-
-router.delete("/lote", eliminarItemsInventario);
-
-router.get("/", listarInventario);
-router.get("/:id", obtenerItemInventario);
-router.post("/", crearItemInventario);
-router.put("/:id", editarItemInventario);
-router.get("/:id/movimientos", listarMovimientosInventario);
-router.post("/:id/movimientos", registrarMovimientoInventario);
-router.delete("/:id", eliminarItemInventario);
+router.get("/", soloPersonal,listarInventario);
+router.get("/:id", soloPersonal,obtenerItemInventario);
+router.post("/", soloPersonal,crearItemInventario);
+router.put("/:id", soloPersonal,editarItemInventario);
+router.get("/:id/movimientos", soloPersonal, listarMovimientosInventario);
+router.post("/:id/movimientos", soloPersonal, registrarMovimientoInventario);
+router.delete("/:id", soloPersonal, eliminarItemInventario);
 export default router;
