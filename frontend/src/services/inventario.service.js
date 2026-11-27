@@ -43,3 +43,17 @@ export function mensajeErrorInventario(error) {
   }
   return error.response?.data?.message || error.message || "No se pudo completar la operación.";
 }
+
+//eliminar item y todo su historial
+export async function eliminarItemInventario(token, id) {
+  const respuesta = await api.delete(`/inventario/${id}`, { ...auth(token), 
+    data: { confirmarEliminacion: true } });
+  return obtenerDatos(respuesta);
+}
+
+//eliminar varios items y todo su historial
+export async function eliminarItemsInventarioLote(token, ids) {
+  const respuesta = await api.delete("/inventario/lote", { ...auth(token),
+    data: { ids, confirmarEliminacion: true } });
+  return obtenerDatos(respuesta);
+}

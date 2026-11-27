@@ -226,3 +226,68 @@ export async function listarMovimientosInventarioService(id) {
     return errorServidor("listar movimientos", error);
   }
 }
+
+export async function eliminarItemsInventarioService(ids) {
+  try {
+    const resultado = await AppDataSource.transaction(
+      async (manager) => {
+
+        // 1. Buscar y bloquear los artículos.
+        const articulos = await manager.query(
+          `SELECT "inventarioId", "nombre"
+           FROM "Inventario"
+           WHERE "inventarioId" = ANY($1::int[])
+           ORDER BY "inventarioId"
+           FOR UPDATE`,
+          [ids]
+        );
+
+        // 2. Obtener los IDs encontrados.
+        const encontrados = new Set(articulos.map((item) => Number(item.inventarioId)));
+
+        // 3. Comprobar si falta algún artículo.
+        const noEncontrados = ids.filter((id) => !encontrados.has(id));
+
+        if (noEncontrados.length > 0) {
+          return [null,fallo(404, "Uno o más artículos no existen. No se eliminó ninguno.", { idsNoEncontrados: noEncontrados, }),];
+        }
+
+        // 4. Eliminar TODOS los movimientos asociados.
+        const movimientosBorrados = await manager.createQueryBuilder().delete().from(MovimientoInventarioSchema)
+          .where('"inventarioId" IN (:...ids)', {
+            ids,
+          })
+          .execute();
+
+        // 5. Eliminar los artículos seleccionados.
+        const articulosBorrados = await manager
+          .createQueryBuilder()
+          .delete()
+          .from(InventarioSchema)
+          .where('"inventarioId" IN (:...ids)', {
+            ids,
+          })
+          .execute();
+
+        // 6. Verificar que se eliminaron todos.
+        if (articulosBorrados.affected !== ids.length) {
+          throw new Error("No se eliminaron todos los artículos. " + "Se revierte la transacción.");
+        }
+
+        // 7. Devolver el resultado.
+        return [{cantidadEliminada: ids.length, cantidadMovimientosEliminados: movimientosBorrados.affected ?? 0, idsEliminados: ids,},
+          null,
+        ];
+      }
+    );
+    return resultado;
+  } catch (error) {
+
+    // Otra clave foránea impide el borrado.
+    if (error?.driverError?.code === "23503" || error?.code === "23503") {
+      return [null, fallo( 409, "El artículo tiene otra relación que impide eliminarlo. No se borró ningún registro."),];
+    }
+
+    return errorServidor("eliminar artículos e historial", error);
+  }
+}

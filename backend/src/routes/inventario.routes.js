@@ -10,6 +10,8 @@ import {
   editarItemInventario,
   registrarMovimientoInventario,
   listarMovimientosInventario,
+  eliminarItemsInventario,
+  eliminarItemInventario,
 } from "../controllers/inventario.controller.js";
 
 const router = Router();
@@ -38,11 +40,13 @@ router.use(
   }
 );
 
+router.delete("/lote", eliminarItemsInventario);
+
 router.get("/", listarInventario);
 router.get("/:id", obtenerItemInventario);
 router.post("/", crearItemInventario);
 router.put("/:id", editarItemInventario);
 router.get("/:id/movimientos", listarMovimientosInventario);
 router.post("/:id/movimientos", registrarMovimientoInventario);
-
+router.delete("/:id", eliminarItemInventario);
 export default router;

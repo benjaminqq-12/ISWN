@@ -24,7 +24,7 @@ const Modal = ({ titulo = 'Información del evento', onClose, bloqueado = false,
     };
 
     return (
-        <dialog ref={ventana} className="modal" aria-labelledby={tituloId} onCancel={cerrarConEscape}>
+        <dialog ref={ventana} className={`modal ${ancho}`.trim()} aria-labelledby={tituloId} onCancel={cerrarConEscape}>
             <div className="modal-cabecera">
                 <h2 id={tituloId}>{titulo}</h2>
                 <button type="button" className="boton-icono" aria-label="Cerrar ventana"

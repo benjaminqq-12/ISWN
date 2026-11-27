@@ -46,3 +46,216 @@
   .inventario-campo textarea { @apply resize-y; }
   .inventario-modal-acciones { @apply flex flex-wrap justify-end gap-3 border-t border-line pt-4; }
 }
+
+/* MODAL DEL HISTORIAL DE INVENTARIO*/
+
+@layer components {
+
+  /* Ampliar solamente el modal del historial */
+  .modal.modal-historial-inventario {
+    width: min(1100px, calc(100vw - 2rem));
+    max-width: none;
+  }
+
+  /* Utilizar todo el ancho disponible */
+  .modal-historial-inventario
+  .inventario-tabla-contenedor {
+    width: 100%;
+    overflow-x: visible;
+  }
+
+  /* Quitar el ancho mínimo de la tabla general */
+  .modal-historial-inventario
+  .inventario-tabla {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  /* Permitir que los textos largos ocupen varias líneas */
+  .modal-historial-inventario
+  .inventario-tabla td {
+    overflow-wrap: anywhere;
+  }
+
+  .modal-historial-inventario
+  .inventario-tabla th {
+    white-space: normal;
+  }
+
+  /* TABLETS Y PANTALLAS PEQUEÑAS*/
+
+  @media (max-width: 900px) {
+
+    .modal-historial-inventario
+    .modal-contenido {
+      padding: 1rem;
+    }
+
+    /* Mantener los encabezados disponibles
+       para tecnologías de asistencia */
+    .modal-historial-inventario
+    .inventario-tabla thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .modal-historial-inventario
+    .inventario-tabla colgroup {
+      display: none;
+    }
+
+    .modal-historial-inventario
+    .inventario-tabla,
+    .modal-historial-inventario
+    .inventario-tabla tbody {
+      display: block;
+      width: 100%;
+    }
+
+    .modal-historial-inventario
+    .inventario-tabla tbody {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    /* Cada movimiento se presenta como una tarjeta */
+    .modal-historial-inventario
+    .inventario-tabla tr {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 0.35rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+    }
+
+    .modal-historial-inventario
+    .inventario-tabla td {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      padding: 0.5rem;
+      border: none;
+    }
+
+    /* Mostrar la etiqueta de cada dato */
+    .modal-historial-inventario
+    .inventario-tabla td::before {
+      content: attr(data-label);
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    /* El motivo ocupa todo el ancho */
+    .modal-historial-inventario
+    .inventario-tabla td:last-child {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--border-color);
+    }
+  }
+
+  /* CELULARES*/
+
+  @media (max-width: 480px) {
+
+    .modal-historial-inventario
+    .inventario-tabla tr {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-historial-inventario
+    .inventario-tabla td:last-child {
+      grid-column: auto;
+    }
+
+    .modal-historial-inventario
+    .modal-cabecera {
+      padding: 1rem;
+    }
+  }
+}
+
+/* ELIMINACIÓN DE ARTÍCULOS DEL INVENTARIO */
+
+@layer components {
+
+  /* Agrupar botones del encabezado */
+  .inventario-encabezado-acciones {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  /* Botón de selección múltiple */
+  .inventario-boton-seleccion {
+    @apply rounded-full border-brand text-brand;
+  }
+
+  .inventario-boton-seleccion.activo {
+    @apply bg-peach;
+  }
+
+  /* Barra con controles de selección */
+  .inventario-barra-seleccion {
+    @apply mx-5 my-4 flex flex-wrap items-center
+      gap-3 rounded-xl border border-line
+      bg-canvas p-4 text-xs;
+  }
+
+  /* Seleccionar todos */
+  .inventario-seleccionar-todos {
+    @apply inline-flex cursor-pointer items-center
+      gap-2 font-semibold;
+  }
+
+  /* Checkboxes */
+  .inventario-checkbox,
+  .inventario-seleccionar-todos input {
+    @apply size-4 cursor-pointer accent-brand;
+  }
+
+  /* Contador */
+  .inventario-barra-seleccion > span {
+    @apply text-muted;
+  }
+
+  /* Botón de eliminación múltiple */
+  .inventario-boton-peligro {
+    @apply ml-auto bg-red-700 text-white
+      hover:bg-red-800;
+  }
+
+  /* Botón de papelera individual */
+  .inventario-papelera {
+    @apply inline-flex size-9 shrink-0 items-center
+      justify-center rounded-lg border border-red-200
+      bg-white text-red-700 transition
+      hover:bg-red-50;
+  }
+
+  .inventario-papelera svg {
+    @apply size-4;
+  }
+
+  /* Resaltar las filas seleccionadas */
+  .inventario-fila-seleccionada {
+    @apply bg-peach/50;
+  }
+
+  /* Mensajes de error */
+  .inventario-mensaje-eliminacion {
+    @apply mx-5 my-4;
+  }
+
+  /* Adaptación para celulares */
+  @media (max-width: 640px) {
+    .inventario-boton-peligro {
+      @apply ml-0 w-full;
+    }
+  }
+}

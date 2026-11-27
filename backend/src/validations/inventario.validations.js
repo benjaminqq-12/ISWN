@@ -191,3 +191,46 @@ export const inventarioQueryValidation = Joi.object({
       "any.only": "La categoría de inventario no está permitida.",
     }),
 });
+
+// validacion para eliminar un item y exige confirmacion explicita
+export const eliminarInventarioValidation = Joi.object({
+  confirmarEliminacion: Joi.boolean()
+    .valid(true)
+    .strict()
+    .required()
+    .messages({
+      "any.only":
+        "Debes confirmar expresamente la eliminación permanente del artículo y su historial.",
+      "any.required":
+        "Falta la confirmación de eliminación permanente.",
+    }),
+});
+
+//validacion para eliminar varios items y reutiliza la confirmacion individual
+export const eliminarInventarioLoteValidation =
+  eliminarInventarioValidation.keys({
+    ids: Joi.array()
+      .items(
+        Joi.number()
+          .integer()
+          .min(1)
+          .max(2147483647)
+          .strict()
+      )
+      .min(1)
+      .max(50)
+      .unique()
+      .required()
+      .messages({
+        "array.base":
+          "Los identificadores deben enviarse como un arreglo.",
+        "array.min":
+          "Selecciona al menos un artículo.",
+        "array.max":
+          "No puedes eliminar más de 50 artículos por operación.",
+        "array.unique":
+          "No se permiten identificadores repetidos.",
+        "any.required":
+          "Debes indicar los artículos que deseas eliminar.",
+      }),
+  });

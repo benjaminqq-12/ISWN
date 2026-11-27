@@ -8,6 +8,7 @@ import {
   editarItemInventarioService,
   registrarMovimientoInventarioService,
   listarMovimientosInventarioService,
+  eliminarItemsInventarioService,
 } from "../services/inventario.service.js";
 import {
   CATEGORIAS,
@@ -16,6 +17,8 @@ import {
   movimientoInventarioSchema,
   inventarioIdValidation,
   inventarioQueryValidation,
+  eliminarInventarioValidation,
+  eliminarInventarioLoteValidation,
 } from "../validations/inventario.validations.js";
 
 // Los controladores, como los de Mascotas, validan la solicitud y traducen
@@ -32,7 +35,7 @@ function obtenerIdInventario(req, res) {
 //transforma los errores del service en respuestas HTTP 
 function responderError(res, error) {
   if (error.status >= 500) return handleErrorServer(res, error.status, error.message);
-  return handleErrorClient(res, error.status, error.message, error.message, error.details ?? {});
+  return handleErrorClient(res, error.status, error.message, error.details ?? {});
 }
 
 //formatea los mensajes devueltos por joi 
@@ -103,4 +106,22 @@ export async function listarMovimientosInventario(req, res) {
   const [movimientos, error] = await listarMovimientosInventarioService(id);
   if (error) return responderError(res, error);
   return handleSuccess(res, 200, "Movimientos obtenidos (últimos 100)", movimientos);
+}
+
+export async function eliminarItemInventario(req, res) {
+  const id = obtenerIdInventario(req, res);
+  if (id === null) return;
+  const { error } = eliminarInventarioValidation.validate(req.body ?? {});
+  if  (error) return responderValidacion(res, error);
+  const [resultado, fallo] = await eliminarItemsInventarioService([id]);
+  if (fallo) return responderError(res, fallo);
+  return handleSuccess(res, 200, "Artículo e historial eliminados permanentemente", resultado);
+}
+
+export async function eliminarItemsInventario(req, res) {
+  const { error, value } = eliminarInventarioLoteValidation.validate(req.body ?? {} , {abortEarly: false,});
+  if (error) return responderValidacion(res, error);
+  const [resultado, fallo] = await eliminarItemsInventarioService(value.ids);
+  if (fallo) return responderError(res, fallo);
+  return handleSuccess(res, 200,  `Se eliminaron ${resultado.cantidadEliminada} artículos y ${resultado.cantidadMovimientosEliminados} movimientos de su historial.`, resultado);
 }
